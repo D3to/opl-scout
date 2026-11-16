@@ -2,7 +2,7 @@ name: Update data
 
 on:
   schedule:
-    - cron: "30 * * * *"          # stündlich: nur Rang/Ranked-Stats (HenrikDev), OPL aus dem Cache
+    - cron: "15 * * * *"          # stündlich: nur Rang/Ranked-Stats (HenrikDev), OPL aus dem Cache
     - cron: "0 22 * * *"          # täglich 22:00 UTC = 23:00 Uhr deutscher Winterzeit (Sommerzeit: 0:00 Uhr): OPL komplett
     # GitHub startet geplante Läufe oft einige Minuten verspätet
   workflow_dispatch:               # manuell: über die Webseite (Admin-Login) oder den Actions-Tab
