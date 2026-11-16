@@ -1,0 +1,7 @@
+# Geheimnisse und lokale Daten – nie committen
+.env
+.cache.json
+*.tmp
+.state/
+_site/
+__pycache__/

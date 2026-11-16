@@ -1,0 +1,9 @@
+{
+  "region": "eu",
+  "schedule_minute": 17,
+  "leagues": [
+    {"name": "1. Liga", "url": "https://www.opleague.pro/event/8283-UniligaVALORANTWinterseason202627-Gruppenphase-1Liga/standing/overview"},
+    {"name": "2. Liga", "url": "https://www.opleague.pro/event/8284-UniligaVALORANTWinterseason202627-Gruppenphase-2Liga/standing/overview"},
+    {"name": "3. Liga", "url": "https://www.opleague.pro/event/8285-UniligaVALORANTWinterseason202627-Gruppenphase-3Liga/standing"}
+  ]
+}

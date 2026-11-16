@@ -1,0 +1,447 @@
+"""
+OPL Scout – gemeinsame Logik: OPLeague auslesen, HenrikDev-API abfragen, Cache.
+Wird von build.py (GitHub Action / lokal) benutzt. Nur Python-Standardbibliothek.
+"""
+import html
+import json
+import os
+import re
+import threading
+import time
+import urllib.error
+import urllib.parse
+import urllib.request
+from collections import deque
+from concurrent.futures import ThreadPoolExecutor
+from pathlib import Path
+
+DEFAULT_URL = ("https://www.opleague.pro/event/8285-UniligaVALORANTWinterseason202627-"
+               "Gruppenphase-3Liga/standing")
+UA = ("Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) "
+      "Chrome/130.0 Safari/537.36")
+HENRIK_BASE = "https://api.henrikdev.xyz"
+HERE = Path(__file__).resolve().parent
+CACHE_FILE = HERE / ".cache.json"
+
+
+
+def load_env(path):
+    """Liest KEY=VALUE-Zeilen aus .env; bereits gesetzte Umgebungsvariablen haben Vorrang."""
+    placeholders = ("", "HDEV-...", "HDEV-dein-key")
+    if os.environ.get("HENRIKDEV_API_KEY", "").strip() in placeholders:
+        os.environ.pop("HENRIKDEV_API_KEY", None)
+    if not path.exists():
+        return
+    for line in path.read_text().splitlines():
+        line = line.strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+        k, v = line.split("=", 1)
+        k = k.strip().removeprefix("export ").strip()
+        v = v.strip().strip('"').strip("'")
+        if k and k not in os.environ:
+            os.environ[k] = v
+    # Platzhalter aus der Vorlage nicht als Key werten
+    if os.environ.get("HENRIKDEV_API_KEY", "").strip() in placeholders:
+        os.environ.pop("HENRIKDEV_API_KEY", None)
+
+
+load_env(HERE / ".env")
+
+# Cache-Dauer (per .env überschreibbar, Angaben in Stunden). Manuell aktualisieren geht jederzeit per Button.
+_h = lambda name, default: float(os.environ.get(name, default)) * 3600
+OPL_TTL = _h("STANDINGS_TTL_HOURS", 1)      # Standings-Tabelle
+TEAM_TTL = _h("TEAM_TTL_HOURS", 24 * 7)     # Kader + Riot-IDs
+STATS_TTL = _h("STATS_TTL_HOURS", 24 * 7)   # Spieler-Stats
+
+
+# --------------------------------------------------------------------------- cache
+class Cache:
+    def __init__(self, path):
+        self.path = path
+        self.autosave = True
+        self.lock = threading.Lock()
+        try:
+            self.data = json.loads(path.read_text())
+        except Exception:
+            self.data = {}
+
+    def get(self, key, ttl):
+        with self.lock:
+            e = self.data.get(key)
+        if e and time.time() - e["t"] < ttl:
+            v = e["v"]
+            if isinstance(v, dict) and "updated" not in v:
+                v["updated"] = e["t"]
+            return v
+        return None
+
+    def peek(self, key):
+        """Wert unabhängig vom Alter (für Übersichten)."""
+        with self.lock:
+            e = self.data.get(key)
+        return e["v"] if e else None
+
+    def set(self, key, value):
+        with self.lock:
+            self.data[key] = {"t": time.time(), "v": value}
+        if self.autosave:
+            self.save()
+
+    def age(self, key):
+        with self.lock:
+            e = self.data.get(key)
+        return time.time() - e["t"] if e else None
+
+    def save(self):
+        with self.lock:
+            try:
+                tmp = self.path.with_suffix(".tmp")
+                tmp.write_text(json.dumps(self.data, separators=(",", ":")))
+                tmp.replace(self.path)  # atomar: nie eine halb geschriebene Datei
+            except Exception as e:
+                print("Cache speichern fehlgeschlagen:", e)
+
+
+cache = Cache(CACHE_FILE)
+
+
+def use_cache(path, autosave=True):
+    """Anderen Cache-Pfad verwenden (z. B. im data-Branch der GitHub Action)."""
+    global cache
+    cache = Cache(Path(path))
+    cache.autosave = autosave
+    return cache
+
+
+# --------------------------------------------------------------------------- http
+def fetch(url, headers=None, timeout=20):
+    req = urllib.request.Request(url, headers={"User-Agent": UA, **(headers or {})})
+    with urllib.request.urlopen(req, timeout=timeout) as r:
+        return r.read().decode("utf-8", "replace")
+
+
+def text(s):
+    return html.unescape(re.sub(r"<[^>]+>", "", s)).strip()
+
+
+# --------------------------------------------------------------------------- OPLeague
+def opl_standings(url, refresh=False):
+    key = "standing:" + url
+    hit = None if refresh else cache.get(key, OPL_TTL)
+    if hit:
+        return hit
+    page = fetch(url)
+    title = re.search(r"<title>(.*?)</title>", page, re.S)
+    title = text(title.group(1)).split("|")[0].replace("Standing - ", "").strip() if title else ""
+    m = re.search(r'<table class="event-ranking__container.*?</table>', page, re.S)
+    if not m:
+        # Gruppen-Ansicht (z. B. 1./2. Liga): Daten liegen als JSON in der Seite
+        j = re.search(r'var data = (\{"standing_overview".*?\});?\s*</script>', page, re.S)
+        if not j:
+            raise RuntimeError("Standing-Tabelle nicht gefunden")
+        res = {"title": title, "url": url, **parse_group_overview(json.loads(j.group(1)))}
+        cache.set(key, res)
+        return res
+    table = m.group(0)
+    headers = [text(h) for h in re.findall(r"<th[^>]*>(.*?)</th>", table, re.S)]
+    teams = []
+    for row in re.findall(r"<tr>(.*?)</tr>", table, re.S):
+        link = re.search(r'href="(https://www\.opleague\.pro/team/(\d+)-[^"]*)"\s+title="([^"]*)"', row)
+        if not link:
+            continue
+        cells = re.findall(r"<td[^>]*>(.*?)</td>", row, re.S)
+        stripe = re.search(r'indicator-stripe\s+--(\w+)', row)
+        logo = re.search(r'<img src="([^"]+)"', row)
+        vals = [text(c) for c in cells]
+        stats = {}
+        for i, h in enumerate(headers):
+            if h and i < len(vals):
+                stats[h] = vals[i]
+        teams.append({
+            "group": "",
+            "id": link.group(2),
+            "url": link.group(1),
+            "name": html.unescape(link.group(3)),
+            "rank": vals[0].rstrip(".") if vals else "",
+            "zone": stripe.group(1) if stripe else "",
+            "logo": logo.group(1) if logo else "",
+            "stats": stats,
+        })
+    res = {"title": title, "url": url, "columns": [h for h in headers if h], "groups": [], "teams": teams}
+    cache.set(key, res)
+    return res
+
+
+GROUP_COLUMNS = ["played", "wins", "draws", "losses", "points", "round dif"]
+
+
+def parse_group_overview(data):
+    teams, groups = [], []
+    for g in data.get("standing_overview") or []:
+        gname = (g.get("event_info") or {}).get("name", "")
+        gm = re.search(r"Gruppe\s+(\S+)\s*$", gname) or re.search(r"Group\s+(\S+)\s*$", gname)
+        group = gm.group(1) if gm else str(len(groups) + 1)
+        groups.append(group)
+        for it in (g.get("standing") or {}).get("list") or []:
+            ti, st = it.get("team_info") or {}, it.get("standing") or {}
+            logos = ti.get("logo_array") or {}
+            logo = next((logos[k] for k in ("30", "32", "50", "16") if isinstance(logos.get(k), str)), "")
+            teams.append({
+                "group": group,
+                "id": str(ti.get("ID") or ti.get("identifier")),
+                "url": ti.get("url") or f"https://www.opleague.pro/team/{ti.get('ID')}",
+                "name": ti.get("name") or ti.get("title") or "",
+                "rank": str(it.get("place", "")),
+                "zone": (it.get("color") or "").lstrip("-"),
+                "logo": logo,
+                "stats": {
+                    "played": st.get("played"), "wins": st.get("wins_total", st.get("wins")),
+                    "draws": st.get("draws"), "losses": st.get("loss_total", st.get("loss")),
+                    "points": st.get("points"), "round dif": st.get("rounds_dif"),
+                },
+            })
+    return {"columns": GROUP_COLUMNS, "groups": groups, "teams": teams}
+
+
+def opl_riot_id(user_url, refresh=False):
+    key = "riot:" + user_url
+    hit = None if refresh else cache.get(key, TEAM_TTL)
+    if hit is not None:
+        return hit
+    page = fetch(user_url)
+    m = re.search(r"<td>Riot ID \(Valorant\)</td>\s*<td[^>]*>(.*?)</td>", page, re.S)
+    rid = text(m.group(1)) if m else ""
+    cache.set(key, rid)
+    return rid
+
+
+def opl_team(team_id, refresh=False, refresh_ids=None):
+    if refresh_ids is None:
+        refresh_ids = refresh
+    key = f"team:{team_id}"
+    hit = None if refresh else cache.get(key, TEAM_TTL)
+    if hit:
+        return hit
+    page = fetch(f"https://www.opleague.pro/team/{team_id}")
+    name = re.search(r"<title>(.*?) - Team Profile", page)
+    m = re.search(r'<table[^>]*id="team_members".*?</table>', page, re.S)
+    members = []
+    if m:
+        for row in re.findall(r"<tr sort-row>(.*?)</tr>", m.group(0), re.S):
+            link = re.search(r'href="(https://www\.opleague\.pro/user/\d+-[^"]*)"', row)
+            cells = re.findall(r"<td[^>]*>(.*?)</td>", row, re.S)
+            if not link or not cells:
+                continue
+            members.append({
+                "opl_name": text(cells[0]),
+                "opl_url": link.group(1),
+                "position": text(cells[1]) if len(cells) > 1 else "",
+            })
+    with ThreadPoolExecutor(6) as ex:
+        for mem, rid in zip(members, ex.map(lambda x: opl_riot_id(x["opl_url"], refresh_ids), members)):
+            mem["riot_id"] = rid
+    order = {"Captain": 0, "Player": 1, "Substitute": 2, "Stand-In": 2, "Coach": 3, "Manager": 4}
+    members.sort(key=lambda x: (order.get(x["position"], 5), x["opl_name"].lower()))
+    res = {"id": team_id, "name": text(name.group(1)) if name else "", "members": members,
+           "updated": time.time()}
+    cache.set(key, res)
+    return res
+
+
+# --------------------------------------------------------------------------- HenrikDev
+class RateLimiter:
+    """Hält sich an das Limit des HenrikDev-Basic-Keys (30 Requests/Minute)."""
+
+    def __init__(self, per_minute):
+        self.per_minute = per_minute
+        self.calls = deque()
+        self.lock = threading.Lock()
+
+    def wait(self):
+        while True:
+            with self.lock:
+                now = time.time()
+                while self.calls and now - self.calls[0] > 60:
+                    self.calls.popleft()
+                if len(self.calls) < self.per_minute:
+                    self.calls.append(now)
+                    return
+                delay = 60 - (now - self.calls[0]) + 0.1
+            time.sleep(delay)
+
+
+class HenrikError(Exception):
+    def __init__(self, status, msg):
+        super().__init__(msg)
+        self.status = status
+
+
+limiter = RateLimiter(int(os.environ.get("HENRIKDEV_RPM", "25")))
+
+
+def henrik(path):
+    key = os.environ.get("HENRIKDEV_API_KEY", "").strip()
+    if not key:
+        raise HenrikError(401, "Kein HENRIKDEV_API_KEY gesetzt")
+    for attempt in range(3):
+        limiter.wait()
+        try:
+            body = fetch(HENRIK_BASE + path, headers={"Authorization": key, "Accept": "application/json"})
+            return json.loads(body)
+        except urllib.error.HTTPError as e:
+            if e.code == 429 and attempt < 2:
+                # Server-Limit erreicht: bis zum Reset warten und erneut versuchen
+                reset = e.headers.get("x-ratelimit-reset") or e.headers.get("retry-after") or "10"
+                try:
+                    delay = min(max(float(reset), 1.0), 60.0)
+                except ValueError:
+                    delay = 10.0
+                time.sleep(delay + 0.5)
+                continue
+            try:
+                err = json.loads(e.read().decode())
+                msg = (err.get("errors") or [{}])[0].get("message") or str(err)
+            except Exception:
+                msg = e.reason
+            raise HenrikError(e.code, msg)
+
+
+def q(s):
+    return urllib.parse.quote(s, safe="")
+
+
+def player_stats(riot_id, region, refresh=False):
+    if "#" not in riot_id:
+        return {"error": "Keine gültige Riot-ID"}
+    name, tag = riot_id.rsplit("#", 1)
+    ck = f"stats:{region}:{riot_id.lower()}"
+    hit = None if refresh else cache.get(ck, STATS_TTL)
+    if hit:
+        return hit
+
+    out = {"riot_id": riot_id, "updated": time.time(),
+           "tracker_url": f"https://tracker.gg/valorant/profile/riot/{q(riot_id)}/overview"}
+
+    # Rang + Peak
+    try:
+        mmr = henrik(f"/valorant/v3/mmr/{region}/pc/{q(name)}/{q(tag)}").get("data") or {}
+        cur = mmr.get("current") or {}
+        peak = mmr.get("peak") or {}
+        out["current"] = {
+            "tier": (cur.get("tier") or {}).get("id"),
+            "name": (cur.get("tier") or {}).get("name"),
+            "rr": cur.get("rr"),
+            "elo": cur.get("elo"),
+            "last_change": cur.get("last_change"),
+        }
+        out["peak"] = {
+            "tier": (peak.get("tier") or {}).get("id"),
+            "name": (peak.get("tier") or {}).get("name"),
+            "season": (peak.get("season") or {}).get("short"),
+        }
+        acc = mmr.get("account") or {}
+        if acc.get("name"):
+            out["riot_id"] = f'{acc["name"]}#{acc.get("tag", tag)}'
+    except HenrikError as e:
+        if e.status in (401, 403):
+            return {"error": f"API-Key ungültig/fehlt: {e}", "fatal": True, **out}
+        if e.status == 404:
+            res = {"error": "Account nicht gefunden (Riot-ID geändert?)", **out}
+            cache.set(ck, res)  # spart beim Komplett-Laden unnötige Requests
+            return res
+        out["mmr_error"] = str(e)
+
+    # Letzte Competitive-Matches
+    try:
+        sm = henrik(f"/valorant/v1/stored-matches/{region}/{q(name)}/{q(tag)}?mode=competitive&size=20")
+        out["recent"] = summarize_matches(sm.get("data") or [])
+    except HenrikError as e:
+        out["matches_error"] = str(e)
+
+    if "mmr_error" not in out and "matches_error" not in out:
+        cache.set(ck, out)
+    return out
+
+
+def summarize_matches(matches):
+    n = k = d = a = hs = shots = dmg = rounds = wins = score = 0
+    agents = {}
+    for m in matches:
+        s = m.get("stats") or {}
+        teams = m.get("teams") or {}
+        my = (s.get("team") or "").lower()
+        if not s:
+            continue
+        n += 1
+        k += s.get("kills") or 0
+        d += s.get("deaths") or 0
+        a += s.get("assists") or 0
+        sh = s.get("shots") or {}
+        hs += sh.get("head") or 0
+        shots += (sh.get("head") or 0) + (sh.get("body") or 0) + (sh.get("leg") or 0)
+        dmg += (s.get("damage") or {}).get("made") or 0
+        score += s.get("score") or 0
+        r = sum(v or 0 for v in teams.values() if isinstance(v, (int, float)))
+        rounds += r
+        other = [v for t, v in teams.items() if t.lower() != my]
+        if my in teams and other and (teams[my] or 0) > (other[0] or 0):
+            wins += 1
+        ag = (s.get("character") or {}).get("name")
+        if ag:
+            agents[ag] = agents.get(ag, 0) + 1
+    if not n:
+        return {"matches": 0}
+    return {
+        "matches": n,
+        "wins": wins,
+        "winrate": round(100 * wins / n),
+        "kd": round(k / d, 2) if d else float(k),
+        "kda": f"{k}/{d}/{a}",
+        "hs": round(100 * hs / shots, 1) if shots else None,
+        "adr": round(dmg / rounds) if rounds else None,
+        "acs": round(score / rounds) if rounds else None,
+        "agents": [x for x, _ in sorted(agents.items(), key=lambda kv: -kv[1])[:3]],
+    }
+
+
+# --------------------------------------------------------------------------- Team-Übersicht
+CORE_POSITIONS = ("Player", "Captain")
+
+
+def tier_from_elo(elo):
+    return max(3, min(27, int(elo // 100) + 3))
+
+
+def team_summary(team_id, region):
+    """Ø-Elo aus dem Cache (ohne neue Requests)."""
+    team = cache.peek(f"team:{team_id}")
+    if not team:
+        return None
+    core, allm, updated = [], [], [team.get("updated") or 0]
+    with_id = 0
+    for m in team["members"]:
+        if not m.get("riot_id"):
+            continue
+        with_id += m["position"] in CORE_POSITIONS
+        st = cache.peek(f"stats:{region}:{m['riot_id'].lower()}")
+        elo = ((st or {}).get("current") or {}).get("elo")
+        if st and st.get("updated"):
+            updated.append(st["updated"])
+        if elo:
+            allm.append(elo)
+            if m["position"] in CORE_POSITIONS:
+                core.append(elo)
+
+    def avg(lst):
+        if not lst:
+            return None
+        e = round(sum(lst) / len(lst))
+        return {"elo": e, "tier": tier_from_elo(e), "n": len(lst)}
+
+    top5 = sorted(core, reverse=True)[:5]  # 5 höchste Ränge unter Player + Captain
+    return {"core": avg(core), "all": avg(allm), "top5": avg(top5), "core_total": with_id,
+            "all_total": sum(1 for m in team["members"] if m.get("riot_id")),
+            "updated": min(u for u in updated if u) if any(updated) else None}
+
+

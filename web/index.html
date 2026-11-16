@@ -1,0 +1,618 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>OPL Scout</title>
+<style>
+  :root{--bg:#0f1218;--panel:#171b23;--panel2:#1e2430;--line:#2a3140;--txt:#e6e9ef;--mut:#8b94a7;--acc:#ff4655;--good:#3ecf8e;--bad:#ff6b6b;--np:#c9a7ff}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--txt);font:14px/1.45 system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+  header{padding:12px 20px;border-bottom:1px solid var(--line);display:flex;gap:14px;align-items:center;flex-wrap:wrap}
+  header h1{font-size:18px;margin:0}
+  header h1 span{color:var(--acc)}
+  .spacer{flex:1}
+  #title{color:var(--mut);padding:0 20px 8px;font-size:13px}
+  #datastate{color:var(--mut);font-size:12px;text-align:right}
+  #warn{background:#3a2a10;color:#ffc66b;padding:8px 20px;display:none}
+  #notice{background:#13283a;color:#9fd0ff;padding:8px 20px;display:none}
+  main{display:grid;grid-template-columns:var(--side-w,420px) 6px 1fr;height:calc(100vh - 92px)}
+  #splitter{cursor:col-resize;background:var(--line);transition:background .15s}
+  #splitter:hover,#splitter.drag{background:var(--acc)}
+  body.resizing{cursor:col-resize;user-select:none}
+  @media (max-width:900px){main{grid-template-columns:1fr;height:auto} #splitter{display:none}}
+  #teams,#detail{min-width:0}
+  #teams{display:flex;flex-direction:column;overflow:hidden}
+  #teamlist{flex:1;overflow:auto}
+  .sidetools{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:10px 8px;border-bottom:1px solid var(--line);background:var(--panel)}
+  #admininfo{flex-basis:100%;font-size:12px;color:var(--mut)} #admininfo:empty{display:none}
+  button{background:var(--acc);color:#fff;border:0;border-radius:6px;padding:6px 12px;cursor:pointer;font:inherit}
+  button.ghost{background:var(--panel2);color:var(--txt);border:1px solid var(--line)}
+  button:disabled{opacity:.5;cursor:wait}
+  th.sortable{cursor:pointer;user-select:none} th.sortable:hover{color:var(--txt)}
+  .arrow{font-size:9px;margin-left:3px;color:var(--acc)}
+  th.c,td.c{text-align:center;padding-left:2px;padding-right:2px}
+  .avgicon{width:26px;height:26px;vertical-align:middle}
+  .nodata{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border:1.5px dashed var(--line);border-radius:50%;color:var(--mut);font-size:11px}
+  table{width:100%;border-collapse:collapse}
+  th,td{padding:7px 8px;text-align:left;white-space:nowrap}
+  th{position:sticky;top:0;background:var(--panel);color:var(--mut);font-weight:500;font-size:12px;text-transform:uppercase;letter-spacing:.03em;z-index:1}
+  #teams tr.team{cursor:pointer;border-bottom:1px solid var(--line)}
+  #teams tr.team:hover{background:var(--panel2)}
+  #teams tr.team.sel{background:#2a1a20;box-shadow:inset 3px 0 var(--acc)}
+  .tn{display:flex;align-items:center;gap:8px}
+  .tn img{width:24px;height:24px;border-radius:4px}
+  .z-promotion td:first-child{color:var(--good)}
+  td.num{text-align:right;font-variant-numeric:tabular-nums}
+  #detail{overflow:auto;padding:20px}
+  .empty{color:var(--mut);padding:40px;text-align:center}
+  .toolbar{display:flex;align-items:center;gap:12px;margin-bottom:14px;flex-wrap:wrap}
+  .th{display:flex;align-items:center;gap:12px;margin-bottom:6px}
+  .th img{width:48px;height:48px;border-radius:8px}
+  .th h2{margin:0}
+  .th a{color:var(--mut);font-size:13px}
+  .summary{color:var(--mut);margin:0 0 16px}
+  #players{background:var(--panel);border-radius:10px;overflow:auto}
+  #players td{border-top:1px solid var(--line)}
+  .rank{display:flex;align-items:center;gap:6px}
+  .rank img{width:26px;height:26px}
+  .sub{color:var(--mut);font-size:12px}
+  .pos{font-size:11px;padding:2px 6px;border-radius:4px;background:var(--panel2);color:var(--mut)}
+  .pos.Captain{color:#ffd166}
+  .pos.np{color:var(--np);background:#2a2340}
+  .local{font-size:10px;padding:1px 5px;border-radius:4px;background:#13283a;color:#9fd0ff;margin-left:4px}
+  #players tr.nonplayer td{background:rgba(160,120,255,.05)}
+  #players tr.nonplayer td:first-child{box-shadow:inset 3px 0 #8f6cff}
+  #players tr.nonplayer .pname,#players tr.nonplayer .rank{opacity:.75}
+  #players tr.sep td{background:var(--panel2);color:var(--np);font-size:11px;text-transform:uppercase;letter-spacing:.05em;padding:5px 8px}
+  .avgs{display:flex;gap:12px;flex-wrap:wrap;margin:0 0 16px}
+  .avg{display:flex;align-items:center;gap:10px;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:8px 14px;min-width:220px}
+  .avg img{width:40px;height:40px}
+  .avg .big{font-size:16px;font-weight:600}
+  .avg.np{border-color:#3a3155}
+  a{color:#7fb3ff;text-decoration:none} a:hover{text-decoration:underline}
+  .err{color:var(--bad);font-size:12px}
+  .ok{color:var(--good)}
+  .spin{display:inline-block;width:12px;height:12px;border:2px solid var(--line);border-top-color:var(--acc);border-radius:50%;animation:s 1s linear infinite;vertical-align:middle}
+  @keyframes s{to{transform:rotate(360deg)}}
+  .pos-up{color:var(--good)} .pos-dn{color:var(--bad)}
+  label{color:var(--mut);font-size:13px} input,select{background:var(--panel2);color:var(--txt);border:1px solid var(--line);border-radius:6px;padding:5px 8px;font:inherit}
+  #url{width:min(360px,45vw)}
+  .leagues{display:flex;gap:4px;flex-wrap:wrap}
+  .leagues button{background:var(--panel2);color:var(--txt);border:1px solid var(--line)}
+  .leagues button.active{background:var(--acc);border-color:var(--acc)}
+  .agents{display:flex;gap:3px;align-items:center}
+  .agents img{width:26px;height:26px;border-radius:50%;background:var(--panel2)}
+  .grp{display:inline-block;min-width:16px;font-size:10px;color:var(--np);font-weight:600}
+  #loginbtn.in{background:var(--panel2);border:1px solid var(--good);color:var(--good)}
+  dialog{background:var(--panel);color:var(--txt);border:1px solid var(--line);border-radius:12px;padding:0;width:min(520px,92vw)}
+  dialog::backdrop{background:rgba(0,0,0,.6)}
+  .dlg{padding:20px}
+  .dlg h3{margin:0 0 12px}
+  .tabs{display:flex;gap:6px;margin-bottom:14px}
+  .tabs button{background:var(--panel2);color:var(--txt);border:1px solid var(--line)}
+  .tabs button.on{background:var(--acc);border-color:var(--acc)}
+  .dlg input{width:100%;margin:6px 0 10px}
+  .dlg p{color:var(--mut);font-size:13px;margin:6px 0}
+  .dlg .row{display:flex;gap:8px;justify-content:flex-end;margin-top:10px}
+</style>
+</head>
+<body>
+<header>
+  <h1>OPL<span>Scout</span></h1>
+  <div class="leagues" id="leagues"></div>
+  <input id="url" placeholder="OPLeague Standing-URL">
+  <button id="open" class="ghost">Öffnen</button>
+  <div class="spacer"></div>
+  <div id="datastate"></div>
+  <button id="loginbtn" class="ghost">Login</button>
+</header>
+<div id="title"></div>
+<div id="warn"></div>
+<div id="notice"></div>
+<main>
+  <div id="teams">
+    <div class="sidetools">
+      <label>Ø <select id="metric" title="Welcher Durchschnitt in der Leiste angezeigt wird"></select></label>
+      <label>Sortieren <select id="sort"></select></label>
+      <button id="sortdir" class="ghost" title="Richtung umkehren">⇅</button>
+      <button id="leaguerefresh" style="display:none" title="Startet die GitHub Action für diese Liga (Kader + Stats aller Teams)">⟳ Liga aktualisieren</button>
+      <div id="admininfo"></div>
+    </div>
+    <div id="teamlist"><div class="empty"><span class="spin"></span> Lade Daten…</div></div>
+  </div>
+  <div id="splitter" title="Ziehen, um die Breite zu ändern (Doppelklick = Standard)"></div>
+  <div id="detail"><div class="empty">← Team anklicken, um Spieler und Stats zu sehen</div></div>
+</main>
+
+<dialog id="login">
+  <div class="dlg">
+    <h3>Login für manuelle Updates</h3>
+    <div class="tabs"><button data-tab="admin">Admin (GitHub)</button><button data-tab="key">Eigener API-Key</button></div>
+    <div id="tab-admin">
+      <p>Admins starten das Update auf GitHub; das Ergebnis sehen danach <b>alle</b> Besucher (nach 1–5 Minuten).</p>
+      <p>Benötigt: <b>Fine-grained Personal Access Token</b> nur für dieses Repo mit dem Recht <i>Actions: Read and write</i>.
+        <a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener">Token erstellen ↗</a></p>
+      <input id="ghtoken" type="password" placeholder="github_pat_…" autocomplete="off">
+    </div>
+    <div id="tab-key">
+      <p>Mit deinem eigenen HenrikDev-Key lädst du aktuelle Stats direkt in deinem Browser. Sie sind <b>nur für dich</b> sichtbar
+        und werden in diesem Browser gespeichert. Der Key wird nur an api.henrikdev.xyz gesendet.</p>
+      <p>Kostenloser Key: <a href="https://docs.henrikdev.xyz" target="_blank" rel="noopener">docs.henrikdev.xyz ↗</a> (Discord)</p>
+      <input id="hdkey" type="password" placeholder="HDEV-…" autocomplete="off">
+    </div>
+    <div id="loginmsg" class="sub"></div>
+    <div class="row"><button class="ghost" id="logout">Abmelden</button><button class="ghost" id="cancel">Schließen</button><button id="dologin">Anmelden</button></div>
+  </div>
+</dialog>
+
+<script>
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const RANK_ICON = t => `https://media.valorant-api.com/competitivetiers/03621f52-342b-cf4e-4f86-9350a49c6d04/${t}/smallicon.png`;
+const TIERS = ["Unrated","","","Iron 1","Iron 2","Iron 3","Bronze 1","Bronze 2","Bronze 3","Silver 1","Silver 2","Silver 3","Gold 1","Gold 2","Gold 3","Platinum 1","Platinum 2","Platinum 3","Diamond 1","Diamond 2","Diamond 3","Ascendant 1","Ascendant 2","Ascendant 3","Immortal 1","Immortal 2","Immortal 3","Radiant"];
+const tierFromElo = e => Math.max(3, Math.min(27, Math.floor(e/100)+3));
+const fmtTime = t => new Date(t*1000).toLocaleString("de-DE",{day:"2-digit",month:"2-digit",year:"numeric",hour:"2-digit",minute:"2-digit"}) + " Uhr";
+const fmtClock = t => new Date(t*1000).toLocaleTimeString("de-DE",{hour:"2-digit",minute:"2-digit"});
+const num = v => { const n = parseFloat(String(v ?? "").replace(",", ".")); return isNaN(n) ? null : n; };
+const isCore = m => m.position === "Player" || m.position === "Captain";
+const store = {
+  get(k, d=null){ try{ const v = localStorage.getItem("oplScout:"+k); return v === null ? d : JSON.parse(v); }catch(e){ return d; } },
+  set(k, v){ try{ v === null ? localStorage.removeItem("oplScout:"+k) : localStorage.setItem("oplScout:"+k, JSON.stringify(v)); }catch(e){} },
+};
+
+const METRICS = {
+  top5: {short:"Top 5", label:"Ø-Rang Top 5", tip:"Ø der 5 höchsten Ränge unter den aktiven Spielern (Player + Captain)"},
+  core: {short:"Spieler", label:"Ø-Rang nur Spieler", tip:"Ø der aktiven Spieler (Player + Captain)"},
+  all:  {short:"Alle", label:"Ø-Rang alle", tip:"Ø aller Mitglieder (inkl. Stand-In, Manager …)"},
+};
+const SHORT = {played:"Sp",wins:"S",draws:"U",losses:"N",points:"Pkt",lives:"Leben",tiebreaker:"TB","round dif":"RD"};
+const LONG = {played:"Spiele",wins:"Siege",draws:"Unentschieden",losses:"Niederlagen",points:"Punkte",lives:"Leben",tiebreaker:"Tiebreaker","round dif":"Rundendifferenz"};
+
+let meta = null, league = null, curTeam = null, current = 0;
+let metric = METRICS[store.get("metric")] ? store.get("metric") : "top5";
+let sortKey = "rank", sortDir = 1;
+let auth = store.get("auth");   // {mode:"admin", token} | {mode:"key", key}
+
+async function getJSON(path){
+  const r = await fetch(path, {cache: "no-store"});
+  if(!r.ok) throw new Error(`${path}: HTTP ${r.status}`);
+  return r.json();
+}
+function showWarn(t){ const w=$("#warn"); w.textContent=t; w.style.display=t?"block":"none"; }
+function showNotice(h){ const w=$("#notice"); w.innerHTML=h; w.style.display=h?"block":"none"; }
+
+// ------------------------------------------------------------------ Daten
+async function loadMeta(){
+  meta = await getJSON("data/meta.json?t=" + Date.now());
+  const next = new Date(); next.setMinutes(meta.schedule_minute ?? 17, 0, 0);
+  if(next <= new Date()) next.setHours(next.getHours() + 1);
+  $("#datastate").innerHTML = `Daten vom ${fmtTime(meta.generated)}<br>nächstes Auto-Update ~${next.toLocaleTimeString("de-DE",{hour:"2-digit",minute:"2-digit"})} Uhr`;
+  $("#leagues").innerHTML = meta.leagues.map(l => `<button data-id="${esc(l.id)}" title="${esc(l.title)}">${esc(l.name)}</button>`).join("");
+  document.querySelectorAll("#leagues button").forEach(b => b.onclick = () => openLeague(b.dataset.id));
+}
+
+async function openLeague(id, keepTeam=false){
+  const lg = meta.leagues.find(l => l.id === id) || meta.leagues[0];
+  if(!lg) { $("#teamlist").innerHTML = '<div class="empty">Noch keine Daten – die GitHub Action ist noch nicht gelaufen.</div>'; return; }
+  $("#url").value = lg.url;
+  store.set("league", lg.id);
+  document.querySelectorAll("#leagues button").forEach(b => b.classList.toggle("active", b.dataset.id === lg.id));
+  if(!keepTeam){
+    $("#teamlist").innerHTML = '<div class="empty"><span class="spin"></span> Lade Standings…</div>';
+    $("#detail").innerHTML = '<div class="empty">← Team anklicken, um Spieler und Stats zu sehen</div>';
+    curTeam = null;
+  }
+  try{
+    league = await getJSON(`data/league-${lg.id}.json?t=${meta.generated}`);
+  }catch(e){ $("#teamlist").innerHTML = `<div class="empty err">${esc(e.message)}</div>`; return; }
+  $("#title").textContent = league.title;
+  $("#sort").innerHTML = [["rank","Platz"],["avg", METRICS[metric].label],["name","Teamname"],...league.columns.map(c=>[c, LONG[c]||c])]
+    .map(([k,l]) => `<option value="${esc(k)}">${esc(l)}</option>`).join("");
+  if(![...$("#sort").options].some(o => o.value === sortKey)) sortKey = "rank";
+  $("#sort").value = sortKey;
+  renderTeams();
+  updateAdminUI();
+  if(keepTeam && curTeam) loadTeam(curTeam, true);
+}
+
+// ------------------------------------------------------------------ Seitenleiste
+const placeKey = t => (t.group ? t.group.charCodeAt(0) * 1000 : 0) + (num(t.rank) ?? 999);
+function sortVal(t){
+  if(sortKey === "rank") return placeKey(t);
+  if(sortKey === "name") return t.name.toLowerCase();
+  if(sortKey === "avg") return league.summaries[t.id]?.[metric]?.elo ?? null;
+  return num(t.stats[sortKey]);
+}
+function renderTeams(){
+  if(!league) return;
+  const cols = league.columns;
+  const teams = [...league.teams].sort((a,b) => {
+    const va = sortVal(a), vb = sortVal(b);
+    if(va === null && vb === null) return placeKey(a) - placeKey(b);
+    if(va === null) return 1;
+    if(vb === null) return -1;
+    const r = typeof va === "string" ? va.localeCompare(vb) : va - vb;
+    return (r || placeKey(a) - placeKey(b)) * (r ? sortDir : 1);
+  });
+  const arrow = k => sortKey === k ? `<span class="arrow">${sortDir > 0 ? "▲" : "▼"}</span>` : "";
+  const th = (k, label, cls="", title="") => `<th class="sortable ${cls}" data-k="${esc(k)}" title="${esc(title || "Sortieren")}">${label}${arrow(k)}</th>`;
+  $("#teamlist").innerHTML = `<table><thead><tr>${th("rank","#")}${th("avg","Ø","c", METRICS[metric].tip)}${th("name","Team")}${
+    cols.map(c => th(c, esc(SHORT[c]||c), "num", LONG[c]||c)).join("")}</tr></thead><tbody>${
+    teams.map(t => `<tr class="team z-${esc(t.zone)}${t.id===curTeam?" sel":""}" data-id="${esc(t.id)}"><td>${t.group ? `<span class="grp" title="Gruppe ${esc(t.group)}">${esc(t.group)}</span>` : ""}${esc(t.rank)}</td>
+      <td class="c">${avgIcon(league.summaries[t.id])}</td>
+      <td><div class="tn"><img src="${esc(t.logo)}" alt="">${esc(t.name)}</div></td>
+      ${cols.map(c=>`<td class="num">${esc(t.stats[c])}</td>`).join("")}</tr>`).join("")}</tbody></table>`;
+  document.querySelectorAll("#teamlist th.sortable").forEach(h => h.onclick = () => setSort(h.dataset.k, true));
+  document.querySelectorAll("tr.team").forEach(tr => tr.onclick = () => {
+    document.querySelectorAll("tr.team.sel").forEach(x=>x.classList.remove("sel"));
+    tr.classList.add("sel");
+    loadTeam(tr.dataset.id);
+  });
+}
+function setSort(k, toggle){
+  if(toggle && k === sortKey) sortDir = -sortDir;
+  else { sortKey = k; sortDir = (k === "rank" || k === "name") ? 1 : -1; }
+  $("#sort").value = sortKey;
+  renderTeams();
+}
+function avgIcon(sm){
+  const c = sm?.[metric];
+  if(!c) return `<span class="nodata" title="${sm ? "Keine Rang-Daten der Spieler" : "Noch nicht geladen"}">?</span>`;
+  const of = metric === "top5" ? Math.min(5, sm.core_total) : metric === "core" ? sm.core_total : sm.all_total;
+  const tip = `${METRICS[metric].short}: ${TIERS[c.tier]} · Ø-Elo ${c.elo} · ${c.n}/${of ?? "?"} Personen` + (sm.updated ? ` · Stand ${fmtTime(sm.updated)}` : "");
+  return `<img class="avgicon" src="${RANK_ICON(c.tier)}" alt="${esc(TIERS[c.tier])}" title="${esc(tip)}">`;
+}
+
+// ------------------------------------------------------------------ Teamansicht
+async function loadTeam(id, silent=false){
+  const my = ++current;
+  curTeam = id;
+  const meta_t = league.teams.find(t => t.id === id);
+  if(!silent) $("#detail").innerHTML = `<div class="empty"><span class="spin"></span> Lade ${esc(meta_t?.name || "")}…</div>`;
+  let team;
+  try{ team = await getJSON(`data/team-${id}.json?t=${meta.generated}`); }
+  catch(e){ $("#detail").innerHTML = `<div class="empty">Für dieses Team liegen noch keine Daten vor.</div>`; return; }
+  if(my !== current) return;
+  renderTeam(team, meta_t);
+}
+
+function statsFor(team, m){
+  const k = m.riot_id.toLowerCase();
+  const pub = team.stats[k], loc = store.get("local:" + k);
+  if(loc && (!pub || (loc.updated || 0) > (pub.updated || 0))) return {...loc, _local: true};
+  return pub;
+}
+
+function renderTeam(team, mt){
+  const s = mt?.stats || {};
+  const members = team.members;
+  const times = [team.updated];
+  const elos = [];
+  const rows = members.map((m,i) => {
+    const sep = !isCore(m) && (i===0 || isCore(members[i-1])) ? '<tr class="sep"><td colspan="10">Kein aktiver Spieler (Stand-In, Manager, Coach …)</td></tr>' : "";
+    const head = `<td><div><span class="pname">${esc(m.opl_name)}</span> <span class="pos ${esc(m.position)} ${isCore(m)?"":"np"}">${esc(m.position||"–")}</span></div>
+      <div class="sub">${m.riot_id ? esc(m.riot_id) : "keine Riot-ID hinterlegt"}</div></td>`;
+    let body = '<td colspan="9"></td>';
+    if(m.riot_id){
+      const p = statsFor(team, m);
+      const link = `<a href="https://tracker.gg/valorant/profile/riot/${encodeURIComponent(m.riot_id)}/overview" target="_blank" rel="noopener">tracker.gg ↗</a>`;
+      if(!p) body = `<td colspan="8" class="sub">noch nicht geladen</td><td>${link}</td>`;
+      else if(p.error && !p.current) body = `<td colspan="8" class="err">${esc(p.error)}</td><td>${link}</td>`;
+      else {
+        if(p.updated) times.push(p.updated);
+        const c = p.current || {}, r = p.recent || {};
+        if(c.elo) elos.push({elo: c.elo, core: isCore(m)});
+        const rr = c.rr != null && c.tier > 2 ? ` <span class="sub">${c.rr} RR</span>` : "";
+        const lc = c.last_change ? ` <span class="${c.last_change>0?"pos-up":"pos-dn"} sub">${c.last_change>0?"+":""}${c.last_change}</span>` : "";
+        const peakSeason = p.peak?.season ? ` <span class="sub">(${esc(p.peak.season)})</span>` : "";
+        const n = r.matches ? "" : '<span class="sub">–</span>';
+        const kdCls = r.kd >= 1.1 ? "pos-up" : r.kd && r.kd < 0.9 ? "pos-dn" : "";
+        body = `<td>${rankCell(c, rr + lc)}</td><td>${rankCell(p.peak, peakSeason)}</td>
+          <td class="num ${kdCls}" title="${esc(r.kda||"")}">${r.matches ? r.kd : n}</td>
+          <td class="num">${r.hs ?? n}${r.hs!=null?"%":""}</td><td class="num">${r.adr ?? n}</td><td class="num">${r.acs ?? n}</td>
+          <td class="num" title="${r.matches||0} Matches">${r.matches ? `${r.winrate}% <span class="sub">(${r.matches})</span>` : n}</td>
+          <td>${agentIcons(r.agents)}</td>
+          <td>${link}${p._local ? `<span class="local" title="Mit deinem Key geladen am ${esc(fmtTime(p.updated))}">lokal</span>` : ""}${p.matches_error ? `<div class="err" title="${esc(p.matches_error)}">Matches n/a</div>` : ""}</td>`;
+      }
+    }
+    return `${sep}<tr class="${isCore(m)?"":"nonplayer"}">${head}${body}</tr>`;
+  }).join("");
+
+  const oldest = Math.min(...times.filter(Boolean)), newest = Math.max(...times.filter(Boolean));
+  $("#detail").innerHTML = `
+    <div class="toolbar">${refreshButton()}
+      <span class="sub">Letztes Update: ${fmtTime(oldest)}${newest - oldest > 300 ? ` (teils neuer, bis ${fmtTime(newest)})` : ""}</span>
+      <span id="teamstatus" class="sub"></span></div>
+    <div class="th"><img src="${esc(mt?.logo||"")}" alt=""><div><h2>${esc(team.name||mt?.name)}</h2>
+      <a href="${esc(mt?.url||"")}" target="_blank" rel="noopener">OPLeague-Profil ↗</a></div></div>
+    <p class="summary">${mt?.group ? `Gruppe ${esc(mt.group)} · ` : ""}Platz ${esc(mt?.rank)} · ${esc(s.wins)}S / ${esc(s.losses)}N · Rundendiff. ${esc(s["round dif"])}</p>
+    <div class="avgs">
+      ${avgBox("Top 5 Spieler", "(5 beste Player + Captain)", elos.filter(e=>e.core).map(e=>e.elo).sort((a,b)=>b-a).slice(0,5))}
+      ${avgBox("nur Spieler", "(Player + Captain)", elos.filter(e=>e.core).map(e=>e.elo))}
+      ${avgBox("alle Mitglieder", "(inkl. Stand-In, Manager …)", elos.map(e=>e.elo), "np")}
+    </div>
+    <div id="players"><table><thead><tr>
+      <th>Spieler</th><th>Aktueller Rang</th><th>Peak</th><th class="num">K/D</th><th class="num">HS%</th>
+      <th class="num">ADR</th><th class="num">ACS</th><th class="num">Winrate</th><th>Agents</th><th></th>
+    </tr></thead><tbody>${rows}</tbody></table></div>
+    <p class="sub">Stats: letzte bis zu 20 Competitive-Matches (HenrikDev-API). Rang- und Agent-Icons: valorant-api.com.</p>`;
+  const rb = $("#teamrefresh");
+  if(rb) rb.onclick = () => auth?.mode === "admin" ? adminRefreshTeam(team.id || curTeam) : localRefreshTeam(team, mt);
+  const lb = $("#teamlogin"); if(lb) lb.onclick = openLogin;
+}
+function refreshButton(){
+  if(auth?.mode === "admin") return `<button id="teamrefresh" title="Startet die GitHub Action nur für dieses Team. Ergebnis für alle sichtbar.">↻ Aktualisieren</button>`;
+  if(auth?.mode === "key") return `<button id="teamrefresh" title="Lädt die Stats mit deinem Key in deinem Browser (nur für dich sichtbar)">↻ Lokal aktualisieren</button>`;
+  return `<button id="teamlogin" class="ghost" title="Manuelle Updates nur mit Admin-Login oder eigenem API-Key">🔒 Aktualisieren</button>`;
+}
+function rankCell(r, extra=""){
+  if(!r || r.tier == null || !r.name) return '<span class="sub">–</span>';
+  const img = r.tier > 2 ? `<img src="${RANK_ICON(r.tier)}" alt="" onerror="this.remove()">` : "";
+  return `<div class="rank">${img}<div>${esc(r.name)}${extra}</div></div>`;
+}
+function avgBox(label, hint, list, cls=""){
+  if(!list.length) return `<div class="avg ${cls}"><div class="sub">Ø ${label}<br>${hint}</div><span class="sub">keine Daten</span></div>`;
+  const avg = Math.round(list.reduce((a,b)=>a+b,0)/list.length), tier = tierFromElo(avg);
+  return `<div class="avg ${cls}" title="${esc(hint)}"><img src="${RANK_ICON(tier)}" alt="" onerror="this.remove()">
+    <div><div class="big">${esc(TIERS[tier])}</div><div class="sub">${label} · Ø-Elo ${avg} · ${list.length} ${list.length===1?"Person":"Personen"}</div></div></div>`;
+}
+
+// ------------------------------------------------------------------ Agent-Bilder
+let AGENT_ICONS = {};
+const agentsReady = fetch("https://valorant-api.com/v1/agents?isPlayableCharacter=true")
+  .then(r => r.json()).then(j => { for(const a of j.data || []) AGENT_ICONS[a.displayName.toLowerCase()] = a.displayIcon; })
+  .catch(() => {});
+function agentIcons(list){
+  if(!list || !list.length) return "";
+  return `<div class="agents">${list.map(a => AGENT_ICONS[a.toLowerCase()]
+    ? `<img src="${esc(AGENT_ICONS[a.toLowerCase()])}" alt="${esc(a)}" title="${esc(a)}">`
+    : `<span class="sub">${esc(a)}</span>`).join("")}</div>`;
+}
+
+// ------------------------------------------------------------------ Login
+function openLogin(){
+  const d = $("#login");
+  setTab(auth?.mode === "key" ? "key" : "admin");
+  $("#ghtoken").value = auth?.mode === "admin" ? auth.token : "";
+  $("#hdkey").value = auth?.mode === "key" ? auth.key : "";
+  $("#loginmsg").textContent = auth ? `Angemeldet als ${auth.mode === "admin" ? "Admin" : "Nutzer mit eigenem Key"}.` : "";
+  $("#logout").style.display = auth ? "" : "none";
+  d.showModal();
+}
+let tab = "admin";
+function setTab(t){
+  tab = t;
+  document.querySelectorAll(".tabs button").forEach(b => b.classList.toggle("on", b.dataset.tab === t));
+  $("#tab-admin").style.display = t === "admin" ? "" : "none";
+  $("#tab-key").style.display = t === "key" ? "" : "none";
+}
+async function doLogin(){
+  const msg = $("#loginmsg");
+  if(tab === "admin"){
+    const token = $("#ghtoken").value.trim();
+    if(!meta?.repo){ msg.innerHTML = '<span class="err">Repo unbekannt – die Seite muss über die GitHub Action gebaut sein.</span>'; return; }
+    msg.innerHTML = '<span class="spin"></span> Prüfe Token…';
+    try{
+      const r = await gh(`/actions/workflows/${meta.workflow}/runs?per_page=1`, {}, token);
+      if(!r.ok) throw new Error(r.status === 404 ? "Kein Zugriff auf dieses Repo (Token-Rechte prüfen)" : `GitHub: HTTP ${r.status}`);
+    }catch(e){ msg.innerHTML = `<span class="err">${esc(e.message)}</span>`; return; }
+    auth = {mode: "admin", token};
+  }else{
+    const key = $("#hdkey").value.trim();
+    if(!key){ msg.innerHTML = '<span class="err">Bitte Key eingeben.</span>'; return; }
+    auth = {mode: "key", key};
+  }
+  store.set("auth", auth);
+  $("#login").close();
+  afterAuthChange();
+}
+function afterAuthChange(){
+  const b = $("#loginbtn");
+  b.textContent = auth ? (auth.mode === "admin" ? "✓ Admin" : "✓ Eigener Key") : "Login";
+  b.classList.toggle("in", !!auth);
+  updateAdminUI();
+  if(curTeam) loadTeam(curTeam, true);
+}
+
+// ------------------------------------------------------------------ Admin: GitHub Action starten
+function gh(path, opts={}, token=auth?.token){
+  return fetch(`https://api.github.com/repos/${meta.repo}${path}`, {...opts, headers: {
+    "Accept": "application/vnd.github+json", "Authorization": `Bearer ${token}`, "X-GitHub-Api-Version": "2022-11-28", ...(opts.headers||{})}});
+}
+async function dispatch(inputs){
+  const r = await gh(`/actions/workflows/${meta.workflow}/dispatches`, {method: "POST", body: JSON.stringify({ref: meta.ref || "main", inputs})});
+  if(r.status !== 204){ const t = await r.text(); throw new Error(`GitHub: HTTP ${r.status} ${t.slice(0,150)}`); }
+}
+let runPoll = null;
+async function watchRuns(sinceTs){
+  clearTimeout(runPoll);
+  if(auth?.mode !== "admin" || !meta?.repo) return;
+  let runs = [];
+  try{
+    const r = await gh(`/actions/workflows/${meta.workflow}/runs?per_page=5`);
+    runs = (await r.json()).workflow_runs || [];
+  }catch(e){ return; }
+  const active = runs.filter(r => r.status !== "completed");
+  const mine = sinceTs ? runs.find(r => Date.parse(r.created_at) >= sinceTs - 15000 && r.event === "workflow_dispatch") : null;
+  const label = r => r.event === "schedule" ? "stündliches Update" : r.event === "workflow_dispatch" ? "manuelles Update" : "Neubau";
+  let html = active.map(r => `<span class="spin"></span> ${label(r)} ${r.status === "queued" || r.status === "pending" ? "wartet" : "läuft"} seit ${fmtClock(Date.parse(r.created_at)/1000)} · <a href="${r.html_url}" target="_blank" rel="noopener">Details ↗</a>`).join("<br>");
+  if(mine && mine.status === "completed"){
+    html = mine.conclusion === "success" ? '<span class="ok">✓ Update fertig – lade neue Daten…</span>' : `<span class="err">Update fehlgeschlagen</span> · <a href="${mine.html_url}" target="_blank" rel="noopener">Log ↗</a>`;
+    if(mine.conclusion === "success"){ waitForNewData(); sinceTs = null; }
+  }
+  if(!html && runs[0]) html = `Letzter Lauf: ${fmtTime(Date.parse(runs[0].updated_at)/1000)} · ${runs[0].conclusion === "success" ? '<span class="ok">ok</span>' : `<span class="err">${esc(runs[0].conclusion)}</span>`}`;
+  $("#admininfo").innerHTML = html;
+  const ts = $("#teamstatus"); if(ts && sinceTs) ts.innerHTML = html;
+  runPoll = setTimeout(() => watchRuns(sinceTs), active.length || sinceTs ? 10000 : 60000);
+}
+async function adminRefreshTeam(id){
+  const b = $("#teamrefresh"); b.disabled = true;
+  try{
+    const t0 = Date.now();
+    await dispatch({league: league.id, team: String(id)});
+    $("#teamstatus").innerHTML = '<span class="spin"></span> Update gestartet – kann warten, falls gerade das stündliche Update läuft.';
+    watchRuns(t0);
+  }catch(e){ $("#teamstatus").innerHTML = `<span class="err">${esc(e.message)}</span>`; b.disabled = false; }
+}
+async function adminRefreshLeague(){
+  const b = $("#leaguerefresh"); b.disabled = true;
+  try{ const t0 = Date.now(); await dispatch({league: league.id}); watchRuns(t0); }
+  catch(e){ $("#admininfo").innerHTML = `<span class="err">${esc(e.message)}</span>`; }
+  setTimeout(() => b.disabled = false, 5000);
+}
+function updateAdminUI(){
+  const admin = auth?.mode === "admin";
+  $("#leaguerefresh").style.display = admin && league ? "" : "none";
+  if(admin) watchRuns(); else { clearTimeout(runPoll); $("#admininfo").innerHTML = ""; }
+}
+// Nach einem Lauf: warten, bis GitHub Pages die neuen Daten ausliefert
+async function waitForNewData(tries=0){
+  const before = meta.generated;
+  try{ const m = await getJSON("data/meta.json?t=" + Date.now()); if(m.generated > before){ await reloadAll(); showNotice(""); return; } }catch(e){}
+  if(tries < 30) setTimeout(() => waitForNewData(tries+1), 10000);
+}
+async function reloadAll(){
+  const lid = league?.id;
+  await loadMeta();
+  if(lid) await openLeague(lid, true);
+}
+
+// ------------------------------------------------------------------ Eigener Key: Stats lokal laden
+const HD = "https://api.henrikdev.xyz";
+const calls = [];
+async function hdFetch(path){
+  for(let attempt = 0; attempt < 3; attempt++){
+    while(true){   // max. 25 Requests/Minute
+      const now = Date.now(); while(calls.length && now - calls[0] > 60000) calls.shift();
+      if(calls.length < 25){ calls.push(now); break; }
+      await new Promise(r => setTimeout(r, 60000 - (now - calls[0]) + 100));
+    }
+    const r = await fetch(HD + path, {headers: {"Authorization": auth.key}});
+    if(r.status === 429){ await new Promise(res => setTimeout(res, (+r.headers.get("x-ratelimit-reset") || 10) * 1000 + 500)); continue; }
+    const j = await r.json().catch(() => ({}));
+    if(!r.ok){ const e = new Error(j.errors?.[0]?.message || `HTTP ${r.status}`); e.status = r.status; throw e; }
+    return j;
+  }
+  const e = new Error("Rate limit"); e.status = 429; throw e;
+}
+async function localStats(riot){
+  const [name, tag] = [riot.slice(0, riot.lastIndexOf("#")), riot.slice(riot.lastIndexOf("#") + 1)];
+  const q = encodeURIComponent, region = meta.region || "eu";
+  const out = {riot_id: riot, updated: Date.now() / 1000};
+  try{
+    const d = (await hdFetch(`/valorant/v3/mmr/${region}/pc/${q(name)}/${q(tag)}`)).data || {};
+    const cur = d.current || {}, peak = d.peak || {};
+    out.current = {tier: cur.tier?.id, name: cur.tier?.name, rr: cur.rr, elo: cur.elo, last_change: cur.last_change};
+    out.peak = {tier: peak.tier?.id, name: peak.tier?.name, season: peak.season?.short};
+  }catch(e){
+    if(e.status === 401 || e.status === 403) throw new Error("API-Key ungültig");
+    if(e.status === 404) return {...out, error: "Account nicht gefunden (Riot-ID geändert?)"};
+    out.mmr_error = e.message;
+  }
+  try{
+    const sm = await hdFetch(`/valorant/v1/stored-matches/${region}/${q(name)}/${q(tag)}?mode=competitive&size=20`);
+    out.recent = summarizeMatches(sm.data || []);
+  }catch(e){ out.matches_error = e.message; }
+  return out;
+}
+function summarizeMatches(ms){
+  let n=0,k=0,d=0,a=0,hs=0,shots=0,dmg=0,rounds=0,wins=0,score=0; const ag = {};
+  for(const m of ms){
+    const s = m.stats, teams = m.teams || {}; if(!s) continue;
+    const my = (s.team || "").toLowerCase(); n++;
+    k += s.kills||0; d += s.deaths||0; a += s.assists||0;
+    const sh = s.shots || {}; hs += sh.head||0; shots += (sh.head||0)+(sh.body||0)+(sh.leg||0);
+    dmg += s.damage?.made||0; score += s.score||0;
+    rounds += Object.values(teams).reduce((x,y)=>x+(+y||0),0);
+    const other = Object.entries(teams).filter(([t]) => t.toLowerCase() !== my).map(([,v]) => v);
+    if(my in teams && other.length && (teams[my]||0) > (other[0]||0)) wins++;
+    const c = s.character?.name; if(c) ag[c] = (ag[c]||0) + 1;
+  }
+  if(!n) return {matches: 0};
+  return {matches:n, wins, winrate: Math.round(100*wins/n), kd: d ? Math.round(k/d*100)/100 : k, kda:`${k}/${d}/${a}`,
+    hs: shots ? Math.round(1000*hs/shots)/10 : null, adr: rounds ? Math.round(dmg/rounds) : null, acs: rounds ? Math.round(score/rounds) : null,
+    agents: Object.entries(ag).sort((x,y)=>y[1]-x[1]).slice(0,3).map(x=>x[0])};
+}
+async function localRefreshTeam(team, mt){
+  const b = $("#teamrefresh"); b.disabled = true;
+  const ids = team.members.filter(m => m.riot_id).map(m => m.riot_id);
+  let done = 0;
+  const st = () => $("#teamstatus").innerHTML = `<span class="spin"></span> Lade mit deinem Key… ${done}/${ids.length} (max. 25 Anfragen/min)`;
+  st();
+  try{
+    for(const rid of ids){
+      if(curTeam !== String(team.id) && curTeam !== team.id) break;
+      const res = await localStats(rid);
+      if(!res.mmr_error && !res.matches_error) store.set("local:" + rid.toLowerCase(), res);
+      done++; st();
+    }
+    if(curTeam == team.id) renderTeam(team, mt);
+  }catch(e){ $("#teamstatus").innerHTML = `<span class="err">${esc(e.message)}</span>`; b.disabled = false; }
+}
+
+// ------------------------------------------------------------------ URL-Feld
+async function openUrl(){
+  const u = $("#url").value.trim();
+  if(!u) return;
+  const m = u.match(/\/event\/(\d+)/);
+  const known = meta.leagues.find(l => l.url === u || (m && l.id === m[1]));
+  if(known) return openLeague(known.id);
+  if(auth?.mode !== "admin"){ showNotice("Diese Liga ist noch nicht in OPL Scout. Neue Ligen kann nur ein Admin hinzufügen (Login → Admin)."); return; }
+  if(!/^https:\/\/www\.opleague\.pro\/event\/\d+/.test(u)){ showNotice("Bitte eine OPLeague-Standing-URL eingeben (https://www.opleague.pro/event/…/standing)."); return; }
+  const name = prompt("Anzeigename für die neue Liga (z. B. „4. Liga“):", "");
+  if(name === null) return;
+  try{
+    const t0 = Date.now();
+    await dispatch({league: "all", add_league: u, add_league_name: name});
+    showNotice("Liga wird hinzugefügt – das erste Laden dauert je nach Größe 10–40 Minuten. Fortschritt in der Seitenleiste.");
+    watchRuns(t0);
+  }catch(e){ showNotice(`<span class="err">${esc(e.message)}</span>`); }
+}
+
+// ------------------------------------------------------------------ Seitenleiste: Breite per Maus
+(() => {
+  const main = document.querySelector("main"), sp = document.querySelector("#splitter");
+  const DEF = 420, clamp = w => Math.max(220, Math.min(w, window.innerWidth * 0.7));
+  const set = w => main.style.setProperty("--side-w", clamp(w) + "px");
+  const w0 = store.get("sideW"); if(w0) set(w0);
+  const save = () => store.set("sideW", parseInt(main.style.getPropertyValue("--side-w")) || DEF);
+  sp.addEventListener("pointerdown", e => { e.preventDefault(); sp.setPointerCapture(e.pointerId); sp.classList.add("drag"); document.body.classList.add("resizing"); });
+  sp.addEventListener("pointermove", e => { if(sp.hasPointerCapture(e.pointerId)) set(e.clientX - main.getBoundingClientRect().left); });
+  const end = e => { if(sp.hasPointerCapture(e.pointerId)) sp.releasePointerCapture(e.pointerId); sp.classList.remove("drag"); document.body.classList.remove("resizing"); save(); };
+  sp.addEventListener("pointerup", end); sp.addEventListener("pointercancel", end);
+  sp.addEventListener("dblclick", () => { set(DEF); save(); });
+})();
+
+// ------------------------------------------------------------------ Start
+(async () => {
+  $("#metric").innerHTML = Object.entries(METRICS).map(([k,v]) => `<option value="${k}">${esc(v.short)}</option>`).join("");
+  $("#metric").value = metric;
+  $("#metric").onchange = e => {
+    metric = e.target.value; store.set("metric", metric);
+    const o = [...$("#sort").options].find(o => o.value === "avg"); if(o) o.textContent = METRICS[metric].label;
+    renderTeams();
+  };
+  $("#sort").onchange = e => setSort(e.target.value, false);
+  $("#sortdir").onclick = () => { sortDir = -sortDir; renderTeams(); };
+  $("#open").onclick = openUrl;
+  $("#url").addEventListener("keydown", e => { if(e.key === "Enter") openUrl(); });
+  $("#leaguerefresh").onclick = adminRefreshLeague;
+  $("#loginbtn").onclick = openLogin;
+  document.querySelectorAll(".tabs button").forEach(b => b.onclick = () => setTab(b.dataset.tab));
+  $("#dologin").onclick = doLogin;
+  $("#cancel").onclick = () => $("#login").close();
+  $("#logout").onclick = () => { auth = null; store.set("auth", null); $("#login").close(); afterAuthChange(); };
+  try{ await loadMeta(); }
+  catch(e){ $("#teamlist").innerHTML = '<div class="empty">Noch keine Daten – die GitHub Action ist noch nicht gelaufen.</div>'; return; }
+  await agentsReady;
+  afterAuthChange();
+  await openLeague(store.get("league") || meta.leagues[0]?.id);
+  // alle 5 Minuten prüfen, ob es neue Daten gibt
+  setInterval(async () => {
+    try{ const m = await getJSON("data/meta.json?t=" + Date.now()); if(m.generated > meta.generated) await reloadAll(); }catch(e){}
+  }, 5 * 60 * 1000);
+})();
+</script>
+</body>
+</html>

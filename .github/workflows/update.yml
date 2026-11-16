@@ -1,0 +1,97 @@
+name: Update data
+
+on:
+  schedule:
+    - cron: "17 * * * *"          # stündlich (GitHub startet geplante Läufe oft ein paar Minuten später)
+  workflow_dispatch:               # manuell: über die Webseite (Admin-Login) oder den Actions-Tab
+    inputs:
+      league:
+        description: "Liga: 'all', Event-ID oder Standing-URL"
+        default: "all"
+      team:
+        description: "Team-ID – nur dieses Team sofort komplett neu laden"
+        default: ""
+      add_league:
+        description: "Neue Standing-URL dauerhaft hinzufügen (optional)"
+        default: ""
+      add_league_name:
+        description: "Anzeigename der neuen Liga (optional)"
+        default: ""
+  push:
+    branches: [main]
+    paths: ["web/**", "build.py", "scout_core.py", "config/**", ".github/workflows/update.yml"]
+
+permissions:
+  contents: write      # Cache im Branch `data` speichern
+  pages: write
+  id-token: write
+
+concurrency:
+  group: update-data
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    timeout-minutes: 55
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Zustand aus Branch `data` holen
+        run: |
+          mkdir -p state
+          if git ls-remote --exit-code --heads origin data >/dev/null; then
+            git fetch -q --depth 1 origin data
+            git archive FETCH_HEAD | tar -x -C state
+          fi
+          ls -la state
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Daten aktualisieren
+        env:
+          HENRIKDEV_API_KEY: ${{ secrets.HENRIKDEV_API_KEY }}
+          EVENT: ${{ github.event_name }}
+          IN_LEAGUE: ${{ inputs.league }}
+          IN_TEAM: ${{ inputs.team }}
+          IN_ADD: ${{ inputs.add_league }}
+          IN_ADD_NAME: ${{ inputs.add_league_name }}
+        run: |
+          ARGS=(--state state --out _site)
+          if [ "$EVENT" = "push" ]; then
+            ARGS+=(--export-only)                         # Code-Änderung: nur neu bauen
+          elif [ "$EVENT" = "schedule" ]; then
+            ARGS+=(--budget-minutes 30)
+          else
+            ARGS+=(--budget-minutes 40 --league "${IN_LEAGUE:-all}")
+            [ -n "$IN_TEAM" ] && ARGS+=(--team "$IN_TEAM")
+            [ -n "$IN_ADD" ] && ARGS+=(--add-league "$IN_ADD" --add-league-name "$IN_ADD_NAME")
+          fi
+          python build.py "${ARGS[@]}"
+
+      - name: Zustand speichern
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          cd state
+          [ -f cache.json ] || exit 0
+          # immer nur ein einziger Commit (keine wachsende Historie)
+          git init -q -b data
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -q -m "Daten $(date -u +'%Y-%m-%d %H:%M') UTC (${{ github.event_name }})"
+          git push -q -f "https://x-access-token:${GH_TOKEN}@github.com/${{ github.repository }}.git" data
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+      - id: deploy
+        uses: actions/deploy-pages@v4
