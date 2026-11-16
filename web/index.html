@@ -78,6 +78,69 @@
   .pos-up{color:var(--good)} .pos-dn{color:var(--bad)}
   label{color:var(--mut);font-size:13px} input,select{background:var(--panel2);color:var(--txt);border:1px solid var(--line);border-radius:6px;padding:5px 8px;font:inherit}
   #url{width:min(360px,45vw)}
+  #menu{display:contents}
+  .urlrow{display:flex;gap:6px}
+  .mobile-only,.back{display:none}
+
+  /* ---------------- Handy / schmale Fenster ---------------- */
+  @media (max-width:900px){
+    header{padding:10px 14px;gap:10px}
+    header h1{font-size:17px}
+    .mobile-only{display:inline-flex;align-items:center}
+    #curleague{flex:1;min-width:0;font-weight:600;color:var(--txt);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    #menubtn{font-size:20px;line-height:1;padding:6px 12px}
+    #menu{display:none;flex-basis:100%;flex-direction:column;gap:12px;padding:8px 0 4px;border-top:1px solid var(--line)}
+    body.menu-open #menu{display:flex}
+    .leagues button{flex:1;padding:10px 6px}
+    .urlrow #url{flex:1;width:auto}
+    .spacer{display:none}
+    #datastate{text-align:left}
+    #loginbtn{padding:10px}
+    #title{padding:6px 14px;font-size:12px}
+    main{display:block;height:auto}
+    #teams{overflow:visible}
+    #teamlist{overflow:visible}
+    body.show-detail #teams,body:not(.show-detail) #detail{display:none}
+    #detail{padding:12px 14px 40px}
+    .back{display:inline-flex}
+    .sidetools{flex-wrap:nowrap;padding:8px 10px}
+    .sidetools label{display:flex;align-items:center;gap:4px;min-width:0}
+    .sidetools label:nth-of-type(2){flex:1}
+    .sidetools label:nth-of-type(2) select{flex:1;min-width:0;width:100%}
+    .sidetools .lbl{display:none}
+    #admininfo{display:none}
+    body .sidetools:has(#admininfo:not(:empty)){flex-wrap:wrap}
+    body .sidetools:has(#admininfo:not(:empty)) #admininfo{display:block}
+    #teamlist .opt{display:none}
+    #teamlist td,#teamlist th{padding:9px 6px}
+    #teamlist .tn{white-space:normal;line-height:1.25}
+    #teamlist table{table-layout:auto}
+    .th h2{font-size:19px}
+    .avgs{gap:8px}
+    .avgs{display:grid;grid-template-columns:repeat(3,1fr)}
+    .avg{min-width:0;flex-direction:column;text-align:center;gap:4px;padding:8px 6px}
+    .avg img{width:34px;height:34px}
+    .avg .big{font-size:14px}
+    .avg .sub{font-size:11px;line-height:1.3}
+    .avg .sub .x{display:block} .avg .dot{display:none}
+    input,select,button{font-size:16px}  /* verhindert Auto-Zoom auf iOS */
+  }
+  @media (max-width:700px){
+    #players{background:none;overflow:visible}
+    #players table,#players tbody{display:block}
+    #players thead{display:none}
+    #players tr{display:grid;grid-template-columns:repeat(6,1fr);gap:8px 10px;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin-bottom:10px}
+    #players td{display:block;border:0 !important;padding:0;white-space:normal;text-align:left;min-width:0}
+    #players td[data-l]::before{content:attr(data-l);display:block;font-size:10px;text-transform:uppercase;letter-spacing:.04em;color:var(--mut);margin-bottom:2px}
+    #players .c6{grid-column:span 6} #players .c3{grid-column:span 3} #players .c2{grid-column:span 2}
+    #players tr.sep{display:block;background:none;border:0;padding:6px 2px 0;margin:0}
+    #players tr.sep td{background:none;padding:0}
+    #players tr.nonplayer{border-left:3px solid #8f6cff}
+    #players tr.nonplayer td{background:none}
+    #players tr.nonplayer td:first-child{box-shadow:none}
+    #players .rank img{width:24px;height:24px}
+    #players .nomob{display:none}
+  }
   .leagues{display:flex;gap:4px;flex-wrap:wrap}
   .leagues button{background:var(--panel2);color:var(--txt);border:1px solid var(--line)}
   .leagues button.active{background:var(--acc);border-color:var(--acc)}
@@ -100,12 +163,15 @@
 <body>
 <header>
   <h1>OPL<span>Scout</span></h1>
-  <div class="leagues" id="leagues"></div>
-  <input id="url" placeholder="OPLeague Standing-URL">
-  <button id="open" class="ghost">Öffnen</button>
-  <div class="spacer"></div>
-  <div id="datastate"></div>
-  <button id="loginbtn" class="ghost">Login</button>
+  <span id="curleague" class="mobile-only"></span>
+  <button id="menubtn" class="mobile-only ghost" aria-label="Menü" aria-expanded="false" aria-controls="menu">☰</button>
+  <div id="menu">
+    <div class="leagues" id="leagues"></div>
+    <div class="urlrow"><input id="url" placeholder="OPLeague Standing-URL"><button id="open" class="ghost">Öffnen</button></div>
+    <div class="spacer"></div>
+    <div id="datastate"></div>
+    <button id="loginbtn" class="ghost">Login</button>
+  </div>
 </header>
 <div id="title"></div>
 <div id="warn"></div>
@@ -114,7 +180,7 @@
   <div id="teams">
     <div class="sidetools">
       <label>Ø <select id="metric" title="Welcher Durchschnitt in der Leiste angezeigt wird"></select></label>
-      <label>Sortieren <select id="sort"></select></label>
+      <label><span class="lbl">Sortieren</span> <select id="sort" aria-label="Sortieren"></select></label>
       <button id="sortdir" class="ghost" title="Richtung umkehren">⇅</button>
       <button id="leaguerefresh" style="display:none" title="Startet die GitHub Action für diese Liga (Kader + Stats aller Teams)">⟳ Liga aktualisieren</button>
       <div id="admininfo"></div>
@@ -166,6 +232,7 @@ const METRICS = {
   core: {short:"Spieler", label:"Ø-Rang nur Spieler", tip:"Ø der aktiven Spieler (Player + Captain)"},
   all:  {short:"Alle", label:"Ø-Rang alle", tip:"Ø aller Mitglieder (inkl. Stand-In, Manager …)"},
 };
+const OPT_COLS = new Set(["played","draws","lives","tiebreaker"]);   // am Handy ausgeblendet
 const SHORT = {played:"Sp",wins:"S",draws:"U",losses:"N",points:"Pkt",lives:"Leben",tiebreaker:"TB","round dif":"RD"};
 const LONG = {played:"Spiele",wins:"Siege",draws:"Unentschieden",losses:"Niederlagen",points:"Punkte",lives:"Leben",tiebreaker:"Tiebreaker","round dif":"Rundendifferenz"};
 
@@ -197,11 +264,14 @@ async function openLeague(id, keepTeam=false){
   if(!lg) { $("#teamlist").innerHTML = '<div class="empty">Noch keine Daten – die GitHub Action ist noch nicht gelaufen.</div>'; return; }
   $("#url").value = lg.url;
   store.set("league", lg.id);
+  $("#curleague").textContent = lg.name;
+  setMenu(false);
   document.querySelectorAll("#leagues button").forEach(b => b.classList.toggle("active", b.dataset.id === lg.id));
   if(!keepTeam){
     $("#teamlist").innerHTML = '<div class="empty"><span class="spin"></span> Lade Standings…</div>';
     $("#detail").innerHTML = '<div class="empty">← Team anklicken, um Spieler und Stats zu sehen</div>';
     curTeam = null;
+    showDetail(false, true);
   }
   try{
     league = await getJSON(`data/league-${lg.id}.json?t=${meta.generated}`);
@@ -238,16 +308,17 @@ function renderTeams(){
   const arrow = k => sortKey === k ? `<span class="arrow">${sortDir > 0 ? "▲" : "▼"}</span>` : "";
   const th = (k, label, cls="", title="") => `<th class="sortable ${cls}" data-k="${esc(k)}" title="${esc(title || "Sortieren")}">${label}${arrow(k)}</th>`;
   $("#teamlist").innerHTML = `<table><thead><tr>${th("rank","#")}${th("avg","Ø","c", METRICS[metric].tip)}${th("name","Team")}${
-    cols.map(c => th(c, esc(SHORT[c]||c), "num", LONG[c]||c)).join("")}</tr></thead><tbody>${
+    cols.map(c => th(c, esc(SHORT[c]||c), "num" + (OPT_COLS.has(c) ? " opt" : ""), LONG[c]||c)).join("")}</tr></thead><tbody>${
     teams.map(t => `<tr class="team z-${esc(t.zone)}${t.id===curTeam?" sel":""}" data-id="${esc(t.id)}"><td>${t.group ? `<span class="grp" title="Gruppe ${esc(t.group)}">${esc(t.group)}</span>` : ""}${esc(t.rank)}</td>
       <td class="c">${avgIcon(league.summaries[t.id])}</td>
       <td><div class="tn"><img src="${esc(t.logo)}" alt="">${esc(t.name)}</div></td>
-      ${cols.map(c=>`<td class="num">${esc(t.stats[c])}</td>`).join("")}</tr>`).join("")}</tbody></table>`;
+      ${cols.map(c=>`<td class="num${OPT_COLS.has(c) ? " opt" : ""}">${esc(t.stats[c])}</td>`).join("")}</tr>`).join("")}</tbody></table>`;
   document.querySelectorAll("#teamlist th.sortable").forEach(h => h.onclick = () => setSort(h.dataset.k, true));
   document.querySelectorAll("tr.team").forEach(tr => tr.onclick = () => {
     document.querySelectorAll("tr.team.sel").forEach(x=>x.classList.remove("sel"));
     tr.classList.add("sel");
     loadTeam(tr.dataset.id);
+    showDetail(true);
   });
 }
 function setSort(k, toggle){
@@ -291,14 +362,14 @@ function renderTeam(team, mt){
   const elos = [];
   const rows = members.map((m,i) => {
     const sep = !isCore(m) && (i===0 || isCore(members[i-1])) ? '<tr class="sep"><td colspan="10">Kein aktiver Spieler (Stand-In, Manager, Coach …)</td></tr>' : "";
-    const head = `<td><div><span class="pname">${esc(m.opl_name)}</span> <span class="pos ${esc(m.position)} ${isCore(m)?"":"np"}">${esc(m.position||"–")}</span></div>
+    const head = `<td class="c6"><div><span class="pname">${esc(m.opl_name)}</span> <span class="pos ${esc(m.position)} ${isCore(m)?"":"np"}">${esc(m.position||"–")}</span></div>
       <div class="sub">${m.riot_id ? esc(m.riot_id) : "keine Riot-ID hinterlegt"}</div></td>`;
-    let body = '<td colspan="9"></td>';
+    let body = '<td colspan="9" class="nomob"></td>';
     if(m.riot_id){
       const p = statsFor(team, m);
       const link = `<a href="https://tracker.gg/valorant/profile/riot/${encodeURIComponent(m.riot_id)}/overview" target="_blank" rel="noopener">tracker.gg ↗</a>`;
-      if(!p) body = `<td colspan="8" class="sub">noch nicht geladen</td><td>${link}</td>`;
-      else if(p.error && !p.current) body = `<td colspan="8" class="err">${esc(p.error)}</td><td>${link}</td>`;
+      if(!p) body = `<td colspan="8" class="sub c3">noch nicht geladen</td><td class="c3">${link}</td>`;
+      else if(p.error && !p.current) body = `<td colspan="8" class="err c6">${esc(p.error)}</td><td class="c6">${link}</td>`;
       else {
         if(p.updated) times.push(p.updated);
         const c = p.current || {}, r = p.recent || {};
@@ -308,12 +379,12 @@ function renderTeam(team, mt){
         const peakSeason = p.peak?.season ? ` <span class="sub">(${esc(p.peak.season)})</span>` : "";
         const n = r.matches ? "" : '<span class="sub">–</span>';
         const kdCls = r.kd >= 1.1 ? "pos-up" : r.kd && r.kd < 0.9 ? "pos-dn" : "";
-        body = `<td>${rankCell(c, rr + lc)}</td><td>${rankCell(p.peak, peakSeason)}</td>
-          <td class="num ${kdCls}" title="${esc(r.kda||"")}">${r.matches ? r.kd : n}</td>
-          <td class="num">${r.hs ?? n}${r.hs!=null?"%":""}</td><td class="num">${r.adr ?? n}</td><td class="num">${r.acs ?? n}</td>
-          <td class="num" title="${r.matches||0} Matches">${r.matches ? `${r.winrate}% <span class="sub">(${r.matches})</span>` : n}</td>
-          <td>${agentIcons(r.agents)}</td>
-          <td>${link}${p._local ? `<span class="local" title="Mit deinem Key geladen am ${esc(fmtTime(p.updated))}">lokal</span>` : ""}${p.matches_error ? `<div class="err" title="${esc(p.matches_error)}">Matches n/a</div>` : ""}</td>`;
+        body = `<td class="c3" data-l="Aktuell">${rankCell(c, rr + lc)}</td><td class="c3" data-l="Peak">${rankCell(p.peak, peakSeason)}</td>
+          <td class="num c2 ${kdCls}" data-l="K/D" title="${esc(r.kda||"")}">${r.matches ? r.kd : n}</td>
+          <td class="num c2" data-l="HS%">${r.hs ?? n}${r.hs!=null?"%":""}</td><td class="num c2" data-l="ADR">${r.adr ?? n}</td><td class="num c2" data-l="ACS">${r.acs ?? n}</td>
+          <td class="num c2" data-l="Winrate" title="${r.matches||0} Matches">${r.matches ? `${r.winrate}% <span class="sub">(${r.matches})</span>` : n}</td>
+          <td class="c2" data-l="Agents">${agentIcons(r.agents)}</td>
+          <td class="c6">${link}${p._local ? `<span class="local" title="Mit deinem Key geladen am ${esc(fmtTime(p.updated))}">lokal</span>` : ""}${p.matches_error ? `<div class="err" title="${esc(p.matches_error)}">Matches n/a</div>` : ""}</td>`;
       }
     }
     return `${sep}<tr class="${isCore(m)?"":"nonplayer"}">${head}${body}</tr>`;
@@ -321,7 +392,7 @@ function renderTeam(team, mt){
 
   const oldest = Math.min(...times.filter(Boolean)), newest = Math.max(...times.filter(Boolean));
   $("#detail").innerHTML = `
-    <div class="toolbar">${refreshButton()}
+    <div class="toolbar"><button class="back ghost" id="back">← Teams</button>${refreshButton()}
       <span class="sub">Letztes Update: ${fmtTime(oldest)}${newest - oldest > 300 ? ` (teils neuer, bis ${fmtTime(newest)})` : ""}</span>
       <span id="teamstatus" class="sub"></span></div>
     <div class="th"><img src="${esc(mt?.logo||"")}" alt=""><div><h2>${esc(team.name||mt?.name)}</h2>
@@ -340,6 +411,7 @@ function renderTeam(team, mt){
   const rb = $("#teamrefresh");
   if(rb) rb.onclick = () => auth?.mode === "admin" ? adminRefreshTeam(team.id || curTeam) : localRefreshTeam(team, mt);
   const lb = $("#teamlogin"); if(lb) lb.onclick = openLogin;
+  $("#back").onclick = () => showDetail(false);
 }
 function refreshButton(){
   if(auth?.mode === "admin") return `<button id="teamrefresh" title="Startet die GitHub Action nur für dieses Team. Ergebnis für alle sichtbar.">↻ Aktualisieren</button>`;
@@ -355,8 +427,33 @@ function avgBox(label, hint, list, cls=""){
   if(!list.length) return `<div class="avg ${cls}"><div class="sub">Ø ${label}<br>${hint}</div><span class="sub">keine Daten</span></div>`;
   const avg = Math.round(list.reduce((a,b)=>a+b,0)/list.length), tier = tierFromElo(avg);
   return `<div class="avg ${cls}" title="${esc(hint)}"><img src="${RANK_ICON(tier)}" alt="" onerror="this.remove()">
-    <div><div class="big">${esc(TIERS[tier])}</div><div class="sub">${label} · Ø-Elo ${avg} · ${list.length} ${list.length===1?"Person":"Personen"}</div></div></div>`;
+    <div><div class="big">${esc(TIERS[tier])}</div><div class="sub">${label}<span class="x"><span class="dot"> · </span>Ø-Elo ${avg}</span><span class="x"><span class="dot"> · </span>${list.length} ${list.length===1?"Person":"Personen"}</span></div></div></div>`;
 }
+
+// ------------------------------------------------------------------ Handy: Menü + Liste/Team-Ansicht
+const isMobile = () => matchMedia("(max-width:900px)").matches;
+function setMenu(open){
+  document.body.classList.toggle("menu-open", open);
+  $("#menubtn").setAttribute("aria-expanded", String(open));
+  $("#menubtn").textContent = open ? "✕" : "☰";
+}
+let listScroll = 0;
+function showDetail(on, silent=false){
+  if(on === document.body.classList.contains("show-detail")) return;
+  if(on){
+    listScroll = window.scrollY;
+    document.body.classList.add("show-detail");
+    if(isMobile()){ window.scrollTo(0, 0); if(!silent) history.pushState({team: curTeam}, ""); }
+  }else{
+    if(!silent && history.state?.team){ history.back(); return; }   // popstate erledigt den Rest
+    document.body.classList.remove("show-detail");
+    if(isMobile()) requestAnimationFrame(() => window.scrollTo(0, listScroll));
+  }
+}
+window.addEventListener("popstate", () => {
+  document.body.classList.remove("show-detail");
+  if(isMobile()) requestAnimationFrame(() => window.scrollTo(0, listScroll));
+});
 
 // ------------------------------------------------------------------ Agent-Bilder
 let AGENT_ICONS = {};
@@ -598,7 +695,11 @@ async function openUrl(){
   $("#open").onclick = openUrl;
   $("#url").addEventListener("keydown", e => { if(e.key === "Enter") openUrl(); });
   $("#leaguerefresh").onclick = adminRefreshLeague;
-  $("#loginbtn").onclick = openLogin;
+  $("#loginbtn").onclick = () => { setMenu(false); openLogin(); };
+  $("#menubtn").onclick = () => setMenu(!document.body.classList.contains("menu-open"));
+  document.addEventListener("click", e => {
+    if(document.body.classList.contains("menu-open") && !e.target.closest("header")) setMenu(false);
+  });
   document.querySelectorAll(".tabs button").forEach(b => b.onclick = () => setTab(b.dataset.tab));
   $("#dologin").onclick = doLogin;
   $("#cancel").onclick = () => $("#login").close();
