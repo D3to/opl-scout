@@ -132,7 +132,7 @@
   .veto.dec{border-style:dashed}
   #menu{display:contents}
   .urlrow{display:flex;gap:6px}
-  .mobile-only,.back{display:none}
+  .mobile-only,.back,.mobile-sort{display:none}
 
   /* ---------------- Handy / schmale Fenster ---------------- */
   @media (max-width:900px){
@@ -193,6 +193,29 @@
     #players tr.nonplayer td:first-child{box-shadow:none}
     #players .rank img{width:24px;height:24px}
     #players .nomob{display:none}
+
+    /* Map-Pool als Karten */
+    .mobile-sort{display:flex !important;align-items:center;gap:6px}
+    .scrollx{background:none;overflow:visible}
+    .maptable,.maptable tbody{display:block}
+    .maptable thead{display:none}
+    .maptable tr{display:grid;grid-template-columns:repeat(3,1fr);gap:8px 6px;background:var(--panel);border:1px solid var(--line);border-radius:10px;overflow:hidden;margin-bottom:10px;padding-bottom:10px}
+    .maptable tr.never{border-style:dashed}
+    .maptable td{display:block;border:0 !important;padding:0 10px;text-align:left !important;background:none !important;min-width:0;white-space:normal}
+    .maptable td[data-l]::before{content:attr(data-l);display:block;font-size:10px;text-transform:uppercase;letter-spacing:.04em;color:var(--mut);margin-bottom:1px}
+    .maptable td.m-pick::before,.maptable td.m-ban::before{color:var(--acc)}
+    .maptable .mcell{grid-column:1/-1;padding:0}
+    .maptable .mapname{position:relative;display:block;opacity:1 !important}
+    .maptable .mapname img{display:block;width:100%;height:64px;object-fit:cover;border-radius:0}
+    .maptable .mapname span{position:absolute;left:10px;bottom:6px;font-size:17px;font-weight:700;text-shadow:0 1px 4px rgba(0,0,0,.9)}
+    .maptable tr.never .mapname img{filter:grayscale(.7) brightness(.7)}
+    /* Reihenfolge: Ergebnisse | eigenes Veto | Gegner-Veto | Comp */
+    .maptable .m-played{order:1} .maptable .m-wl{order:2} .maptable .m-rd{order:3}
+    .maptable .m-pick{order:4} .maptable .m-ban{order:5} .maptable .m-dec{order:6}
+    .maptable .m-opick{order:7} .maptable .m-oban{order:8} .maptable .m-side{order:9}
+    .maptable .m-comp{order:10;grid-column:1/-1}
+    .maptable .mcell{order:0}
+    .comp{flex-wrap:wrap}
   }
   .leagues{display:flex;gap:4px;flex-wrap:wrap}
   .leagues button{background:var(--panel2);color:var(--txt);border:1px solid var(--line)}
@@ -525,6 +548,12 @@ function renderTeam(team, mt){
     window.scrollTo(0, y); $("#detail").scrollTop = d;
   });
   const sr = $("#sortreset"); if(sr) sr.onclick = () => { playerSort = {k: null, dir: 1}; renderTeam(team, mt); };
+  const mss = $("#mapsortsel");
+  if(mss) mss.onchange = e => {
+    const k = e.target.value;
+    mapSort = k ? {k, dir: k === "map" ? 1 : -1} : {k: null, dir: -1};
+    const y = window.scrollY; renderTeam(team, mt); window.scrollTo(0, y);
+  };
   document.querySelectorAll(".maptable th[data-ms]").forEach(h => h.onclick = () => {
     const k = h.dataset.ms, first = k === "map" ? 1 : -1;
     if(mapSort.k !== k) mapSort = {k, dir: first};
@@ -590,7 +619,11 @@ function mapPoolHtml(o){
     return dflt(a, b);
   });
   const z = v => v ? v : '<span class="sub">0</span>';
-  return `<div class="sechead"><h3>Map-Pool <span class="sub">(Veto + Ergebnisse dieser Saison)</span></h3></div>
+  const sortOpts = [["", "Standard"], ["played", "Gespielt"], ["wl", "Winrate"], ["rounds", "Rundendifferenz"], ["pick", "Eigene Picks"],
+    ["ban", "Eigene Bans"], ["opp_pick", "Gegner-Picks"], ["opp_ban", "Gegner-Bans"], ["decider", "Decider"], ["map", "Map A–Z"]];
+  return `<div class="sechead"><h3>Map-Pool <span class="sub">(Veto + Ergebnisse dieser Saison)</span></h3>
+    <label class="mobile-sort">Sortieren <select id="mapsortsel">${sortOpts.map(([k, l]) =>
+      `<option value="${k}"${(mapSort.k || "") === k ? " selected" : ""}>${l}</option>`).join("")}</select></label></div>
   <div class="scrollx"><table class="maptable"><thead><tr>
     ${mth("map","Map")}${mth("played","Gespielt","num")}${mth("wl","W–L","num","Map-Winrate")}${mth("rounds","Runden","num","Rundendifferenz")}
     ${mth("pick","Pick","num own","Von diesem Team gepickt")}${mth("ban","Ban","num own","Von diesem Team gebannt")}
@@ -600,12 +633,12 @@ function mapPoolHtml(o){
   </tr></thead><tbody>${maps.map(([mp, v]) => {
     const wl = v.played ? `<span class="${v.won*2 > v.played ? "pos-up" : v.won*2 < v.played ? "pos-dn" : ""}">${v.won}–${v.played - v.won}</span>` : '<span class="sub">–</span>';
     const rd = v.played ? `${v.rw}:${v.rl}` : '<span class="sub">–</span>';
-    return `<tr class="${v.played ? "" : "never"}"><td><div class="mapname"><img src="${MAP_IMG(mp)}" alt="" loading="lazy" onerror="this.remove()">${esc(cap(mp))}</div></td>
-      <td class="num">${z(v.played)}</td><td class="num">${wl}</td><td class="num">${rd}</td>
-      <td class="num own">${z(v.pick)}</td><td class="num own ban">${z(v.ban)}</td>
-      <td class="num">${z(v.opp_pick)}</td><td class="num">${z(v.opp_ban)}</td><td class="num">${z(v.decider)}</td>
-      <td class="num">${v.atk || v.def ? `${v.atk}/${v.def}` : '<span class="sub">–</span>'}</td>
-      <td>${compHtml(v.comp)}</td></tr>`;
+    return `<tr class="${v.played ? "" : "never"}"><td class="mcell"><div class="mapname"><img src="${MAP_IMG(mp)}" alt="" loading="lazy" onerror="this.remove()"><span>${esc(cap(mp))}</span></div></td>
+      <td class="num m-played" data-l="Gespielt">${z(v.played)}</td><td class="num m-wl" data-l="W–L">${wl}</td><td class="num m-rd" data-l="Runden">${rd}</td>
+      <td class="num own m-pick" data-l="Pick">${z(v.pick)}</td><td class="num own ban m-ban" data-l="Ban">${z(v.ban)}</td>
+      <td class="num m-opick" data-l="Gegner-Pick">${z(v.opp_pick)}</td><td class="num m-oban" data-l="Gegner-Ban">${z(v.opp_ban)}</td><td class="num m-dec" data-l="Decider">${z(v.decider)}</td>
+      <td class="num m-side" data-l="Start Atk/Def">${v.atk || v.def ? `${v.atk}/${v.def}` : '<span class="sub">–</span>'}</td>
+      <td class="m-comp" data-l="Wahrscheinlichste Comp">${compHtml(v.comp)}</td></tr>`;
   }).join("")}</tbody></table></div>`;
 }
 function compHtml(c){
