@@ -47,7 +47,7 @@
   #detail{overflow:auto;padding:20px}
   .empty{color:var(--mut);padding:40px;text-align:center}
   .toolbar{display:flex;align-items:center;gap:12px;margin-bottom:14px;flex-wrap:wrap}
-  .th{display:flex;align-items:center;gap:12px;margin-bottom:6px}
+  .th{display:flex;align-items:center;gap:12px;margin-bottom:6px;flex-wrap:wrap}
   .th img{width:48px;height:48px;border-radius:8px}
   .th h2{margin:0}
   .th a{color:var(--mut);font-size:13px}
@@ -78,6 +78,44 @@
   .pos-up{color:var(--good)} .pos-dn{color:var(--bad)}
   label{color:var(--mut);font-size:13px} input,select{background:var(--panel2);color:var(--txt);border:1px solid var(--line);border-radius:6px;padding:5px 8px;font:inherit}
   #url{width:min(360px,45vw)}
+  #players th.num,#players td.num{text-align:center}
+  .agents.pct{gap:6px}
+  .ag{display:flex;flex-direction:column;align-items:center;gap:1px}
+  .ag small{font-size:10px;color:var(--mut);line-height:1}
+  .teamagents{display:flex;flex-wrap:wrap;gap:8px;background:var(--panel);border-radius:10px;padding:10px 12px}
+  .teamagents .ag img{width:34px;height:34px;border-radius:50%;background:var(--panel2)}
+  .teamagents .ag small{font-size:11px;color:var(--txt)}
+  .teamagents .ag .bar{width:34px;height:3px;background:var(--panel2);border-radius:2px;overflow:hidden}
+  .teamagents .ag .bar i{display:block;height:100%;background:var(--acc)}
+  .topmaps{display:flex;flex-direction:column;gap:5px;margin-left:24px;padding-left:16px;border-left:1px solid var(--line)}
+  .topmaps .row{display:flex;align-items:center;gap:6px;flex-wrap:wrap;font-size:12px}
+  .topmaps .lbl2{color:var(--mut);width:42px;font-size:11px;text-transform:uppercase;letter-spacing:.04em}
+  .mchip{display:inline-flex;align-items:center;gap:5px;background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:2px 7px 2px 2px}
+  .mchip img{width:38px;height:20px;object-fit:cover;border-radius:4px}
+  .mchip.ban{opacity:.85} .mchip.ban span{text-decoration:line-through;text-decoration-color:rgba(255,255,255,.4)}
+  .mchip b{font-weight:600;color:var(--mut);font-size:11px}
+  .sechead{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:22px 0 8px;flex-wrap:wrap}
+  .sechead h3{margin:0;font-size:15px}
+  .scrollx{overflow-x:auto;background:var(--panel);border-radius:10px}
+  .maptable td{border-top:1px solid var(--line)}
+  .maptable th.own,.maptable td.own{background:rgba(255,70,85,.06)}
+  .mapname{display:flex;align-items:center;gap:8px}
+  .mapname img{width:56px;height:28px;object-fit:cover;border-radius:4px}
+  .matches{display:flex;flex-direction:column;gap:8px}
+  .match{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:9px 12px}
+  .mhead{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+  .mhead .opp{font-weight:600;flex:1}
+  .res{font-weight:700;min-width:34px;text-align:center;border-radius:4px;padding:1px 6px;font-size:13px}
+  .res.w{background:rgba(62,207,142,.15);color:var(--good)} .res.l{background:rgba(255,107,107,.15);color:var(--bad)}
+  .res.d{background:var(--panel2);color:var(--mut)} .res.up{background:#13283a;color:#9fd0ff;font-weight:500}
+  .mmaps{font-size:13px;margin-top:4px}
+  .vetos{display:flex;flex-wrap:wrap;gap:4px;margin-top:6px}
+  .veto{font-size:11px;padding:2px 6px;border-radius:4px;border:1px solid var(--line);color:var(--mut)}
+  .veto.self{border-color:var(--acc);color:var(--txt)}
+  .veto.self.pick{background:rgba(255,70,85,.18)}
+  .veto.opp.pick{background:var(--panel2);color:var(--txt)}
+  .veto.ban{text-decoration:line-through;text-decoration-color:rgba(255,255,255,.35)}
+  .veto.dec{border-style:dashed}
   #menu{display:contents}
   .urlrow{display:flex;gap:6px}
   .mobile-only,.back{display:none}
@@ -116,6 +154,7 @@
     #teamlist .tn{white-space:normal;line-height:1.25}
     #teamlist table{table-layout:auto}
     .th h2{font-size:19px}
+    .topmaps{margin-left:0;padding-left:0;border-left:0;flex-basis:100%}
     .avgs{gap:8px}
     .avgs{display:grid;grid-template-columns:repeat(3,1fr)}
     .avg{min-width:0;flex-direction:column;text-align:center;gap:4px;padding:8px 6px}
@@ -228,9 +267,9 @@ const store = {
 };
 
 const METRICS = {
-  top5: {short:"Top 5", label:"Ø-Rang Top 5", tip:"Ø der 5 höchsten Ränge unter den aktiven Spielern (Player + Captain)"},
-  core: {short:"Spieler", label:"Ø-Rang nur Spieler", tip:"Ø der aktiven Spieler (Player + Captain)"},
-  all:  {short:"Alle", label:"Ø-Rang alle", tip:"Ø aller Mitglieder (inkl. Stand-In, Manager …)"},
+  top5: {short:"Top 5", label:"Ø-Rang Top 5 aktive", tip:"Ø der 5 höchsten Ränge unter den aktiven Spielern (mind. 1 Ligaspiel diese Saison)"},
+  core: {short:"Aktive", label:"Ø-Rang aktive Spieler", tip:"Ø aller aktiven Spieler (mind. 1 Ligaspiel diese Saison)"},
+  all:  {short:"Alle", label:"Ø-Rang alle", tip:"Ø aller Kadermitglieder"},
 };
 const OPT_COLS = new Set(["played","draws","lives","tiebreaker"]);   // am Handy ausgeblendet
 const SHORT = {played:"Sp",wins:"S",draws:"U",losses:"N",points:"Pkt",lives:"Leben",tiebreaker:"TB","round dif":"RD"};
@@ -239,7 +278,8 @@ const LONG = {played:"Spiele",wins:"Siege",draws:"Unentschieden",losses:"Niederl
 let meta = null, league = null, curTeam = null, current = 0;
 let metric = METRICS[store.get("metric")] ? store.get("metric") : "top5";
 let sortKey = "rank", sortDir = 1;
-let auth = store.get("auth");   // {mode:"admin", token} | {mode:"key", key}
+let auth = store.get("auth");
+let statSrc = store.get("statsrc") === "ranked" ? "ranked" : "opl";   // Standard: OPL-Liga   // {mode:"admin", token} | {mode:"key", key}
 
 async function getJSON(path){
   const r = await fetch(path, {cache: "no-store"});
@@ -357,37 +397,61 @@ function statsFor(team, m){
 
 function renderTeam(team, mt){
   const s = mt?.stats || {};
-  const members = team.members;
+  const byOpl = (team.opl?.maps_played || 0) > 0;
+  // aktiv = mind. ein Ligaspiel; ohne gespielte Ligaspiele zählt die OPL-Rolle
+  const act = m => byOpl ? !!oplPlayer(team, m) : isCore(m);
+  const members = [...team.members].sort((a, b) => act(b) - act(a));
   const times = [team.updated];
   const elos = [];
   const rows = members.map((m,i) => {
-    const sep = !isCore(m) && (i===0 || isCore(members[i-1])) ? '<tr class="sep"><td colspan="10">Kein aktiver Spieler (Stand-In, Manager, Coach …)</td></tr>' : "";
-    const head = `<td class="c6"><div><span class="pname">${esc(m.opl_name)}</span> <span class="pos ${esc(m.position)} ${isCore(m)?"":"np"}">${esc(m.position||"–")}</span></div>
+    const sep = !act(m) && (i===0 || act(members[i-1])) ? `<tr class="sep"><td colspan="${statSrc === "opl" ? 11 : 10}">${byOpl ? "Nicht aktiv – kein Ligaspiel in dieser Saison" : "Kein aktiver Spieler (Stand-In, Manager, Coach …)"}</td></tr>` : "";
+    const head = `<td class="c6"><div><span class="pname">${esc(m.opl_name)}</span> <span class="pos ${esc(m.position)} ${act(m)?"":"np"}">${esc(m.position||"–")}</span></div>
       <div class="sub">${m.riot_id ? esc(m.riot_id) : "keine Riot-ID hinterlegt"}</div></td>`;
-    let body = '<td colspan="9" class="nomob"></td>';
+    const NC = statSrc === "opl" ? 7 : 6;          // Anzahl Stat-Spalten je Quelle
+    let body = `<td colspan="${NC + 3}" class="nomob"></td>`;
     if(m.riot_id){
       const p = statsFor(team, m);
       const link = `<a href="https://tracker.gg/valorant/profile/riot/${encodeURIComponent(m.riot_id)}/overview" target="_blank" rel="noopener">tracker.gg ↗</a>`;
-      if(!p) body = `<td colspan="8" class="sub c3">noch nicht geladen</td><td class="c3">${link}</td>`;
-      else if(p.error && !p.current) body = `<td colspan="8" class="err c6">${esc(p.error)}</td><td class="c6">${link}</td>`;
+      const localTag = p?._local ? `<span class="local" title="Mit deinem Key geladen am ${esc(fmtTime(p.updated))}">lokal</span>` : "";
+      // Rang + Peak kommen immer aus Ranked (HenrikDev)
+      let rankTds;
+      if(!p) rankTds = `<td colspan="2" class="sub c6">Rang noch nicht geladen</td>`;
+      else if(p.error && !p.current) rankTds = `<td colspan="2" class="err c6">${esc(p.error)}</td>`;
       else {
         if(p.updated) times.push(p.updated);
-        const c = p.current || {}, r = p.recent || {};
-        if(c.elo) elos.push({elo: c.elo, core: isCore(m)});
+        const c = p.current || {};
+        if(c.elo) elos.push({elo: c.elo, core: act(m)});
         const rr = c.rr != null && c.tier > 2 ? ` <span class="sub">${c.rr} RR</span>` : "";
         const lc = c.last_change ? ` <span class="${c.last_change>0?"pos-up":"pos-dn"} sub">${c.last_change>0?"+":""}${c.last_change}</span>` : "";
         const peakSeason = p.peak?.season ? ` <span class="sub">(${esc(p.peak.season)})</span>` : "";
-        const n = r.matches ? "" : '<span class="sub">–</span>';
+        rankTds = `<td class="c3" data-l="Aktuell">${rankCell(c, rr + lc)}</td><td class="c3" data-l="Peak">${rankCell(p.peak, peakSeason)}</td>`;
+      }
+      const dash = '<span class="sub">–</span>';
+      let statTds;
+      if(statSrc === "opl"){
+        const o = oplPlayer(team, m);
+        if(!o) statTds = `<td colspan="${NC}" class="sub c6">keine Ligaspiele diese Saison</td>`;
+        else {
+          const kdCls = o.kd >= 1.1 ? "pos-up" : o.kd < 0.9 ? "pos-dn" : "";
+          statTds = `<td class="num c2" data-l="Maps">${o.maps}</td>
+            <td class="num c2" data-l="ACS">${o.acs}</td>
+            <td class="num c2 ${kdCls}" data-l="K/D" title="${o.k}/${o.d}/${o.a} (K/D/A gesamt)">${o.kd}</td>
+            <td class="num c2" data-l="Econ">${o.econ}</td>
+            <td class="num c2" data-l="First Bl." title="First Bloods gesamt · Plants ${o.plants} · Defuses ${o.defuses}">${o.fb}</td>
+            <td class="num c2" data-l="Map-Winrate">${o.winrate}%</td>
+            <td class="c6" data-l="Agents (Liga, % der Maps)">${agentIcons(o.agents, true)}</td>`;
+        }
+      }else{
+        const r = p?.recent || {}, n = r.matches ? "" : dash;
         const kdCls = r.kd >= 1.1 ? "pos-up" : r.kd && r.kd < 0.9 ? "pos-dn" : "";
-        body = `<td class="c3" data-l="Aktuell">${rankCell(c, rr + lc)}</td><td class="c3" data-l="Peak">${rankCell(p.peak, peakSeason)}</td>
-          <td class="num c2 ${kdCls}" data-l="K/D" title="${esc(r.kda||"")}">${r.matches ? r.kd : n}</td>
+        statTds = `<td class="num c2 ${kdCls}" data-l="K/D" title="${esc(r.kda||"")}">${r.matches ? r.kd : n}</td>
           <td class="num c2" data-l="HS%">${r.hs ?? n}${r.hs!=null?"%":""}</td><td class="num c2" data-l="ADR">${r.adr ?? n}</td><td class="num c2" data-l="ACS">${r.acs ?? n}</td>
           <td class="num c2" data-l="Winrate" title="${r.matches||0} Matches">${r.matches ? `${r.winrate}% <span class="sub">(${r.matches})</span>` : n}</td>
-          <td class="c2" data-l="Agents">${agentIcons(r.agents)}</td>
-          <td class="c6">${link}${p._local ? `<span class="local" title="Mit deinem Key geladen am ${esc(fmtTime(p.updated))}">lokal</span>` : ""}${p.matches_error ? `<div class="err" title="${esc(p.matches_error)}">Matches n/a</div>` : ""}</td>`;
+          <td class="c2" data-l="Agents">${agentIcons(r.agents)}</td>`;
       }
+      body = rankTds + statTds + `<td class="c6">${link}${localTag}${statSrc !== "opl" && p?.matches_error ? `<div class="err" title="${esc(p.matches_error)}">Matches n/a</div>` : ""}</td>`;
     }
-    return `${sep}<tr class="${isCore(m)?"":"nonplayer"}">${head}${body}</tr>`;
+    return `${sep}<tr class="${act(m)?"":"nonplayer"}">${head}${body}</tr>`;
   }).join("");
 
   const oldest = Math.min(...times.filter(Boolean)), newest = Math.max(...times.filter(Boolean));
@@ -396,23 +460,105 @@ function renderTeam(team, mt){
       <span class="sub">Letztes Update: ${fmtTime(oldest)}${newest - oldest > 300 ? ` (teils neuer, bis ${fmtTime(newest)})` : ""}</span>
       <span id="teamstatus" class="sub"></span></div>
     <div class="th"><img src="${esc(mt?.logo||"")}" alt=""><div><h2>${esc(team.name||mt?.name)}</h2>
-      <a href="${esc(mt?.url||"")}" target="_blank" rel="noopener">OPLeague-Profil ↗</a></div></div>
+      <a href="${esc(mt?.url||"")}" target="_blank" rel="noopener">OPLeague-Profil ↗</a></div>${topMapsHtml(team.opl)}</div>
     <p class="summary">${mt?.group ? `Gruppe ${esc(mt.group)} · ` : ""}Platz ${esc(mt?.rank)} · ${esc(s.wins)}S / ${esc(s.losses)}N · Rundendiff. ${esc(s["round dif"])}</p>
     <div class="avgs">
-      ${avgBox("Top 5 Spieler", "(5 beste Player + Captain)", elos.filter(e=>e.core).map(e=>e.elo).sort((a,b)=>b-a).slice(0,5))}
-      ${avgBox("nur Spieler", "(Player + Captain)", elos.filter(e=>e.core).map(e=>e.elo))}
-      ${avgBox("alle Mitglieder", "(inkl. Stand-In, Manager …)", elos.map(e=>e.elo), "np")}
+      ${avgBox("Top 5 aktive", byOpl ? "(5 beste mit Ligaspiel)" : "(5 beste Player + Captain)", elos.filter(e=>e.core).map(e=>e.elo).sort((a,b)=>b-a).slice(0,5))}
+      ${avgBox("aktive Spieler", byOpl ? "(mind. 1 Ligaspiel diese Saison)" : "(Player + Captain – noch keine Ligaspiele)", elos.filter(e=>e.core).map(e=>e.elo))}
+      ${avgBox("alle Mitglieder", "(ganzer Kader)", elos.map(e=>e.elo), "np")}
     </div>
+    <div class="sechead"><h3>Spieler</h3>
+      <label>Stats <select id="statsrc">
+        <option value="opl">OPL-Liga (diese Saison)</option>
+        <option value="ranked">Ranked (letzte 20 Spiele)</option>
+      </select></label></div>
     <div id="players"><table><thead><tr>
-      <th>Spieler</th><th>Aktueller Rang</th><th>Peak</th><th class="num">K/D</th><th class="num">HS%</th>
-      <th class="num">ADR</th><th class="num">ACS</th><th class="num">Winrate</th><th>Agents</th><th></th>
+      <th>Spieler</th><th>Aktueller Rang</th><th>Peak</th>${statSrc === "opl"
+        ? `<th class="num">Maps</th><th class="num">ACS</th><th class="num">K/D</th><th class="num" title="Econ-Rating">Econ</th><th class="num" title="First Bloods">FB</th><th class="num" title="Anteil gewonnener Maps">WR</th><th>Agents <span class="sub">(% der Maps)</span></th>`
+        : `<th class="num">K/D</th><th class="num">HS%</th><th class="num">ADR</th><th class="num">ACS</th><th class="num">Winrate</th><th>Agents</th>`}<th></th>
     </tr></thead><tbody>${rows}</tbody></table></div>
-    <p class="sub">Stats: letzte bis zu 20 Competitive-Matches (HenrikDev-API). Rang- und Agent-Icons: valorant-api.com.</p>`;
+    <p class="sub">${statSrc === "opl"
+      ? `Stats: alle gespielten Maps dieser Liga auf OPLeague (${(team.opl?.matches||[]).filter(x=>x.maps.length).length} Matches). Rang und Peak: Ranked (HenrikDev-API).`
+      : "Stats: letzte bis zu 20 Competitive-Matches (HenrikDev-API)."} Icons: valorant-api.com.</p>
+    ${mapPoolHtml(team.opl)}
+    ${teamAgentsHtml(team.opl)}
+    ${matchesHtml(team.opl)}`;
   const rb = $("#teamrefresh");
   if(rb) rb.onclick = () => auth?.mode === "admin" ? adminRefreshTeam(team.id || curTeam) : localRefreshTeam(team, mt);
   const lb = $("#teamlogin"); if(lb) lb.onclick = openLogin;
   $("#back").onclick = () => showDetail(false);
+  $("#statsrc").value = statSrc;
+  $("#statsrc").onchange = e => { statSrc = e.target.value; store.set("statsrc", statSrc); renderTeam(team, mt); };
 }
+// OPL-Stats gehören zum Riot-Namen (ohne Tag) – Fallback: OPL-Benutzername
+function oplPlayer(team, m){
+  const P = team.opl?.players || {};
+  return P[(m.riot_id || "").split("#")[0].toLowerCase()] || P[(m.opl_name || "").toLowerCase()] || null;
+}
+const MAP_IMG = mp => `https://www.opleague.pro/styles/media/game/Val/map/${encodeURIComponent(mp)}_720.webp`;
+const cap = x => x ? x[0].toUpperCase() + x.slice(1) : x;
+function mapPoolHtml(o){
+  const maps = Object.entries(o?.maps || {});
+  if(!maps.length) return `<div class="sechead"><h3>Map-Pool</h3></div><p class="sub">Noch keine gespielten Ligaspiele mit Veto in dieser Saison.</p>`;
+  maps.sort((a,b) => b[1].played - a[1].played || b[1].pick - a[1].pick || a[1].ban - b[1].ban);
+  const z = v => v ? v : '<span class="sub">0</span>';
+  return `<div class="sechead"><h3>Map-Pool <span class="sub">(Veto + Ergebnisse dieser Saison)</span></h3></div>
+  <div class="scrollx"><table class="maptable"><thead><tr>
+    <th>Map</th><th class="num">Gespielt</th><th class="num">W–L</th><th class="num">Runden</th>
+    <th class="num own" title="Von diesem Team gepickt">Pick</th><th class="num own" title="Von diesem Team gebannt">Ban</th>
+    <th class="num" title="Vom Gegner gepickt">Gegner-Pick</th><th class="num" title="Vom Gegner gebannt">Gegner-Ban</th>
+    <th class="num" title="Übrig gebliebene Decider-Map">Decider</th><th class="num" title="Startseite dieses Teams auf gespielten Maps">Start Atk/Def</th>
+  </tr></thead><tbody>${maps.map(([mp, v]) => {
+    const wl = v.played ? `<span class="${v.won*2 > v.played ? "pos-up" : v.won*2 < v.played ? "pos-dn" : ""}">${v.won}–${v.played - v.won}</span>` : '<span class="sub">–</span>';
+    const rd = v.played ? `${v.rw}:${v.rl}` : '<span class="sub">–</span>';
+    return `<tr><td><div class="mapname"><img src="${MAP_IMG(mp)}" alt="" loading="lazy" onerror="this.remove()">${esc(cap(mp))}</div></td>
+      <td class="num">${z(v.played)}</td><td class="num">${wl}</td><td class="num">${rd}</td>
+      <td class="num own">${z(v.pick)}</td><td class="num own ban">${z(v.ban)}</td>
+      <td class="num">${z(v.opp_pick)}</td><td class="num">${z(v.opp_ban)}</td><td class="num">${z(v.decider)}</td>
+      <td class="num">${v.atk || v.def ? `${v.atk}/${v.def}` : '<span class="sub">–</span>'}</td></tr>`;
+  }).join("")}</tbody></table></div>`;
+}
+// Top 2 eigene Picks und Bans neben dem Teamnamen
+function topMapsHtml(o){
+  const maps = Object.entries(o?.maps || {});
+  const top = k => maps.filter(([, v]) => v[k] > 0).sort((a, b) => b[1][k] - a[1][k]).slice(0, 2);
+  const picks = top("pick"), bans = top("ban");
+  if(!picks.length && !bans.length) return "";
+  const chip = ([mp, v], k) => `<span class="mchip ${k}" title="${k === "pick" ? "gepickt" : "gebannt"}: ${v[k]}×"><img src="${MAP_IMG(mp)}" alt="" onerror="this.remove()"><span>${esc(cap(mp))}</span><b>${v[k]}×</b></span>`;
+  return `<div class="topmaps">
+    ${picks.length ? `<div class="row"><span class="lbl2">Picks</span>${picks.map(x => chip(x, "pick")).join("")}</div>` : ""}
+    ${bans.length ? `<div class="row"><span class="lbl2">Bans</span>${bans.map(x => chip(x, "ban")).join("")}</div>` : ""}</div>`;
+}
+function teamAgentsHtml(o){
+  const ag = o?.agents || [];
+  if(!ag.length) return "";
+  return `<div class="sechead"><h3>Agents <span class="sub">(Anteil der ${o.maps_played} gespielten Maps)</span></h3></div>
+  <div class="teamagents">${ag.map(([a, c, p]) => {
+    const ic = AGENT_ICONS[a.toLowerCase()];
+    return `<span class="ag" title="${esc(a)}: ${c} von ${o.maps_played} Maps">${ic ? `<img src="${esc(ic)}" alt="${esc(a)}">` : `<span class="sub">${esc(a)}</span>`}<span class="bar"><i style="width:${p}%"></i></span><small>${p}%</small></span>`;
+  }).join("")}</div>`;
+}
+function matchesHtml(o){
+  const ms = o?.matches || [];
+  if(!ms.length) return "";
+  const date = t => t ? new Date(t*1000).toLocaleDateString("de-DE",{day:"2-digit",month:"2-digit"}) : "";
+  const now = Date.now()/1000;
+  return `<div class="sechead"><h3>Matches <span class="sub">(diese Saison)</span></h3></div>
+  <div class="matches">${ms.map(m => {
+    const played = m.maps.length > 0;
+    let res;
+    if(played){ const [w,l] = m.score; res = `<span class="res ${w>l?"w":w<l?"l":"d"}">${w}:${l}</span>`; }
+    else if(m.state === "closed") res = `<span class="res d" title="Ohne Ergebnis-Details (z. B. kampflos)">–</span>`;
+    else res = `<span class="res up">${m.start && m.start > now ? "geplant" : "offen"}</span>`;
+    const veto = m.veto.map(v => `<span class="veto ${v.action} ${v.by||"dec"}" title="${v.action === "ban" ? "Ban" : "Pick"} ${v.by === "self" ? "dieses Team" : v.by === "opp" ? "Gegner" : ""}${v.side ? ` · Start ${v.side === "atk" ? "Angriff" : "Verteidigung"}` : ""}">${v.action === "ban" ? "✕" : "✓"} ${esc(cap(v.map))}</span>`).join("");
+    return `<div class="match"><div class="mhead"><span class="sub">${date(m.start)}</span>${res}
+      <span class="opp">vs ${esc(m.opp.name)}</span>
+      <a class="sub" href="https://www.opleague.pro/match/${esc(m.id)}" target="_blank" rel="noopener">OPL ↗</a></div>
+      ${played ? `<div class="mmaps">${m.maps.map(x => `<span class="${x.us>x.them?"pos-up":x.us<x.them?"pos-dn":""}">${esc(cap(x.map))} ${x.us}:${x.them}</span>`).join(" · ")}</div>` : ""}
+      ${m.veto.length ? `<div class="vetos">${veto}</div>` : ""}</div>`;
+  }).join("")}</div>`;
+}
+
 function refreshButton(){
   if(auth?.mode === "admin") return `<button id="teamrefresh" title="Startet die GitHub Action nur für dieses Team. Ergebnis für alle sichtbar.">↻ Aktualisieren</button>`;
   if(auth?.mode === "key") return `<button id="teamrefresh" title="Lädt die Stats mit deinem Key in deinem Browser (nur für dich sichtbar)">↻ Lokal aktualisieren</button>`;
@@ -460,11 +606,16 @@ let AGENT_ICONS = {};
 const agentsReady = fetch("https://valorant-api.com/v1/agents?isPlayableCharacter=true")
   .then(r => r.json()).then(j => { for(const a of j.data || []) AGENT_ICONS[a.displayName.toLowerCase()] = a.displayIcon; })
   .catch(() => {});
-function agentIcons(list){
+// list: ["Jett", …] oder [["Jett", Maps, Prozent], …]
+function agentIcons(list, pct=false, max=4){
   if(!list || !list.length) return "";
-  return `<div class="agents">${list.map(a => AGENT_ICONS[a.toLowerCase()]
-    ? `<img src="${esc(AGENT_ICONS[a.toLowerCase()])}" alt="${esc(a)}" title="${esc(a)}">`
-    : `<span class="sub">${esc(a)}</span>`).join("")}</div>`;
+  return `<div class="agents${pct ? " pct" : ""}">${list.slice(0, max).map(x => {
+    const [a, c, p] = Array.isArray(x) ? x : [x];
+    const ic = AGENT_ICONS[a.toLowerCase()];
+    const tip = c != null ? `${a}: ${c} ${c === 1 ? "Map" : "Maps"} (${p}%)` : a;
+    const img = ic ? `<img src="${esc(ic)}" alt="${esc(a)}" title="${esc(tip)}">` : `<span class="sub" title="${esc(tip)}">${esc(a)}</span>`;
+    return pct && p != null ? `<span class="ag">${img}<small>${p}%</small></span>` : img;
+  }).join("")}${list.length > max ? `<span class="sub" title="${esc(list.slice(max).map(x => Array.isArray(x) ? `${x[0]} ${x[2]}%` : x).join(", "))}">+${list.length - max}</span>` : ""}</div>`;
 }
 
 // ------------------------------------------------------------------ Login

@@ -7,6 +7,14 @@ jedes Teams (Riot-IDs aus den OPL-Profilen) und für jeden Spieler:
 - K/D, HS %, ADR, ACS, Winrate, meistgespielte Agents (mit Bild) aus den letzten ≤ 20 Competitive-Matches
 - Link zum tracker.gg-Profil
 - Team-Durchschnitt als Rang-Symbol: **Top 5 Spieler** (Standard), nur Spieler, alle Mitglieder
+- **Map-Pool pro Team** aus den Ligaspielen: eigene/gegnerische Picks und Bans, Decider, W–L und
+  Runden pro Map, Startseite
+- **Match-Liste** der Saison mit Ergebnis, Map-Scores und Veto-Reihenfolge
+- Spieler-Stats wahlweise aus der **OPL-Liga** (Standard: ACS, K/D, Econ, First Bloods, Map-Winrate,
+  Agents) oder aus **Ranked** (letzte 20 Spiele). Rang und Peak kommen immer aus Ranked.
+
+Gezählt werden nur Matches, deren Event-ID zur gewählten Liga gehört (bei Gruppen-Ligen auch die
+Gruppen-Events, z. B. „1. Liga – Gruppe A/B“). Fertige Matches werden nur einmal von OPL geladen.
 
 Läuft als statische Seite auf **GitHub Pages**. Eine **GitHub Action** aktualisiert die Daten stündlich.
 
@@ -64,6 +72,7 @@ cd .state && git init -q -b data && git add cache.json && git commit -qm "Startz
 
 ```bash
 python3 build.py --export-only            # nur exportieren, keine API-Anfragen
+python3 build.py --matches-only           # nur OPL-Matches crawlen (Veto, Maps, Liga-Stats)
 python3 build.py --league 8285            # eine Liga aktualisieren (braucht Key in .env)
 python3 build.py --team 11688             # ein Team komplett neu laden
 python3 -m http.server -d _site 8765      # → http://localhost:8765

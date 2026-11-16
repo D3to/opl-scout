@@ -64,7 +64,7 @@ jobs:
         run: |
           ARGS=(--state state --out _site)
           if [ "$EVENT" = "push" ]; then
-            ARGS+=(--export-only)                         # Code-Änderung: nur neu bauen
+            ARGS+=(--matches-only)                        # Code-Änderung: OPL-Matches nachladen + neu bauen (keine API)
           elif [ "$EVENT" = "schedule" ]; then
             ARGS+=(--budget-minutes 30)
           else

@@ -413,7 +413,16 @@ def tier_from_elo(elo):
     return max(3, min(27, int(elo // 100) + 3))
 
 
-def team_summary(team_id, region):
+def is_active(member, active_names):
+    """Aktiv = mind. ein Ligaspiel diese Saison (Riot-Name oder OPL-Name in den Match-Stats).
+    Ohne gespielte Ligaspiele (active_names is None) zählt die OPL-Position."""
+    if active_names is None:
+        return member.get("position") in CORE_POSITIONS
+    return ((member.get("riot_id") or "").split("#")[0].lower() in active_names
+            or (member.get("opl_name") or "").lower() in active_names)
+
+
+def team_summary(team_id, region, active_names=None):
     """Ø-Elo aus dem Cache (ohne neue Requests)."""
     team = cache.peek(f"team:{team_id}")
     if not team:
@@ -423,14 +432,15 @@ def team_summary(team_id, region):
     for m in team["members"]:
         if not m.get("riot_id"):
             continue
-        with_id += m["position"] in CORE_POSITIONS
+        act = is_active(m, active_names)
+        with_id += act
         st = cache.peek(f"stats:{region}:{m['riot_id'].lower()}")
         elo = ((st or {}).get("current") or {}).get("elo")
         if st and st.get("updated"):
             updated.append(st["updated"])
         if elo:
             allm.append(elo)
-            if m["position"] in CORE_POSITIONS:
+            if act:
                 core.append(elo)
 
     def avg(lst):
@@ -439,9 +449,128 @@ def team_summary(team_id, region):
         e = round(sum(lst) / len(lst))
         return {"elo": e, "tier": tier_from_elo(e), "n": len(lst)}
 
-    top5 = sorted(core, reverse=True)[:5]  # 5 höchste Ränge unter Player + Captain
+    top5 = sorted(core, reverse=True)[:5]  # 5 höchste Ränge unter den aktiven Spielern
     return {"core": avg(core), "all": avg(allm), "top5": avg(top5), "core_total": with_id,
             "all_total": sum(1 for m in team["members"] if m.get("riot_id")),
-            "updated": min(u for u in updated if u) if any(updated) else None}
+            "updated": min(u for u in updated if u) if any(updated) else None,
+            "active_by": "opl" if active_names is not None else "position"}
 
 
+
+
+# --------------------------------------------------------------------------- OPL-Matches (Veto, Maps, Spieler-Stats)
+def _course_url(league_url):
+    return re.sub(r"/standing.*$", "", league_url.rstrip("/")) + "/course"
+
+
+def opl_course(league_url, refresh=False):
+    """Alle Match-IDs einer Liga (inkl. Gruppen-Unterevents) + erlaubte Event-IDs."""
+    key = "course:" + league_url
+    hit = None if refresh else cache.get(key, OPL_TTL)
+    if hit:
+        return hit
+    url = _course_url(league_url)
+    m = re.search(r"/event/(\d+)-([^/]+)", url)
+    lid, slug = m.group(1), m.group(2)
+    events, mids = {lid}, []
+    page = fetch(url)
+    mids += re.findall(r"match\\?/(\d+)-", page)
+    # Gruppen-Ligen: Matches stehen in den Unterevents "...-GruppeA", "...-GruppeB"
+    subs = dict.fromkeys(re.findall(r"event\\?/(\d+)-" + re.escape(slug) + r"-Gruppe[A-Za-z0-9]*", page))
+    for sid in subs:
+        if sid == lid:
+            continue
+        sub_page = fetch(re.sub(r"/event/\d+-[^/]+", f"/event/{sid}-{slug}", url))
+        events.add(sid)
+        mids += re.findall(r"match\\?/(\d+)-", sub_page)
+        time.sleep(0.3)
+    res = {"events": sorted(events), "matches": list(dict.fromkeys(mids))}
+    cache.set(key, res)
+    return res
+
+
+def _num(s):
+    try:
+        return int(s)
+    except (TypeError, ValueError):
+        return None
+
+
+def parse_match(page, mid):
+    info = {}
+    for title, content in re.findall(r'"title":"([^"]+)","value":\{"type":"(?:string|link)","content":"([^"]*)"', page):
+        info[title] = content
+    start = re.search(r'"date_1":\{"options":\{[^}]*\},"unix":(\d+)', page)
+    t = {}
+    for k in ("Team1Name", "Team2Name", "Team1ID", "Team2ID"):
+        mm = re.search(r'var %s = "([^"]*)"' % k, page)
+        t[k] = html.unescape(mm.group(1)) if mm else ""
+    names = {t["Team1Name"]: 1, t["Team2Name"]: 2}
+
+    veto = []
+    for cls, body, name in re.findall(r'<div class="mapban-v2__map( --pick)?\s*">(.*?)<div class="mapban-v2__map-name">([^<]*)</div>', page, re.S):
+        if name.strip().upper() == "TBD":
+            continue
+        action = (re.search(r'map-indicator">([^<]*)', body) or [None, ""])[1].strip()
+        by = names.get(html.unescape((re.search(r'mapban-v2__team-image"\s*title="([^"]*)"', body) or [None, ""])[1]))
+        side = re.search(r'side-indicator[^"]*"\s*title="([^"]*)"', body)
+        side_team, side_name = None, None
+        if side:
+            sm = re.match(r"(.*) starts on (\w+)", html.unescape(side.group(1)))
+            if sm:
+                side_team, side_name = names.get(sm.group(1)), sm.group(2)
+        veto.append({"action": action, "map": name.strip().lower(), "by": by,
+                     "side_team": side_team, "side": side_name})
+
+    maps = []
+    parts = page.split('<div class="map-result__container">')[1:]
+    for p in parts:
+        sc1 = re.search(r'map-result__map-score-team-1">\s*<div>([^<]*)</div>', p)
+        sc2 = re.search(r'map-result__map-score-team-2">\s*<div>([^<]*)</div>', p)
+        mname = re.search(r'map-result__map-name">\s*([^<]*)<', p)
+        s1, s2 = _num(sc1.group(1).strip()) if sc1 else None, _num(sc2.group(1).strip()) if sc2 else None
+        if s1 is None or s2 is None:
+            continue
+        players = []
+        for team, row in re.findall(r'map-result-valorant__row team-(\d)">(.*?)(?=map-result-valorant__row team-|map-result__map-image|$)', p, re.S):
+            nick = re.search(r'class="nickname">([^<]*)<', row)
+            if not nick:
+                continue
+            agent = re.search(r'class="character-name">([^<]*)<', row)
+            st = {k.strip(): v.strip() for k, v in re.findall(r'map-result-valorant__stat">\s*<div>([^<]*)</div>\s*<div>([^<]*)</div>', row)}
+            kda = [_num(x.strip()) for x in st.get("kda", "").split("/")] + [None] * 3
+            players.append({
+                "team": int(team), "name": html.unescape(nick.group(1).strip()),
+                "agent": agent.group(1).strip() if agent else "",
+                "acs": _num(st.get("avg cs")), "k": kda[0], "d": kda[1], "a": kda[2],
+                "econ": _num(st.get("econ rating")), "fb": _num(st.get("first blood")),
+                "plants": _num(st.get("plants")), "defuses": _num(st.get("defuses")),
+            })
+        maps.append({"map": mname.group(1).strip().lower() if mname else "?", "s1": s1, "s2": s2, "players": players})
+
+    return {
+        "id": str(mid), "event": info.get("event ID", ""), "state": info.get("match state", ""),
+        "format": info.get("format", ""), "start": int(start.group(1)) if start else None,
+        "t1": {"id": t["Team1ID"], "name": t["Team1Name"]}, "t2": {"id": t["Team2ID"], "name": t["Team2Name"]},
+        "defwin": '"is_defwin_team_in_match":true' in page,
+        "veto": veto, "maps": maps, "fetched": time.time(),
+    }
+
+
+def opl_match(mid, refresh=False):
+    """Fertige Matches werden nie neu geladen; offene je nach Startzeit."""
+    key = f"match:{mid}"
+    old = cache.peek(key)
+    if old and not refresh:
+        age = cache.age(key) or 0
+        if old.get("state") == "closed":
+            if old.get("maps") or age < 6 * 3600:   # ohne Ergebnis-Details: alle 6 h erneut prüfen
+                return old
+        start = old.get("start") or 0
+        # Startzeit vorbei oder in < 3 h: stündlich prüfen, sonst alle 12 h
+        limit = 50 * 60 if start < time.time() + 3 * 3600 else 12 * 3600
+        if age < limit:
+            return old
+    res = parse_match(fetch(f"https://www.opleague.pro/match/{mid}"), mid)
+    cache.set(key, res)
+    return res
