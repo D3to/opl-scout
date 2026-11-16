@@ -89,9 +89,13 @@ jobs:
           git commit -q -m "Daten $(date -u +'%Y-%m-%d %H:%M') UTC (${{ github.event_name }})"
           git push -q -f "https://x-access-token:${GH_TOKEN}@github.com/${{ github.repository }}.git" data
 
+      # eigener Name pro Versuch, damit "Re-run jobs" nicht an zwei gleichnamigen Artefakten scheitert
       - uses: actions/upload-pages-artifact@v3
         with:
           path: _site
+          name: github-pages-${{ github.run_attempt }}
 
       - id: deploy
         uses: actions/deploy-pages@v4
+        with:
+          artifact_name: github-pages-${{ github.run_attempt }}
