@@ -548,8 +548,16 @@ def parse_match(page, mid):
             })
         maps.append({"map": mname.group(1).strip().lower() if mname else "?", "s1": s1, "s2": s2, "players": players})
 
+    # Ergebnis-Block: Map-Stand (z. B. 2/0) oder bei kampflos/Freilos "W"/"L"; Reihenfolge = Team 1, Team 2
+    result = []
+    blk = re.search(r'report__result-container">(.*?)</section>', page, re.S)
+    if blk:
+        result = [{"val": v.strip(), "winner": "--winner" in c}
+                  for c, v in re.findall(r'<div class="result([^"]*)">([^<]*)<', blk.group(1))][:2]
+
     return {
         "id": str(mid), "event": info.get("event ID", ""), "state": info.get("match state", ""),
+        "result": result, "v": MATCH_PARSER_VERSION,
         "format": info.get("format", ""), "start": int(start.group(1)) if start else None,
         "t1": {"id": t["Team1ID"], "name": t["Team1Name"]}, "t2": {"id": t["Team2ID"], "name": t["Team2Name"]},
         "defwin": '"is_defwin_team_in_match":true' in page,
@@ -557,11 +565,14 @@ def parse_match(page, mid):
     }
 
 
+MATCH_PARSER_VERSION = 2   # erhöhen, wenn parse_match neue Felder liefert → alle Matches einmal neu laden
+
+
 def opl_match(mid, refresh=False):
     """Fertige Matches werden nie neu geladen; offene je nach Startzeit."""
     key = f"match:{mid}"
     old = cache.peek(key)
-    if old and not refresh:
+    if old and not refresh and old.get("v") == MATCH_PARSER_VERSION:
         age = cache.age(key) or 0
         if old.get("state") == "closed":
             if old.get("maps") or age < 6 * 3600:   # ohne Ergebnis-Details: alle 6 h erneut prüfen

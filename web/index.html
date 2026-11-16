@@ -94,10 +94,21 @@
   .mchip img{width:38px;height:20px;object-fit:cover;border-radius:4px}
   .mchip.ban{opacity:.85} .mchip.ban span{text-decoration:line-through;text-decoration-color:rgba(255,255,255,.4)}
   .mchip b{font-weight:600;color:var(--mut);font-size:11px}
+  .comp{display:flex;align-items:center;gap:3px}
+  .comp img{width:24px;height:24px;border-radius:50%;background:var(--panel2)}
+  .comp.predicted img{opacity:.75;outline:1px dashed var(--line)}
+  .ctag{font-size:10px;padding:1px 5px;border-radius:4px;margin-left:5px;white-space:nowrap}
+  .ctag.played{background:rgba(62,207,142,.15);color:var(--good)}
+  .ctag.pred{background:rgba(255,198,107,.13);color:#ffc66b;border:1px dashed rgba(255,198,107,.5)}
+  .maptable tr.never td{background:rgba(255,198,107,.03)}
+  .maptable tr.never .mapname{opacity:.8}
+  th.psort{cursor:pointer;user-select:none} th.psort:hover,th.psort.on{color:var(--txt)}
+  button.tiny{padding:2px 7px;font-size:11px}
   .sechead{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:22px 0 8px;flex-wrap:wrap}
   .sechead h3{margin:0;font-size:15px}
   .scrollx{overflow-x:auto;background:var(--panel);border-radius:10px}
   .maptable td{border-top:1px solid var(--line)}
+  .maptable th.num,.maptable td.num{text-align:center}
   .maptable th.own,.maptable td.own{background:rgba(255,70,85,.06)}
   .mapname{display:flex;align-items:center;gap:8px}
   .mapname img{width:56px;height:28px;object-fit:cover;border-radius:4px}
@@ -109,6 +120,9 @@
   .res.w{background:rgba(62,207,142,.15);color:var(--good)} .res.l{background:rgba(255,107,107,.15);color:var(--bad)}
   .res.d{background:var(--panel2);color:var(--mut)} .res.up{background:#13283a;color:#9fd0ff;font-weight:500}
   .mmaps{font-size:13px;margin-top:4px}
+  .ffkind{font-size:11px;color:var(--mut);margin-left:-4px}
+  .record{font-size:13px;font-weight:600}
+  body:not(.is-admin) .urlrow{display:none !important}
   .vetos{display:flex;flex-wrap:wrap;gap:4px;margin-top:6px}
   .veto{font-size:11px;padding:2px 6px;border-radius:4px;border:1px solid var(--line);color:var(--mut)}
   .veto.self{border-color:var(--acc);color:var(--txt)}
@@ -294,7 +308,8 @@ async function loadMeta(){
   meta = await getJSON("data/meta.json?t=" + Date.now());
   const next = new Date(); next.setMinutes(meta.schedule_minute ?? 17, 0, 0);
   if(next <= new Date()) next.setHours(next.getHours() + 1);
-  $("#datastate").innerHTML = `Daten vom ${fmtTime(meta.generated)}<br>nächstes Auto-Update ~${next.toLocaleTimeString("de-DE",{hour:"2-digit",minute:"2-digit"})} Uhr`;
+  $("#datastate").innerHTML = `Ränge: stündlich, nächstes ~${next.toLocaleTimeString("de-DE",{hour:"2-digit",minute:"2-digit"})} Uhr`
+    + `<br>OPL (Tabelle, Kader, Matches): täglich ${esc(meta.opl_daily || "23:00")} Uhr${meta.opl_updated ? `, Stand ${fmtTime(meta.opl_updated)}` : ""}`;
   $("#leagues").innerHTML = meta.leagues.map(l => `<button data-id="${esc(l.id)}" title="${esc(l.title)}">${esc(l.name)}</button>`).join("");
   document.querySelectorAll("#leagues button").forEach(b => b.onclick = () => openLeague(b.dataset.id));
 }
@@ -403,8 +418,7 @@ function renderTeam(team, mt){
   const members = [...team.members].sort((a, b) => act(b) - act(a));
   const times = [team.updated];
   const elos = [];
-  const rows = members.map((m,i) => {
-    const sep = !act(m) && (i===0 || act(members[i-1])) ? `<tr class="sep"><td colspan="${statSrc === "opl" ? 11 : 10}">${byOpl ? "Nicht aktiv – kein Ligaspiel in dieser Saison" : "Kein aktiver Spieler (Stand-In, Manager, Coach …)"}</td></tr>` : "";
+  const items = members.map((m, idx) => {
     const head = `<td class="c6"><div><span class="pname">${esc(m.opl_name)}</span> <span class="pos ${esc(m.position)} ${act(m)?"":"np"}">${esc(m.position||"–")}</span></div>
       <div class="sub">${m.riot_id ? esc(m.riot_id) : "keine Riot-ID hinterlegt"}</div></td>`;
     const NC = statSrc === "opl" ? 7 : 6;          // Anzahl Stat-Spalten je Quelle
@@ -451,8 +465,22 @@ function renderTeam(team, mt){
       }
       body = rankTds + statTds + `<td class="c6">${link}${localTag}${statSrc !== "opl" && p?.matches_error ? `<div class="err" title="${esc(p.matches_error)}">Matches n/a</div>` : ""}</td>`;
     }
-    return `${sep}<tr class="${act(m)?"":"nonplayer"}">${head}${body}</tr>`;
-  }).join("");
+    return {m, idx, active: act(m), v: sortValues(team, m), html: `<tr class="${act(m)?"":"nonplayer"}">${head}${body}</tr>`};
+  });
+  // Sortierung: aktive immer zuerst; innerhalb nach gewählter Spalte, sonst nach Rollen-Tag
+  const {k: sk, dir: sd} = playerSort;
+  items.sort((a, b) => {
+    if(a.active !== b.active) return b.active - a.active;
+    if(sk){
+      const va = a.v[sk], vb = b.v[sk];
+      if(va == null && vb != null) return 1;
+      if(vb == null && va != null) return -1;
+      if(va != null && vb != null && va !== vb) return (typeof va === "string" ? va.localeCompare(vb) : va - vb) * sd;
+    }
+    return a.idx - b.idx;
+  });
+  const sepRow = `<tr class="sep"><td colspan="${statSrc === "opl" ? 11 : 10}">${byOpl ? "Nicht aktiv – kein Ligaspiel in dieser Saison" : "Kein aktiver Spieler (Stand-In, Manager, Coach …)"}</td></tr>`;
+  const rows = items.map((it, i) => (!it.active && (i === 0 || items[i-1].active) ? sepRow : "") + it.html).join("");
 
   const oldest = Math.min(...times.filter(Boolean)), newest = Math.max(...times.filter(Boolean));
   $("#detail").innerHTML = `
@@ -473,9 +501,9 @@ function renderTeam(team, mt){
         <option value="ranked">Ranked (letzte 20 Spiele)</option>
       </select></label></div>
     <div id="players"><table><thead><tr>
-      <th>Spieler</th><th>Aktueller Rang</th><th>Peak</th>${statSrc === "opl"
-        ? `<th class="num">Maps</th><th class="num">ACS</th><th class="num">K/D</th><th class="num" title="Econ-Rating">Econ</th><th class="num" title="First Bloods">FB</th><th class="num" title="Anteil gewonnener Maps">WR</th><th>Agents <span class="sub">(% der Maps)</span></th>`
-        : `<th class="num">K/D</th><th class="num">HS%</th><th class="num">ADR</th><th class="num">ACS</th><th class="num">Winrate</th><th>Agents</th>`}<th></th>
+      ${pth("name","Spieler")}${pth("rank","Aktueller Rang")}${pth("peak","Peak")}${statSrc === "opl"
+        ? `${pth("maps","Maps","num")}${pth("acs","ACS","num")}${pth("kd","K/D","num")}${pth("econ","Econ","num","Econ-Rating")}${pth("fb","FB","num","First Bloods")}${pth("wr","WR","num","Anteil gewonnener Maps")}<th>Agents <span class="sub">(% der Maps)</span></th>`
+        : `${pth("kd","K/D","num")}${pth("hs","HS%","num")}${pth("adr","ADR","num")}${pth("acs","ACS","num")}${pth("wr","Winrate","num")}<th>Agents</th>`}<th class="resetsort">${playerSort.k ? `<button class="ghost tiny" id="sortreset" title="Zurück zur Standard-Sortierung nach Rollen-Tag">↺ Tag</button>` : ""}</th>
     </tr></thead><tbody>${rows}</tbody></table></div>
     <p class="sub">${statSrc === "opl"
       ? `Stats: alle gespielten Maps dieser Liga auf OPLeague (${(team.opl?.matches||[]).filter(x=>x.maps.length).length} Matches). Rang und Peak: Ranked (HenrikDev-API).`
@@ -487,8 +515,46 @@ function renderTeam(team, mt){
   if(rb) rb.onclick = () => auth?.mode === "admin" ? adminRefreshTeam(team.id || curTeam) : localRefreshTeam(team, mt);
   const lb = $("#teamlogin"); if(lb) lb.onclick = openLogin;
   $("#back").onclick = () => showDetail(false);
+  document.querySelectorAll("#players th[data-ps]").forEach(h => h.onclick = () => {
+    const k = h.dataset.ps;
+    if(playerSort.k !== k) playerSort = {k, dir: k === "name" ? 1 : -1};
+    else if(playerSort.dir === (k === "name" ? 1 : -1)) playerSort.dir *= -1;
+    else playerSort = {k: null, dir: 1};          // dritter Klick: zurück zur Standard-Sortierung (Tag)
+    const y = window.scrollY, d = $("#detail").scrollTop;
+    renderTeam(team, mt);
+    window.scrollTo(0, y); $("#detail").scrollTop = d;
+  });
+  const sr = $("#sortreset"); if(sr) sr.onclick = () => { playerSort = {k: null, dir: 1}; renderTeam(team, mt); };
+  document.querySelectorAll(".maptable th[data-ms]").forEach(h => h.onclick = () => {
+    const k = h.dataset.ms, first = k === "map" ? 1 : -1;
+    if(mapSort.k !== k) mapSort = {k, dir: first};
+    else if(mapSort.dir === first) mapSort.dir *= -1;
+    else mapSort = {k: null, dir: -1};            // dritter Klick: Standard-Sortierung
+    const y = window.scrollY, d = $("#detail").scrollTop;
+    renderTeam(team, mt);
+    window.scrollTo(0, y); $("#detail").scrollTop = d;   // Position halten
+  });
   $("#statsrc").value = statSrc;
   $("#statsrc").onchange = e => { statSrc = e.target.value; store.set("statsrc", statSrc); renderTeam(team, mt); };
+}
+let playerSort = {k: null, dir: 1};   // Standard: Reihenfolge nach Rollen-Tag (Captain, Player, Stand-In …)
+function pth(k, label, cls = "", title = ""){
+  const on = playerSort.k === k;
+  return `<th class="${cls} psort${on ? " on" : ""}" data-ps="${k}" title="${esc(title ? title + " – " : "")}Sortieren">${label}${on ? `<span class="arrow">${playerSort.dir > 0 ? "▲" : "▼"}</span>` : ""}</th>`;
+}
+function sortValues(team, m){
+  const p = m.riot_id ? statsFor(team, m) : null;
+  const v = {name: (m.opl_name || "").toLowerCase(), rank: p?.current?.elo ?? null,
+             peak: p?.peak?.tier ?? null};
+  if(statSrc === "opl"){
+    const o = m.riot_id ? oplPlayer(team, m) : null;
+    Object.assign(v, {maps: o?.maps ?? null, acs: o?.acs ?? null, kd: o?.kd ?? null, econ: o?.econ ?? null,
+                      fb: o?.fb ?? null, wr: o?.winrate ?? null});
+  }else{
+    const r = p?.recent?.matches ? p.recent : null;
+    Object.assign(v, {kd: r?.kd ?? null, hs: r?.hs ?? null, adr: r?.adr ?? null, acs: r?.acs ?? null, wr: r?.winrate ?? null});
+  }
+  return v;
 }
 // OPL-Stats gehören zum Riot-Namen (ohne Tag) – Fallback: OPL-Benutzername
 function oplPlayer(team, m){
@@ -497,26 +563,62 @@ function oplPlayer(team, m){
 }
 const MAP_IMG = mp => `https://www.opleague.pro/styles/media/game/Val/map/${encodeURIComponent(mp)}_720.webp`;
 const cap = x => x ? x[0].toUpperCase() + x.slice(1) : x;
+let mapSort = {k: null, dir: -1};   // Standard: meistgespielt zuerst
+function mth(k, label, cls = "", title = ""){
+  const on = mapSort.k === k;
+  return `<th class="${cls} psort${on ? " on" : ""}" data-ms="${k}" title="${esc(title ? title + " – " : "")}Sortieren">${label}${on ? `<span class="arrow">${mapSort.dir > 0 ? "▲" : "▼"}</span>` : ""}</th>`;
+}
+function mapSortVal([mp, v], k){
+  if(k === "map") return mp;
+  if(k === "wl") return v.played ? v.won / v.played : null;
+  if(k === "rounds") return v.played ? v.rw - v.rl : null;
+  if(k === "atk") return v.atk || v.def ? v.atk : null;
+  return v[k] ?? null;
+}
 function mapPoolHtml(o){
   const maps = Object.entries(o?.maps || {});
   if(!maps.length) return `<div class="sechead"><h3>Map-Pool</h3></div><p class="sub">Noch keine gespielten Ligaspiele mit Veto in dieser Saison.</p>`;
-  maps.sort((a,b) => b[1].played - a[1].played || b[1].pick - a[1].pick || a[1].ban - b[1].ban);
+  // Standard: meistgespielt, dann meistgepickt, dann am wenigsten gebannt
+  const dflt = (a, b) => b[1].played - a[1].played || b[1].pick - a[1].pick || a[1].ban - b[1].ban;
+  const {k: mk, dir: md} = mapSort;
+  maps.sort((a, b) => {
+    if(!mk) return dflt(a, b);
+    const va = mapSortVal(a, mk), vb = mapSortVal(b, mk);
+    if(va == null && vb != null) return 1;
+    if(vb == null && va != null) return -1;
+    if(va != null && vb != null && va !== vb) return (typeof va === "string" ? va.localeCompare(vb) : va - vb) * md;
+    return dflt(a, b);
+  });
   const z = v => v ? v : '<span class="sub">0</span>';
   return `<div class="sechead"><h3>Map-Pool <span class="sub">(Veto + Ergebnisse dieser Saison)</span></h3></div>
   <div class="scrollx"><table class="maptable"><thead><tr>
-    <th>Map</th><th class="num">Gespielt</th><th class="num">W–L</th><th class="num">Runden</th>
-    <th class="num own" title="Von diesem Team gepickt">Pick</th><th class="num own" title="Von diesem Team gebannt">Ban</th>
-    <th class="num" title="Vom Gegner gepickt">Gegner-Pick</th><th class="num" title="Vom Gegner gebannt">Gegner-Ban</th>
-    <th class="num" title="Übrig gebliebene Decider-Map">Decider</th><th class="num" title="Startseite dieses Teams auf gespielten Maps">Start Atk/Def</th>
+    ${mth("map","Map")}${mth("played","Gespielt","num")}${mth("wl","W–L","num","Map-Winrate")}${mth("rounds","Runden","num","Rundendifferenz")}
+    ${mth("pick","Pick","num own","Von diesem Team gepickt")}${mth("ban","Ban","num own","Von diesem Team gebannt")}
+    ${mth("opp_pick","Gegner-Pick","num","Vom Gegner gepickt")}${mth("opp_ban","Gegner-Ban","num","Vom Gegner gebannt")}
+    ${mth("decider","Decider","num","Übrig gebliebene Decider-Map")}${mth("atk","Start Atk/Def","num","Startseite dieses Teams auf gespielten Maps (sortiert nach Angriffs-Starts)")}
+    <th title="Häufigste gespielte Comp auf dieser Map – oder Prognose aus den Agent-Pools der aktiven Spieler und der Liga-Meta der Map">Wahrscheinlichste Comp</th>
   </tr></thead><tbody>${maps.map(([mp, v]) => {
     const wl = v.played ? `<span class="${v.won*2 > v.played ? "pos-up" : v.won*2 < v.played ? "pos-dn" : ""}">${v.won}–${v.played - v.won}</span>` : '<span class="sub">–</span>';
     const rd = v.played ? `${v.rw}:${v.rl}` : '<span class="sub">–</span>';
-    return `<tr><td><div class="mapname"><img src="${MAP_IMG(mp)}" alt="" loading="lazy" onerror="this.remove()">${esc(cap(mp))}</div></td>
+    return `<tr class="${v.played ? "" : "never"}"><td><div class="mapname"><img src="${MAP_IMG(mp)}" alt="" loading="lazy" onerror="this.remove()">${esc(cap(mp))}</div></td>
       <td class="num">${z(v.played)}</td><td class="num">${wl}</td><td class="num">${rd}</td>
       <td class="num own">${z(v.pick)}</td><td class="num own ban">${z(v.ban)}</td>
       <td class="num">${z(v.opp_pick)}</td><td class="num">${z(v.opp_ban)}</td><td class="num">${z(v.decider)}</td>
-      <td class="num">${v.atk || v.def ? `${v.atk}/${v.def}` : '<span class="sub">–</span>'}</td></tr>`;
+      <td class="num">${v.atk || v.def ? `${v.atk}/${v.def}` : '<span class="sub">–</span>'}</td>
+      <td>${compHtml(v.comp)}</td></tr>`;
   }).join("")}</tbody></table></div>`;
+}
+function compHtml(c){
+  if(!c || !c.agents?.length) return '<span class="sub">–</span>';
+  const who = c.players ? Object.fromEntries(c.players.filter(p => p.player).map(p => [p.agent, p.player])) : {};
+  const icons = c.agents.map(a => {
+    const ic = AGENT_ICONS[a.toLowerCase()], tip = who[a] ? `${a} – ${who[a]}` : a;
+    return ic ? `<img src="${esc(ic)}" alt="${esc(a)}" title="${esc(tip)}">` : `<span class="sub" title="${esc(tip)}">${esc(a)}</span>`;
+  }).join("");
+  const tag = c.src === "played"
+    ? `<span class="ctag played" title="Diese Comp wurde ${c.n} von ${c.of} Mal auf der Map gespielt">${c.n}/${c.of}×</span>`
+    : `<span class="ctag pred" title="Map in dieser Saison nie gespielt – Prognose aus den Agent-Pools der aktiven Spieler + Liga-Meta der Map">⚠ Prognose · nie gespielt</span>`;
+  return `<div class="comp ${c.src}">${icons}${tag}</div>`;
 }
 // Top 2 eigene Picks und Bans neben dem Teamnamen
 function topMapsHtml(o){
@@ -543,12 +645,17 @@ function matchesHtml(o){
   if(!ms.length) return "";
   const date = t => t ? new Date(t*1000).toLocaleDateString("de-DE",{day:"2-digit",month:"2-digit"}) : "";
   const now = Date.now()/1000;
-  return `<div class="sechead"><h3>Matches <span class="sub">(diese Saison)</span></h3></div>
+  const r = o.record || {};
+  const rec = (r.W || r.L || r.D) ? `<span class="record"><span class="pos-up">${r.W||0}S</span>${r.D ? ` / ${r.D}U` : ""} / <span class="pos-dn">${r.L||0}N</span>${r.ff ? ` <span class="sub">(${r.ff} ohne Spiel)</span>` : ""}</span>` : "";
+  return `<div class="sechead"><h3>Matches <span class="sub">(diese Saison)</span></h3>${rec}</div>
   <div class="matches">${ms.map(m => {
     const played = m.maps.length > 0;
+    const cls = {W: "w", L: "l", D: "d"}[m.outcome] || "d";
     let res;
-    if(played){ const [w,l] = m.score; res = `<span class="res ${w>l?"w":w<l?"l":"d"}">${w}:${l}</span>`; }
-    else if(m.state === "closed") res = `<span class="res d" title="Ohne Ergebnis-Details (z. B. kampflos)">–</span>`;
+    if(played){ const [w,l] = m.score; res = `<span class="res ${cls}">${w}:${l}</span>`; }
+    else if(m.kind === "bye") res = `<span class="res ${cls}" title="Freilos – kein Gegner, Sieg ohne Spiel">${m.outcome || "–"}</span><span class="ffkind">Freilos</span>`;
+    else if(m.kind === "ff") res = `<span class="res ${cls}" title="Kampflos gewertet – keine Map gespielt">${m.outcome}</span><span class="ffkind">kampflos</span>`;
+    else if(m.state === "closed") res = `<span class="res d" title="Ohne Ergebnis auf OPL">–</span>`;
     else res = `<span class="res up">${m.start && m.start > now ? "geplant" : "offen"}</span>`;
     const veto = m.veto.map(v => `<span class="veto ${v.action} ${v.by||"dec"}" title="${v.action === "ban" ? "Ban" : "Pick"} ${v.by === "self" ? "dieses Team" : v.by === "opp" ? "Gegner" : ""}${v.side ? ` · Start ${v.side === "atk" ? "Angriff" : "Verteidigung"}` : ""}">${v.action === "ban" ? "✕" : "✓"} ${esc(cap(v.map))}</span>`).join("");
     return `<div class="match"><div class="mhead"><span class="sub">${date(m.start)}</span>${res}
@@ -659,6 +766,7 @@ function afterAuthChange(){
   const b = $("#loginbtn");
   b.textContent = auth ? (auth.mode === "admin" ? "✓ Admin" : "✓ Eigener Key") : "Login";
   b.classList.toggle("in", !!auth);
+  document.body.classList.toggle("is-admin", auth?.mode === "admin");   // URL-Feld nur für Admins
   updateAdminUI();
   if(curTeam) loadTeam(curTeam, true);
 }
@@ -806,7 +914,7 @@ async function openUrl(){
   const m = u.match(/\/event\/(\d+)/);
   const known = meta.leagues.find(l => l.url === u || (m && l.id === m[1]));
   if(known) return openLeague(known.id);
-  if(auth?.mode !== "admin"){ showNotice("Diese Liga ist noch nicht in OPL Scout. Neue Ligen kann nur ein Admin hinzufügen (Login → Admin)."); return; }
+  if(auth?.mode !== "admin") return;   // URL-Funktion vorerst nur für Admins
   if(!/^https:\/\/www\.opleague\.pro\/event\/\d+/.test(u)){ showNotice("Bitte eine OPLeague-Standing-URL eingeben (https://www.opleague.pro/event/…/standing)."); return; }
   const name = prompt("Anzeigename für die neue Liga (z. B. „4. Liga“):", "");
   if(name === null) return;

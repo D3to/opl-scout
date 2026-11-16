@@ -135,10 +135,55 @@ def crawl_matches(lg, refresh_course=True):
     return ok
 
 
-def team_opl(tid, matches):
+def league_meta(matches):
+    """Map → {Agent: Anteil der Team-Comps in der Liga, die ihn auf dieser Map spielen}."""
+    cnt, tot = {}, {}
+    for m in matches:
+        for x in m["maps"]:
+            for team in (1, 2):
+                ags = {p["agent"] for p in x["players"] if p["team"] == team and p["agent"]}
+                if not ags:
+                    continue
+                tot[x["map"]] = tot.get(x["map"], 0) + 1
+                for a in ags:
+                    cnt.setdefault(x["map"], {})[a] = cnt.setdefault(x["map"], {}).get(a, 0) + 1
+    return {mp: {a: c / tot[mp] for a, c in ags.items()} for mp, ags in cnt.items()}
+
+
+def likely_comp(mp, map_comps, players, tagents, meta=None):
+    """Gespielte Comp (häufigste, bei Gleichstand die neueste) – sonst Prognose aus den
+    Agent-Vorlieben der aktiven Spieler (erst auf dieser Map, dann insgesamt)."""
+    if map_comps:
+        comp, (n, _) = max(map_comps.items(), key=lambda kv: (kv[1][0], kv[1][1]))
+        return {"agents": list(comp), "src": "played", "n": n, "of": sum(v[0] for v in map_comps.values())}
+    taken, picks = set(), []
+    # Spieler mit den meisten Maps zuerst – sie spielen am wahrscheinlichsten
+    for agg in sorted(players.values(), key=lambda a: -a["maps"])[:5]:
+        overall = {a: c for a, c, _ in agg["agents"]}
+        on_map = agg.get("map_agents", {}).get(mp, {})
+        mm = (meta or {}).get(mp, {})
+        # 1. selbst auf dieser Map gespielt, 2. eigener Anteil + Liga-Meta der Map
+        cands = sorted(overall, key=lambda a: (-on_map.get(a, 0), -(overall[a] / agg["maps"] + mm.get(a, 0))))
+        ag = next((a for a in cands if a not in taken), None)
+        if ag:
+            taken.add(ag)
+            picks.append({"player": agg["name"], "agent": ag})
+    for ag, _ in sorted(tagents.items(), key=lambda kv: -kv[1]):   # auffüllen, falls nötig
+        if len(picks) >= 5:
+            break
+        if ag not in taken:
+            taken.add(ag)
+            picks.append({"player": None, "agent": ag})
+    if not picks:
+        return None
+    return {"agents": [p["agent"] for p in picks], "players": picks, "src": "predicted"}
+
+
+def team_opl(tid, matches, meta=None):
     """Map-Pool, Match-Liste und Liga-Stats der Spieler für ein Team."""
     maps, players, mlist = {}, {}, []
     tagents = {}   # Agent → auf wie vielen Maps vom Team gespielt
+    comps = {}     # Map → {(5 Agents): [Anzahl, zuletzt]}
     def mp(name):
         return maps.setdefault(name, {"pick": 0, "ban": 0, "opp_pick": 0, "opp_ban": 0, "decider": 0,
                                       "played": 0, "won": 0, "rw": 0, "rl": 0, "atk": 0, "def": 0})
@@ -150,8 +195,23 @@ def team_opl(tid, matches):
         played = [x for x in m["maps"]]
         won = sum(1 for x in played if (x["s1"] > x["s2"]) == (me == 1) and x["s1"] != x["s2"])
         lost = len(played) - won
+        # Ergebnis: offizieller OPL-Ergebnisblock (deckt auch kampflos/Freilos ab), sonst aus den Maps
+        res = m.get("result") or []
+        mine, theirs = (res[me - 1], res[2 - me]) if len(res) == 2 else ({}, {})
+        if mine.get("winner"):
+            outcome = "W"
+        elif theirs.get("winner"):
+            outcome = "L"
+        elif played:
+            outcome = "W" if won > lost else "L" if lost > won else "D"
+        elif m.get("state") == "closed" and mine.get("val") and mine.get("val") == theirs.get("val"):
+            outcome = "D"
+        else:
+            outcome = None
+        kind = "played" if played else ("bye" if opp.get("id") in ("-1", "") or "default" in opp.get("name", "").lower()
+                                         else "ff" if outcome else None)
         entry = {"id": m["id"], "start": m.get("start"), "state": m.get("state"), "format": m.get("format"),
-                 "opp": opp, "score": [won, lost] if played else None,
+                 "opp": opp, "score": [won, lost] if played else None, "outcome": outcome, "kind": kind,
                  "veto": [{"action": v["action"], "map": v["map"],
                            "by": "self" if v["by"] == me else "opp" if v["by"] else None,
                            "side": v["side"] if v["side_team"] == me else
@@ -182,8 +242,14 @@ def team_opl(tid, matches):
             s["rw"] += x["us"]
             s["rl"] += x["them"]
         for x in played:
-            for ag in {p["agent"] for p in x["players"] if p["team"] == me and p["agent"]}:
+            mine = [p["agent"] for p in x["players"] if p["team"] == me and p["agent"]]
+            for ag in set(mine):
                 tagents[ag] = tagents.get(ag, 0) + 1
+            if len(mine) == 5:
+                comp = tuple(sorted(mine))
+                c = comps.setdefault(x["map"], {}).setdefault(comp, [0, 0])
+                c[0] += 1
+                c[1] = max(c[1], m.get("start") or 0)   # zuletzt gespielt
             for p in x["players"]:
                 if p["team"] != me:
                     continue
@@ -196,6 +262,8 @@ def team_opl(tid, matches):
                     agg[f] += p[f] or 0
                 if p["agent"]:
                     agg["agents"][p["agent"]] = agg["agents"].get(p["agent"], 0) + 1
+                    ma = agg.setdefault("map_agents", {}).setdefault(x["map"], {})
+                    ma[p["agent"]] = ma.get(p["agent"], 0) + 1
     for agg in players.values():
         n = agg["maps"] or 1
         agg["acs"] = round(agg["acs"] / n)
@@ -204,9 +272,17 @@ def team_opl(tid, matches):
         agg["winrate"] = round(100 * agg["won"] / n)
         # [Agent, Anzahl Maps, Anteil in %] – meistgespielte zuerst
         agg["agents"] = [[a, c, round(100 * c / n)] for a, c in sorted(agg["agents"].items(), key=lambda kv: -kv[1])]
+    # Wahrscheinlichste Comp pro Map
+    for mp, st in maps.items():
+        st["comp"] = likely_comp(mp, comps.get(mp, {}), players, tagents, meta)
+    for agg in players.values():
+        agg.pop("map_agents", None)
     total = sum(1 for m in mlist for _ in m["maps"])
     team_agents = [[a, c, round(100 * c / total)] for a, c in sorted(tagents.items(), key=lambda kv: -kv[1])] if total else []
-    return {"maps": maps, "players": players, "matches": mlist, "agents": team_agents, "maps_played": total}
+    record = {k: sum(1 for x in mlist if x["outcome"] == k) for k in ("W", "D", "L")}
+    record["ff"] = sum(1 for x in mlist if x["kind"] in ("ff", "bye") and x["outcome"])
+    return {"maps": maps, "players": players, "matches": mlist, "agents": team_agents, "maps_played": total,
+            "record": record}
 
 
 def export(out, leagues, region, repo, ref, base_cfg):
@@ -218,13 +294,14 @@ def export(out, leagues, region, repo, ref, base_cfg):
                                   core.cache.peek(f"league_matches:{lg['id']}") or []) if m]
                       for lg in leagues}
     opl_by_team = {}
+    metas = {lid: league_meta(ms) for lid, ms in league_matches.items()}
     for lg in leagues:
         st = core.cache.peek("standing:" + lg["url"])
         if not st:
             continue
         summaries = {}
         for t in st["teams"]:
-            opl = opl_by_team[t["id"]] = team_opl(t["id"], league_matches[lg["id"]])
+            opl = opl_by_team[t["id"]] = team_opl(t["id"], league_matches[lg["id"]], metas[lg["id"]])
             # aktive Spieler = mind. ein Ligaspiel; ohne gespielte Matches → OPL-Position
             active = set(opl["players"]) if opl["maps_played"] else None
             summaries[t["id"]] = core.team_summary(t["id"], region, active)
@@ -255,6 +332,9 @@ def export(out, leagues, region, repo, ref, base_cfg):
         "repo": repo, "ref": ref, "region": region,
         "workflow": "update.yml",
         "schedule_minute": base_cfg.get("schedule_minute", 17),
+        "opl_daily": base_cfg.get("opl_daily", "23:00"),
+        "opl_updated": max([core.cache.peek("standing:" + lg["url"]) and
+                            time.time() - (core.cache.age("standing:" + lg["url"]) or 0) or 0 for lg in leagues] or [0]),
         "leagues": meta_leagues,
     }, ensure_ascii=False, indent=1))
 
@@ -277,6 +357,8 @@ def main():
     p.add_argument("--stats-max-age", type=float, default=50, help="Stats älter als X min neu laden")
     p.add_argument("--export-only", action="store_true")
     p.add_argument("--matches-only", action="store_true", help="nur OPL-Matches crawlen (keine API-Anfragen)")
+    p.add_argument("--skip-opl", action="store_true",
+                   help="OPL nicht abfragen (Standings/Kader/Matches aus dem Cache), nur Ranked-Stats aktualisieren")
     a = p.parse_args()
 
     state, out = Path(a.state), Path(a.out)
@@ -318,19 +400,24 @@ def main():
             else:
                 riot_ids = []
                 for lg in sel:
-                    st = core.opl_standings(lg["url"], refresh=True)
-                    log(f"{st['title']}: {len(st['teams'])} Teams")
+                    # --skip-opl (stündlicher Lauf): OPL nur lesen, wenn noch gar nichts im Cache ist
+                    st = (core.cache.peek("standing:" + lg["url"]) if a.skip_opl else None) \
+                        or core.opl_standings(lg["url"], refresh=True)
+                    log(f"{st['title']}: {len(st['teams'])} Teams" + (" (OPL aus Cache)" if a.skip_opl else ""))
                     for t in st["teams"]:
-                        # Kader stündlich neu, Riot-IDs nur 1x täglich (außer neue Mitglieder)
-                        try:
-                            team = core.opl_team(t["id"], refresh=True, refresh_ids=False)
-                        except Exception as e:
-                            log(f"  Kader {t['name']} fehlgeschlagen: {e}")
-                            team = core.cache.peek(f"team:{t['id']}")
-                            if not team:
-                                continue
+                        team = core.cache.peek(f"team:{t['id']}") if a.skip_opl else None
+                        if not team:
+                            # täglicher OPL-Lauf: Kader + Riot-IDs komplett neu
+                            try:
+                                team = core.opl_team(t["id"], refresh=True, refresh_ids=not a.skip_opl)
+                            except Exception as e:
+                                log(f"  Kader {t['name']} fehlgeschlagen: {e}")
+                                team = core.cache.peek(f"team:{t['id']}")
+                                if not team:
+                                    continue
                         riot_ids += [m["riot_id"] for m in team["members"] if m.get("riot_id")]
-                    crawl_matches(lg)
+                    if not a.skip_opl:
+                        crawl_matches(lg)
                     core.cache.save()
                 if has_key:
                     refresh_players(riot_ids, region, deadline, max_age=a.stats_max_age * 60)
