@@ -5,7 +5,22 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>OPL Scout</title>
 <style>
-  :root{--bg:#0f1218;--panel:#171b23;--panel2:#1e2430;--line:#2a3140;--txt:#e6e9ef;--mut:#8b94a7;--acc:#ff4655;--good:#3ecf8e;--bad:#ff6b6b;--np:#c9a7ff}
+  :root{--bg:#0f1218;--panel:#171b23;--panel2:#1e2430;--line:#2a3140;--txt:#e6e9ef;--mut:#8b94a7;--acc:#ff4655;--good:#3ecf8e;--bad:#ff6b6b;--np:#c9a7ff;
+    --warn:#ffc66b;--warnbg:#3a2a10;--info:#9fd0ff;--infobg:#13283a;--link:#7fb3ff;--sel:#2a1a20;--npbg:#2a2340;--npline:#8f6cff;--npborder:#3a3155;
+    --cap:#ffd166;--strike:rgba(255,255,255,.4);color-scheme:dark}
+  /* Heller Modus */
+  :root[data-theme="light"]{--bg:#f3f4f7;--panel:#ffffff;--panel2:#eaedf2;--line:#d8dce4;--txt:#161a22;--mut:#5b6476;--acc:#e3283b;--good:#12885a;--bad:#d03a3a;--np:#7446d1;
+    --warn:#9a5c00;--warnbg:#fff1d6;--info:#1b5a93;--infobg:#e2effb;--link:#1d5fb3;--sel:#fde6e9;--npbg:#efe7fb;--npline:#8f6cff;--npborder:#d4c6f3;
+    --cap:#9a7000;--strike:rgba(0,0,0,.45);--zpo:#16a066;--zsafe:#2b7bd2;--zrel:#dd7a10;--zdown:#d03a3a;color-scheme:light}
+  :root[data-theme="light"] .roleic{filter:invert(1) brightness(.35)}
+  /* helle Bilder (Radiant-/Iron-/Silver-Icons, weiße Team-Logos) auf hellem Grund sichtbar machen */
+  :root[data-theme="light"] img[src*="competitivetiers"],
+  :root[data-theme="light"] .tn img,:root[data-theme="light"] .th img,:root[data-theme="light"] .tlogo,:root[data-theme="light"] .pteam img{
+    filter:drop-shadow(0 0 1px rgba(0,0,0,.6)) drop-shadow(0 1px 2px rgba(0,0,0,.3))}
+  :root[data-theme="light"] .formsvg .area{opacity:.05}
+  #themebtn{order:1;font-size:16px;line-height:1;padding:6px 10px}
+  /* Text auf Map-Bildern immer hell */
+  .vstep .vn,.vstep .vm{color:#fff}
   *{box-sizing:border-box}
   body{margin:0;background:var(--bg);color:var(--txt);font:14px/1.45 system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
   header{padding:12px 20px;border-bottom:1px solid var(--line);display:flex;gap:14px;align-items:center;flex-wrap:wrap}
@@ -14,8 +29,8 @@
   .spacer{flex:1}
   #title{color:var(--mut);padding:0 20px 8px;font-size:13px}
   #datastate{color:var(--mut);font-size:12px;text-align:right}
-  #warn{background:#3a2a10;color:#ffc66b;padding:8px 20px;display:none}
-  #notice{background:#13283a;color:#9fd0ff;padding:8px 20px;display:none}
+  #warn{background:var(--warnbg);color:var(--warn);padding:8px 20px;display:none}
+  #notice{background:var(--infobg);color:var(--info);padding:8px 20px;display:none}
   main{display:grid;grid-template-columns:var(--side-w,420px) 6px 1fr;height:calc(100vh - 92px)}
   #splitter{cursor:col-resize;background:var(--line);transition:background .15s}
   #splitter:hover,#splitter.drag{background:var(--acc)}
@@ -39,7 +54,7 @@
   th{position:sticky;top:0;background:var(--panel);color:var(--mut);font-weight:500;font-size:12px;text-transform:uppercase;letter-spacing:.03em;z-index:1}
   #teams tr.team{cursor:pointer;border-bottom:1px solid var(--line)}
   #teams tr.team:hover{background:var(--panel2)}
-  #teams tr.team.sel{background:#2a1a20;box-shadow:inset 3px 0 var(--acc)}
+  #teams tr.team.sel{background:var(--sel);box-shadow:inset 3px 0 var(--acc)}
   .tn{display:flex;align-items:center;gap:8px}
   .tn img{width:24px;height:24px;border-radius:4px}
   /* Tabellenzonen (wie bei Fußballtabellen): farbiger Rand links + leichte Tönung */
@@ -70,19 +85,19 @@
   .rank img{width:26px;height:26px}
   .sub{color:var(--mut);font-size:12px}
   .pos{font-size:11px;padding:2px 6px;border-radius:4px;background:var(--panel2);color:var(--mut)}
-  .pos.Captain{color:#ffd166}
-  .pos.np{color:var(--np);background:#2a2340}
-  .local{font-size:10px;padding:1px 5px;border-radius:4px;background:#13283a;color:#9fd0ff;margin-left:4px}
+  .pos.Captain{color:var(--cap)}
+  .pos.np{color:var(--np);background:var(--npbg)}
+  .local{font-size:10px;padding:1px 5px;border-radius:4px;background:var(--infobg);color:var(--info);margin-left:4px}
   #players tr.nonplayer td{background:rgba(160,120,255,.05)}
-  #players tr.nonplayer td:first-child{box-shadow:inset 3px 0 #8f6cff}
+  #players tr.nonplayer td:first-child{box-shadow:inset 3px 0 var(--npline)}
   #players tr.nonplayer .pname,#players tr.nonplayer .rank{opacity:.75}
   #players tr.sep td{background:var(--panel2);color:var(--np);font-size:11px;text-transform:uppercase;letter-spacing:.05em;padding:5px 8px}
   .avgs{display:flex;gap:12px;flex-wrap:wrap;margin:0 0 16px}
   .avg{display:flex;align-items:center;gap:10px;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:8px 14px;min-width:220px}
   .avg img{width:40px;height:40px}
   .avg .big{font-size:16px;font-weight:600}
-  .avg.np{border-color:#3a3155}
-  a{color:#7fb3ff;text-decoration:none} a:hover{text-decoration:underline}
+  .avg.np{border-color:var(--npborder)}
+  a{color:var(--link);text-decoration:none} a:hover{text-decoration:underline}
   .err{color:var(--bad);font-size:12px}
   .ok{color:var(--good)}
   .spin{display:inline-block;width:12px;height:12px;border:2px solid var(--line);border-top-color:var(--acc);border-radius:50%;animation:s 1s linear infinite;vertical-align:middle}
@@ -104,14 +119,14 @@
   .topmaps .lbl2{color:var(--mut);width:42px;font-size:11px;text-transform:uppercase;letter-spacing:.04em}
   .mchip{display:inline-flex;align-items:center;gap:5px;background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:2px 7px 2px 2px}
   .mchip img{width:38px;height:20px;object-fit:cover;border-radius:4px}
-  .mchip.ban{opacity:.85} .mchip.ban span{text-decoration:line-through;text-decoration-color:rgba(255,255,255,.4)}
+  .mchip.ban{opacity:.85} .mchip.ban span{text-decoration:line-through;text-decoration-color:var(--strike)}
   .mchip b{font-weight:600;color:var(--mut);font-size:11px}
   .comp{display:flex;align-items:center;gap:3px}
   .comp img{width:24px;height:24px;border-radius:50%;background:var(--panel2)}
   .comp.predicted img{opacity:.75;outline:1px dashed var(--line)}
   .ctag{font-size:10px;padding:1px 5px;border-radius:4px;margin-left:5px;white-space:nowrap}
   .ctag.played{background:rgba(62,207,142,.15);color:var(--good)}
-  .ctag.pred{background:rgba(255,198,107,.13);color:#ffc66b;border:1px dashed rgba(255,198,107,.5)}
+  .ctag.pred{background:rgba(255,198,107,.13);color:var(--warn);border:1px dashed rgba(255,198,107,.5)}
   .maptable tr.never td{background:rgba(255,198,107,.03)}
   .maptable tr.never .mapname{opacity:.8}
   th.psort{cursor:pointer;user-select:none} th.psort:hover,th.psort.on{color:var(--txt)}
@@ -137,7 +152,7 @@
   .vstep{position:relative;width:118px;border-radius:8px;overflow:hidden;border:2px solid var(--line);background:var(--panel)}
   .vstep img{display:block;width:100%;height:58px;object-fit:cover}
   .vstep.ban img{filter:grayscale(1) brightness(.5)}
-  .vstep.A{border-color:var(--acc)} .vstep.B{border-color:#7fb3ff} .vstep.decider{border-style:dashed;border-color:#ffc66b}
+  .vstep.A{border-color:var(--acc)} .vstep.B{border-color:var(--link)} .vstep.decider{border-style:dashed;border-color:var(--warn)}
   .vstep .vn{position:absolute;top:3px;left:5px;font-size:11px;font-weight:700;text-shadow:0 1px 3px #000}
   .vstep .vm{position:absolute;top:30px;left:6px;font-weight:700;text-shadow:0 1px 4px #000}
   .vstep .vw{display:block;font-size:11px;padding:3px 6px;color:var(--mut);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -147,7 +162,7 @@
   .pcm{display:flex;align-items:center;gap:8px} .pcm img{width:56px;height:28px;object-fit:cover;border-radius:4px}
   .pcc{display:flex;flex-direction:column;gap:3px}
   .ampel{display:inline-block;width:12px;height:12px;border-radius:50%;vertical-align:middle}
-  .ampel.g{background:var(--good)} .ampel.r{background:var(--bad)} .ampel.y{background:#ffc66b}
+  .ampel.g{background:var(--good)} .ampel.r{background:var(--bad)} .ampel.y{background:var(--warn)}
   .rtag{font-size:10px;padding:1px 5px;border-radius:4px;margin-left:6px;font-weight:700}
   .rtag.ban{background:rgba(255,107,107,.15);color:var(--bad)} .rtag.pick{background:rgba(62,207,142,.15);color:var(--good)}
   .duel{display:grid;grid-template-columns:1fr 1fr;gap:12px}
@@ -157,7 +172,7 @@
   .pp .pn{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .pp .pv{display:flex;flex-direction:column;align-items:center;font-variant-numeric:tabular-nums;min-width:34px}
   .pp .pv small{font-size:9px;color:var(--mut)}
-  .star{font-size:10px;color:#ffc66b}
+  .star{font-size:10px;color:var(--warn)}
   .plink{cursor:pointer} .plink:hover{text-decoration:underline}
   .pp.plink:hover{text-decoration:none;background:var(--panel2)}
   .phead{display:flex;align-items:center;gap:14px;margin-bottom:6px}
@@ -186,7 +201,7 @@
   .formsvg .line{fill:none;stroke:var(--mut);stroke-width:1.5;opacity:.7}
   .formsvg .trend{fill:none;stroke:var(--acc);stroke-width:2.5;stroke-linejoin:round}
   .formsvg .avg{stroke-width:1.5}
-  .formsvg .avg.own{stroke:#ffc66b;stroke-dasharray:6 4}
+  .formsvg .avg.own{stroke:var(--warn);stroke-dasharray:6 4}
   .formsvg .avg.lg{stroke:var(--mut);stroke-dasharray:2 4}
   .formsvg .msep{stroke:var(--line);stroke-dasharray:2 3}
   .formsvg circle.w{fill:var(--good)} .formsvg circle.l{fill:var(--bad)}
@@ -196,14 +211,14 @@
   .formleg span{display:inline-flex;align-items:center;gap:5px}
   .formleg .dot{width:9px;height:9px;border-radius:50%;display:inline-block} .formleg .dot.w{background:var(--good)} .formleg .dot.l{background:var(--bad)}
   .formleg .ln{width:18px;height:0;display:inline-block;border-top:2px solid}
-  .formleg .ln.trend{border-color:var(--acc);border-top-width:3px} .formleg .ln.own{border-color:#ffc66b;border-top-style:dashed} .formleg .ln.lg{border-color:var(--mut);border-top-style:dotted}
+  .formleg .ln.trend{border-color:var(--acc);border-top-width:3px} .formleg .ln.own{border-color:var(--warn);border-top-style:dashed} .formleg .ln.lg{border-color:var(--mut);border-top-style:dotted}
   .agic{width:22px;height:22px;border-radius:50%;vertical-align:middle;background:var(--panel2)}
   .sharebtn{margin-left:auto}
   .sharebtn.ok{border-color:var(--good);color:var(--good)}
   .rolechip{display:inline-flex;align-items:center;gap:3px;font-size:11px;color:var(--mut);margin-left:4px;vertical-align:middle}
-  .roleic{width:14px;height:14px;opacity:.85;filter:invert(0)}
+  .roleic{width:14px;height:14px;opacity:.85}
   .roleic.big{width:26px;height:26px;opacity:1}
-  .rolechip.flex{color:#ffc66b}
+  .rolechip.flex{color:var(--warn)}
   .roles{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:10px}
   .role{background:var(--panel);border-radius:10px;padding:10px 12px;display:flex;flex-direction:column;gap:5px}
   .role .rhd{display:flex;align-items:center;gap:8px;margin-bottom:4px}
@@ -216,7 +231,7 @@
   .rpl .sec{font-style:italic}
   .rstat{font-size:11px;padding:2px 6px;border-radius:4px;white-space:nowrap}
   .rstat.ok{background:rgba(62,207,142,.15);color:var(--good)}
-  .rstat.thin{background:rgba(255,198,107,.13);color:#ffc66b}
+  .rstat.thin{background:rgba(255,198,107,.13);color:var(--warn)}
   .rstat.gap{background:rgba(255,107,107,.15);color:var(--bad)}
   #metabtn.active{border-color:var(--acc);color:var(--txt)}
   .metabar{display:inline-block;width:44px;height:4px;background:var(--panel2);border-radius:2px;overflow:hidden;vertical-align:middle;margin-left:6px}
@@ -247,7 +262,7 @@
   .mhead .opp{font-weight:600;flex:1}
   .res{font-weight:700;min-width:34px;text-align:center;border-radius:4px;padding:1px 6px;font-size:13px}
   .res.w{background:rgba(62,207,142,.15);color:var(--good)} .res.l{background:rgba(255,107,107,.15);color:var(--bad)}
-  .res.d{background:var(--panel2);color:var(--mut)} .res.up{background:#13283a;color:#9fd0ff;font-weight:500}
+  .res.d{background:var(--panel2);color:var(--mut)} .res.up{background:var(--infobg);color:var(--info);font-weight:500}
   .mmaps{font-size:13px;margin-top:4px}
   .ffkind{font-size:11px;color:var(--mut);margin-left:-4px}
   .record{font-size:13px;font-weight:600}
@@ -257,7 +272,7 @@
   .veto.self{border-color:var(--acc);color:var(--txt)}
   .veto.self.pick{background:rgba(255,70,85,.18)}
   .veto.opp.pick{background:var(--panel2);color:var(--txt)}
-  .veto.ban{text-decoration:line-through;text-decoration-color:rgba(255,255,255,.35)}
+  .veto.ban{text-decoration:line-through;text-decoration-color:var(--strike)}
   .veto.dec{border-style:dashed}
   #menu{display:contents}
   .urlrow{display:flex;gap:6px}
@@ -317,7 +332,7 @@
     #players .c6{grid-column:span 6} #players .c3{grid-column:span 3} #players .c2{grid-column:span 2}
     #players tr.sep{display:block;background:none;border:0;padding:6px 2px 0;margin:0}
     #players tr.sep td{background:none;padding:0}
-    #players tr.nonplayer{border-left:3px solid #8f6cff}
+    #players tr.nonplayer{border-left:3px solid var(--npline)}
     #players tr.nonplayer td{background:none}
     #players tr.nonplayer td:first-child{box-shadow:none}
     #players .rank img{width:24px;height:24px}
@@ -342,7 +357,7 @@
     .maptable .mcell{grid-column:1/-1;padding:0}
     .maptable .mapname{position:relative;display:block;opacity:1 !important}
     .maptable .mapname img{display:block;width:100%;height:64px;object-fit:cover;border-radius:0}
-    .maptable .mapname span{position:absolute;left:10px;bottom:6px;font-size:17px;font-weight:700;text-shadow:0 1px 4px rgba(0,0,0,.9)}
+    .maptable .mapname span{position:absolute;left:10px;bottom:6px;font-size:17px;font-weight:700;color:#fff;text-shadow:0 1px 4px rgba(0,0,0,.9)}
     .maptable tr.never .mapname img{filter:grayscale(.7) brightness(.7)}
     /* Reihenfolge: Ergebnisse | eigenes Veto | Gegner-Veto | Comp */
     .maptable .m-played{order:1} .maptable .m-wl{order:2} .maptable .m-rd{order:3}
@@ -384,11 +399,18 @@
   .dlg p{color:var(--mut);font-size:13px;margin:6px 0}
   .dlg .row{display:flex;gap:8px;justify-content:flex-end;margin-top:10px}
 </style>
+<script>
+  // Theme vor dem ersten Rendern setzen (kein Aufblitzen): gespeicherte Wahl, sonst System
+  (function(){ var t = null; try{ t = JSON.parse(localStorage.getItem("oplScout:theme")); }catch(e){}
+    if(t !== "light" && t !== "dark") t = matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark";
+    document.documentElement.dataset.theme = t; })();
+</script>
 </head>
 <body>
 <header>
   <h1>OPL<span>Scout</span></h1>
   <span id="curleague" class="mobile-only"></span>
+  <button id="themebtn" class="ghost" aria-label="Hell/Dunkel umschalten"></button>
   <button id="menubtn" class="mobile-only ghost" aria-label="Menü" aria-expanded="false" aria-controls="menu">☰</button>
   <div id="menu">
     <div class="leagues" id="leagues"></div>
@@ -1817,6 +1839,16 @@ async function openUrl(){
   $("#leaguerefresh").onclick = adminRefreshLeague;
   $("#metabtn").onclick = () => showMeta(true);
   $("#loginbtn").onclick = () => { setMenu(false); openLogin(); };
+  const themeIcon = () => {
+    const light = document.documentElement.dataset.theme === "light";
+    $("#themebtn").textContent = light ? "🌙" : "☀️";
+    $("#themebtn").title = light ? "Dunkler Modus" : "Heller Modus";
+  };
+  themeIcon();
+  $("#themebtn").onclick = () => {
+    const t = document.documentElement.dataset.theme === "light" ? "dark" : "light";
+    document.documentElement.dataset.theme = t; store.set("theme", t); themeIcon();
+  };
   $("#menubtn").onclick = () => setMenu(!document.body.classList.contains("menu-open"));
   document.addEventListener("click", e => {
     if(document.body.classList.contains("menu-open") && !e.target.closest("header")) setMenu(false);
