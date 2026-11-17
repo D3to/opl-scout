@@ -146,6 +146,24 @@
   .pp .pv{display:flex;flex-direction:column;align-items:center;font-variant-numeric:tabular-nums;min-width:34px}
   .pp .pv small{font-size:9px;color:var(--mut)}
   .star{font-size:10px;color:#ffc66b}
+  .rolechip{display:inline-flex;align-items:center;gap:3px;font-size:11px;color:var(--mut);margin-left:4px;vertical-align:middle}
+  .roleic{width:14px;height:14px;opacity:.85;filter:invert(0)}
+  .roleic.big{width:26px;height:26px;opacity:1}
+  .rolechip.flex{color:#ffc66b}
+  .roles{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:10px}
+  .role{background:var(--panel);border-radius:10px;padding:10px 12px;display:flex;flex-direction:column;gap:5px}
+  .role .rhd{display:flex;align-items:center;gap:8px;margin-bottom:4px}
+  .role .rhd>div{flex:1;min-width:0}
+  .role .rhd .sub{white-space:nowrap}
+  .rpl{display:flex;justify-content:space-between;align-items:baseline;gap:6px;font-size:13px}
+  .rpl>span:first-child{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .rpl>span.sub{white-space:nowrap;flex:none}
+  .rpl.thinp{opacity:.6}
+  .rpl .sec{font-style:italic}
+  .rstat{font-size:11px;padding:2px 6px;border-radius:4px;white-space:nowrap}
+  .rstat.ok{background:rgba(62,207,142,.15);color:var(--good)}
+  .rstat.thin{background:rgba(255,198,107,.13);color:#ffc66b}
+  .rstat.gap{background:rgba(255,107,107,.15);color:var(--bad)}
   #metabtn.active{border-color:var(--acc);color:var(--txt)}
   .metabar{display:inline-block;width:44px;height:4px;background:var(--panel2);border-radius:2px;overflow:hidden;vertical-align:middle;margin-left:6px}
   .metabar i{display:block;height:100%;background:var(--acc)}
@@ -278,6 +296,8 @@
     .maptable .mcell{order:0}
     .comp{flex-wrap:wrap}
     .recs,.duel{grid-template-columns:1fr}
+    .roles{grid-template-columns:repeat(2,minmax(0,1fr))}
+    .role .rhd{flex-wrap:wrap}
     .pvs{gap:6px;padding:10px}
     .pvs .pteam,.pvs .pteam:last-child{flex-direction:column;text-align:center;gap:4px}
     .pvs .pteam .rank,.pvs .pteam:last-child .rank{justify-content:center}
@@ -518,7 +538,7 @@ function renderTeam(team, mt){
   const times = [team.updated];
   const elos = [];
   const items = members.map((m, idx) => {
-    const head = `<td class="c6"><div><span class="pname">${esc(m.opl_name)}</span> <span class="pos ${esc(m.position)} ${act(m)?"":"np"}">${esc(m.position||"–")}</span></div>
+    const head = `<td class="c6"><div><span class="pname">${esc(m.opl_name)}</span> <span class="pos ${esc(m.position)} ${act(m)?"":"np"}">${esc(m.position||"–")}</span>${roleChip(oplPlayer(team, m))}</div>
       <div class="sub">${m.riot_id ? esc(m.riot_id) : "keine Riot-ID hinterlegt"}</div></td>`;
     const NC = statSrc === "opl" ? 7 : 6;          // Anzahl Stat-Spalten je Quelle
     let body = `<td colspan="${NC + 3}" class="nomob"></td>`;
@@ -609,6 +629,7 @@ function renderTeam(team, mt){
       : "Stats: letzte bis zu 20 Competitive-Matches (HenrikDev-API)."} Icons: valorant-api.com.</p>
     ${mapPoolHtml(team.opl)}
     ${teamAgentsHtml(team.opl)}
+    ${rolesHtml(team)}
     ${matchesHtml(team.opl)}`;
   const rb = $("#teamrefresh");
   if(rb) rb.onclick = () => auth?.mode === "admin" ? adminRefreshTeam(team.id || curTeam) : localRefreshTeam(team, mt);
@@ -790,6 +811,62 @@ function matchesHtml(o){
   }).join("")}</div>`;
 }
 
+
+// ================================================================== Rollen (aus den OPL-Agents)
+const ROLES = [["Duelist", "Duelist"], ["Initiator", "Initiator"], ["Controller", "Controller"], ["Sentinel", "Sentinel"]];
+const ROLE_DE = Object.fromEntries(ROLES);
+const ROLE_MIN = 25;   // ab diesem Anteil seiner Maps "spielt" ein Spieler die Rolle
+// [[Rolle, Maps, Anteil %], …] – Hauptrolle zuerst
+function playerRoles(p){
+  const r = {}; let n = 0;
+  for(const [a, c] of p?.agents || []){ const ro = AGENT_ROLE[a.toLowerCase()]; if(!ro) continue; r[ro] = (r[ro] || 0) + c; n += c; }
+  return n ? Object.entries(r).map(([k, c]) => [k, c, Math.round(100 * c / n)]).sort((a, b) => b[1] - a[1]) : [];
+}
+const roleImg = (ro, cls = "") => ROLE_ICON[ro] ? `<img class="roleic ${cls}" src="${esc(ROLE_ICON[ro])}" alt="${esc(ROLE_DE[ro] || ro)}">` : "";
+function roleChip(p, compact = false){
+  const r = playerRoles(p);
+  if(!r.length) return "";
+  const flex = r.filter(x => x[2] >= 30);
+  const tip = r.map(([k, c, q]) => `${ROLE_DE[k] || k}: ${q}% (${c} ${c === 1 ? "Map" : "Maps"})`).join(" · ");
+  const label = flex.length > 1 ? "Flex" : (ROLE_DE[r[0][0]] || r[0][0]);
+  return ` <span class="rolechip${flex.length > 1 ? " flex" : ""}" title="${esc(tip)}">${(flex.length > 1 ? flex : [r[0]]).map(x => roleImg(x[0])).join("")}${compact ? "" : `<span>${esc(label)}</span>`}</span>`;
+}
+// pro Rolle: Ø Agents pro Map und welche Spieler sie abdecken
+function teamRoles(T){
+  const o = T.opl || {}, n = o.maps_played || 0;
+  const per = {}; for(const [a, c] of o.agents || []){ const ro = AGENT_ROLE[a.toLowerCase()]; if(ro) per[ro] = (per[ro] || 0) + c; }
+  const players = Object.values(o.players || {}).map(p => ({p, r: playerRoles(p)}));
+  return ROLES.map(([ro, de]) => {
+    const cov = players.map(({p, r}) => { const x = r.find(y => y[0] === ro); return x && x[2] >= ROLE_MIN ? {name: p.name, maps: x[1], pct: x[2], main: r[0][0] === ro} : null; })
+      .filter(Boolean).sort((a, b) => b.maps - a.maps);
+    // Rolle wirklich gespielt = in mind. 2 Maps (Stand-ins mit einer Map zählen nur halb)
+    const solid = cov.filter(c => c.maps >= 2);
+    return {ro, de, avg: n ? (per[ro] || 0) / n : 0, cov, depth: solid.length};
+  });
+}
+function roleStatus(r){
+  if(!r.cov.length) return {cls: "gap", txt: "keiner", tip: "Kein Spieler spielt diese Rolle regelmäßig"};
+  if(r.depth <= 1) return {cls: "thin", txt: `nur ${r.cov[0].name}`, tip: "Nur ein Spieler deckt diese Rolle regelmäßig ab – fällt er aus, fehlt sie"};
+  return {cls: "ok", txt: `${r.depth} Spieler`, tip: `${r.depth} Spieler mit mind. 2 Maps auf dieser Rolle`};
+}
+function rolesHtml(T){
+  if(!T.opl?.maps_played || !Object.keys(AGENT_ROLE).length) return "";
+  const rs = teamRoles(T);
+  const flex = Object.values(T.opl.players).filter(p => playerRoles(p).filter(x => x[2] >= 30).length > 1 && p.maps >= 2);
+  return `<div class="sechead"><h3>Rollen <span class="sub">(aus ${T.opl.maps_played} Ligamaps · ab ${ROLE_MIN}% der eigenen Maps zählt ein Spieler zur Rolle)</span></h3></div>
+  <div class="roles">${rs.map(r => { const st = roleStatus(r);
+    return `<div class="role"><div class="rhd">${roleImg(r.ro, "big")}<div><b>${esc(r.de)}</b><div class="sub">Ø ${r.avg.toFixed(1).replace(".", ",")} pro Map</div></div></div>
+      <div><span class="rstat ${st.cls}" title="${esc(st.tip)}">${esc(st.txt)}</span></div>
+      ${r.cov.length ? r.cov.map(c => `<div class="rpl${c.maps < 2 ? " thinp" : ""}"><span${c.main ? "" : ' class="sec" title="Nebenrolle"'}>${esc(c.name)}${c.main ? "" : "*"}</span><span class="sub">${c.pct}% · ${c.maps}&nbsp;${c.maps === 1 ? "Map" : "Maps"}</span></div>`).join("")
+        : '<div class="sub">Niemand spielt diese Rolle regelmäßig.</div>'}</div>`; }).join("")}</div>
+  <p class="sub">* = Nebenrolle des Spielers. ${flex.length ? `Flex-Spieler (mehrere Rollen ≥ 30%): ${flex.map(p => esc(p.name)).join(", ")}` : ""}</p>`;
+}
+function rolesCompact(T){
+  if(!T.opl?.maps_played) return '<p class="sub">Keine Ligaspiele.</p>';
+  return teamRoles(T).map(r => { const st = roleStatus(r);
+    return `<div class="pp">${roleImg(r.ro)}<span class="pn"><b>${esc(r.de)}</b> <span class="sub">${r.cov.slice(0, 3).map(c => esc(c.name)).join(", ") || "–"}</span></span>
+      <span class="rstat ${st.cls}" title="${esc(st.tip)}">${esc(st.cls === "ok" ? r.depth + "×" : st.cls === "thin" ? "nur 1" : "keiner")}</span></div>`; }).join("");
+}
 
 // ================================================================== Liga-Meta
 let metaSort = {k: null, dir: -1}, lbSort = {k: "acs", dir: -1}, lbMin = null, lbAll = false, metaShown = false;
@@ -1065,7 +1142,7 @@ function renderPrep(A, mtA, B, mtB, entry){
   const maxAcsB = Math.max(0, ...plB.map(p => p.acs)), maxFbB = Math.max(0, ...plB.map(p => p.fb));
   const plList = (pl, mark) => pl.length ? pl.map(p => `<div class="pp">
       ${p.rank?.tier > 2 ? `<img class="ri" src="${RANK_ICON(p.rank.tier)}" alt="" title="${esc(p.rank.name || "")}">` : '<span class="ri"></span>'}
-      <span class="pn">${esc(p.member?.opl_name || p.name)}${mark && p.acs === maxAcsB ? ' <span class="star" title="Höchster ACS">★ ACS</span>' : ""}${mark && p.fb === maxFbB && p.fb ? ' <span class="star" title="Meiste First Bloods">★ FB</span>' : ""}</span>
+      <span class="pn">${esc(p.member?.opl_name || p.name)}${roleChip(p, true)}${mark && p.acs === maxAcsB ? ' <span class="star" title="Höchster ACS">★ ACS</span>' : ""}${mark && p.fb === maxFbB && p.fb ? ' <span class="star" title="Meiste First Bloods">★ FB</span>' : ""}</span>
       <span class="pv">${p.acs}<small>ACS</small></span><span class="pv">${p.kd}<small>K/D</small></span>
       <span class="pv">${p.fb}<small>FB</small></span>${agentIcons(p.agents, false, 2)}</div>`).join("") : '<p class="sub">Keine Ligaspiele.</p>';
 
@@ -1097,6 +1174,9 @@ function renderPrep(A, mtA, B, mtB, entry){
 
     <div class="sechead"><h3>Spieler-Duell <span class="sub">(Top 5 nach Ligamaps)</span></h3></div>
     <div class="duel"><div><h4>${esc(nameA)}</h4>${plList(plA, false)}</div><div><h4>${esc(nameB)}</h4>${plList(plB, true)}</div></div>
+
+    ${A.opl?.maps_played || B.opl?.maps_played ? `<div class="sechead"><h3>Rollen <span class="sub">(aus den Ligamaps: wer spielt was, wo fehlt Tiefe)</span></h3></div>
+    <div class="duel"><div><h4>${esc(nameA)}</h4>${rolesCompact(A)}</div><div><h4>${esc(nameB)}</h4>${rolesCompact(B)}</div></div>` : ""}
 
     <div class="sechead"><h3>Bisherige Duelle diese Saison</h3></div>
     ${h2h.length ? `<div class="matches">${h2h.map(m => `<div class="match"><div class="mhead"><span class="res ${({W:"w",L:"l",D:"d"})[m.outcome] || "d"}">${m.score ? m.score.join(":") : m.outcome || "–"}</span>
@@ -1151,9 +1231,12 @@ window.addEventListener("popstate", () => {
 });
 
 // ------------------------------------------------------------------ Agent-Bilder
-let AGENT_ICONS = {};
+let AGENT_ICONS = {}, AGENT_ROLE = {}, ROLE_ICON = {};
 const agentsReady = fetch("https://valorant-api.com/v1/agents?isPlayableCharacter=true")
-  .then(r => r.json()).then(j => { for(const a of j.data || []) AGENT_ICONS[a.displayName.toLowerCase()] = a.displayIcon; })
+  .then(r => r.json()).then(j => { for(const a of j.data || []){
+    AGENT_ICONS[a.displayName.toLowerCase()] = a.displayIcon;
+    if(a.role){ AGENT_ROLE[a.displayName.toLowerCase()] = a.role.displayName; ROLE_ICON[a.role.displayName] = a.role.displayIcon; }
+  } })
   .catch(() => {});
 // list: ["Jett", …] oder [["Jett", Maps, Prozent], …]
 function agentIcons(list, pct=false, max=4){
