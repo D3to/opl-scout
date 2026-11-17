@@ -1028,12 +1028,15 @@ function openPlayer(team, mt, key){
   showDetail(true);
   $("#detail").scrollTop = 0; if(isMobile()) window.scrollTo(0, 0);
 }
-// Rang in der Liga (unter Spielern mit mind. 3 Maps bzw. so vielen wie möglich)
+// Rang in der Liga – gleiche Regel wie die Standard-Bestenliste (mind. LB_MIN Maps)
+const LB_MIN = 3;
 function leagueRank(name, tid, k){
   const pl = league.overview?.players || [];
   const me = pl.find(p => p.team === String(tid) && p.name.toLowerCase() === name.toLowerCase());
   if(!me) return null;
-  const min = Math.min(3, me.maps);
+  const maxMaps = Math.max(0, ...pl.map(p => p.maps));
+  const min = Math.min(LB_MIN, Math.max(1, maxMaps));
+  if(me.maps < min) return {short: true, maps: me.maps, min};
   const pool = pl.filter(p => p.maps >= min);
   return {rank: 1 + pool.filter(p => p[k] > me[k]).length, of: pool.length, min};
 }
@@ -1057,7 +1060,8 @@ function renderPlayer(team, mt, key){
   const kd = (k, d) => d ? (k / d).toFixed(2) : String(k);
   const wr = (w, n) => n ? `<span class="${w * 2 > n ? "pos-up" : w * 2 < n ? "pos-dn" : ""}">${Math.round(100 * w / n)}%</span>` : "–";
   const agIcon = a => { const ic = AGENT_ICONS[(a || "").toLowerCase()]; return ic ? `<img class="agic" src="${esc(ic)}" alt="${esc(a)}" title="${esc(a)}">` : `<span class="sub">${esc(a || "–")}</span>`; };
-  const kpi = (v, l, rk, tip = "") => `<div class="kpi" title="${esc(tip)}"><div class="v">${v}</div><div class="l">${l}</div>${rk ? `<div class="rk${rk.rank <= 3 ? " top" : ""}" title="Platz in der Liga unter ${rk.of} Spielern mit mind. ${rk.min} Maps">#${rk.rank} von ${rk.of}</div>` : ""}</div>`;
+  const kpi = (v, l, rk, tip = "") => `<div class="kpi" title="${esc(tip)}"><div class="v">${v}</div><div class="l">${l}</div>${rk ? (rk.short ? `<div class="rk" title="In der Bestenliste zählen nur Spieler mit mind. ${rk.min} Maps">kein Rang (${rk.maps}/${rk.min} Maps)</div>`
+    : `<div class="rk${rk.rank <= 3 ? " top" : ""}" title="Platz in der Bestenliste unter ${rk.of} Spielern mit mind. ${rk.min} Maps">#${rk.rank} von ${rk.of}</div>`) : ""}</div>`;
   const lr = k => agg ? leagueRank(agg.name, team.id, k) : null;
 
   // OPL-Kennzahlen
@@ -1265,7 +1269,7 @@ function renderMeta(){
     ["pickwin", "Picker gewinnt"], ["atkwin", "Angriffsstart gewinnt"], ["avg_rounds", "Ø Runden"], ["map", "Map A–Z"]];
   // ---- Bestenliste
   const maxMaps = Math.max(0, ...ov.players.map(p => p.maps));
-  if(lbMin == null || lbMin > maxMaps) lbMin = Math.min(3, Math.max(1, maxMaps));
+  if(lbMin == null || lbMin > maxMaps) lbMin = Math.min(LB_MIN, Math.max(1, maxMaps));
   const lbVal = (p, k) => k === "name" ? p.name.toLowerCase() : k === "team" ? p.team_name.toLowerCase() : p[k];
   const pls = sortRows(ov.players.filter(p => p.maps >= lbMin), lbSort, lbVal, (a, b) => b.acs - a.acs);
   const shown = lbAll ? pls : pls.slice(0, 25);
