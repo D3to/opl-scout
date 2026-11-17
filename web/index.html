@@ -104,6 +104,48 @@
   .maptable tr.never .mapname{opacity:.8}
   th.psort{cursor:pointer;user-select:none} th.psort:hover,th.psort.on{color:var(--txt)}
   button.tiny{padding:2px 7px;font-size:11px}
+  .prepbtn{padding:3px 10px;font-size:12px}
+  .prephead{margin:4px 0 10px;font-size:18px}
+  .pvs{display:grid;grid-template-columns:1fr auto 1fr;gap:12px;align-items:center;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin-bottom:8px}
+  .pteam{display:flex;align-items:center;gap:10px;min-width:0}
+  .pvs .pteam:last-child{flex-direction:row-reverse;text-align:right}
+  .pvs .pteam:last-child .rank{justify-content:flex-end}
+  .pteam>img{width:44px;height:44px;border-radius:8px}
+  .pteam .rank img{width:20px;height:20px}
+  .vs{font-weight:700;color:var(--acc);text-align:center;font-size:18px}
+  .vs .sub{font-weight:400;font-size:11px;color:var(--mut)}
+  .recs{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .rec{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:10px 12px;display:flex;flex-direction:column;gap:8px}
+  .rh{font-size:11px;text-transform:uppercase;letter-spacing:.05em;font-weight:700}
+  .rh.ban{color:var(--bad)} .rh.pick{color:var(--good)}
+  .ri2{display:flex;align-items:center;gap:10px}
+  .ri2 img{width:64px;height:32px;object-fit:cover;border-radius:5px}
+  .ri2.alt{opacity:.75}
+  .vsteps{display:flex;flex-wrap:wrap;gap:6px}
+  .vstep{position:relative;width:118px;border-radius:8px;overflow:hidden;border:2px solid var(--line);background:var(--panel)}
+  .vstep img{display:block;width:100%;height:58px;object-fit:cover}
+  .vstep.ban img{filter:grayscale(1) brightness(.5)}
+  .vstep.A{border-color:var(--acc)} .vstep.B{border-color:#7fb3ff} .vstep.decider{border-style:dashed;border-color:#ffc66b}
+  .vstep .vn{position:absolute;top:3px;left:5px;font-size:11px;font-weight:700;text-shadow:0 1px 3px #000}
+  .vstep .vm{position:absolute;top:30px;left:6px;font-weight:700;text-shadow:0 1px 4px #000}
+  .vstep .vw{display:block;font-size:11px;padding:3px 6px;color:var(--mut);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .vstep.pick .vw,.vstep.decider .vw{color:var(--txt)}
+  .pcomps{display:flex;flex-direction:column;gap:8px}
+  .pcomp{display:grid;grid-template-columns:140px 1fr 1fr;gap:10px;align-items:center;background:var(--panel);border-radius:10px;padding:8px 12px}
+  .pcm{display:flex;align-items:center;gap:8px} .pcm img{width:56px;height:28px;object-fit:cover;border-radius:4px}
+  .pcc{display:flex;flex-direction:column;gap:3px}
+  .ampel{display:inline-block;width:12px;height:12px;border-radius:50%;vertical-align:middle}
+  .ampel.g{background:var(--good)} .ampel.r{background:var(--bad)} .ampel.y{background:#ffc66b}
+  .rtag{font-size:10px;padding:1px 5px;border-radius:4px;margin-left:6px;font-weight:700}
+  .rtag.ban{background:rgba(255,107,107,.15);color:var(--bad)} .rtag.pick{background:rgba(62,207,142,.15);color:var(--good)}
+  .duel{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .duel h4{margin:0 0 6px;font-size:13px}
+  .pp{display:flex;align-items:center;gap:8px;background:var(--panel);border-radius:8px;padding:6px 10px;margin-bottom:6px}
+  .pp .ri{width:24px;height:24px;flex:none}
+  .pp .pn{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .pp .pv{display:flex;flex-direction:column;align-items:center;font-variant-numeric:tabular-nums;min-width:34px}
+  .pp .pv small{font-size:9px;color:var(--mut)}
+  .star{font-size:10px;color:#ffc66b}
   .sechead{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:22px 0 8px;flex-wrap:wrap}
   .sechead h3{margin:0;font-size:15px}
   .scrollx{overflow-x:auto;background:var(--panel);border-radius:10px}
@@ -216,6 +258,18 @@
     .maptable .m-comp{order:10;grid-column:1/-1}
     .maptable .mcell{order:0}
     .comp{flex-wrap:wrap}
+    .recs,.duel{grid-template-columns:1fr}
+    .pvs{gap:6px;padding:10px}
+    .pvs .pteam,.pvs .pteam:last-child{flex-direction:column;text-align:center;gap:4px}
+    .pvs .pteam .rank,.pvs .pteam:last-child .rank{justify-content:center}
+    .pteam>img{width:34px;height:34px}
+    .pteam b{font-size:13px}
+    .pteam .sub{font-size:11px}
+    .vs{font-size:15px}
+    .pcomp{grid-template-columns:1fr}
+    .vstep{width:calc(50% - 3px)}
+    .prept tr{grid-template-columns:repeat(3,1fr)}
+    .prept td.amp{order:3}
   }
   .leagues{display:flex;gap:4px;flex-wrap:wrap}
   .leagues button{background:var(--panel2);color:var(--txt);border:1px solid var(--line)}
@@ -548,6 +602,11 @@ function renderTeam(team, mt){
     window.scrollTo(0, y); $("#detail").scrollTop = d;
   });
   const sr = $("#sortreset"); if(sr) sr.onclick = () => { playerSort = {k: null, dir: 1}; renderTeam(team, mt); };
+  document.querySelectorAll(".prepbtn").forEach(btn => btn.onclick = () =>
+    openPrep(team, mt, btn.dataset.opp, (team.opl?.matches || []).find(m => m.id === btn.dataset.mid)));
+  const pa = $("#prepany");
+  if(pa) pa.onchange = e => e.target.value && openPrep(team, mt, e.target.value,
+    (team.opl?.matches || []).find(m => m.opp?.id === e.target.value && !m.maps.length && m.state !== "closed") || null);
   const mss = $("#mapsortsel");
   if(mss) mss.onchange = e => {
     const k = e.target.value;
@@ -592,6 +651,13 @@ function oplPlayer(team, m){
 }
 const MAP_IMG = mp => `https://www.opleague.pro/styles/media/game/Val/map/${encodeURIComponent(mp)}_720.webp`;
 const cap = x => x ? x[0].toUpperCase() + x.slice(1) : x;
+// Best-of aus dem OPL-Format der Matches ("round robin, BO2" / "swiss, BO3"); Standard 3
+function bestOf(o){
+  const c = {};
+  for(const m of o?.matches || []){ const b = /BO(\d)/i.exec(m.format || ""); if(b) c[b[1]] = (c[b[1]] || 0) + 1; }
+  const top = Object.entries(c).sort((a, b) => b[1] - a[1])[0];
+  return top ? +top[0] : 3;
+}
 let mapSort = {k: null, dir: -1};   // Standard: meistgespielt zuerst
 function mth(k, label, cls = "", title = ""){
   const on = mapSort.k === k;
@@ -619,16 +685,17 @@ function mapPoolHtml(o){
     return dflt(a, b);
   });
   const z = v => v ? v : '<span class="sub">0</span>';
+  const bo = bestOf(o), dec = bo !== 2;   // BO2: kein Decider
   const sortOpts = [["", "Standard"], ["played", "Gespielt"], ["wl", "Winrate"], ["rounds", "Rundendifferenz"], ["pick", "Eigene Picks"],
-    ["ban", "Eigene Bans"], ["opp_pick", "Gegner-Picks"], ["opp_ban", "Gegner-Bans"], ["decider", "Decider"], ["map", "Map A–Z"]];
-  return `<div class="sechead"><h3>Map-Pool <span class="sub">(Veto + Ergebnisse dieser Saison)</span></h3>
+    ["ban", "Eigene Bans"], ["opp_pick", "Gegner-Picks"], ["opp_ban", "Gegner-Bans"], ...(dec ? [["decider", "Decider"]] : []), ["map", "Map A–Z"]];
+  return `<div class="sechead"><h3>Map-Pool <span class="sub">(Veto + Ergebnisse dieser Saison · BO${bo})</span></h3>
     <label class="mobile-sort">Sortieren <select id="mapsortsel">${sortOpts.map(([k, l]) =>
       `<option value="${k}"${(mapSort.k || "") === k ? " selected" : ""}>${l}</option>`).join("")}</select></label></div>
   <div class="scrollx"><table class="maptable"><thead><tr>
     ${mth("map","Map")}${mth("played","Gespielt","num")}${mth("wl","W–L","num","Map-Winrate")}${mth("rounds","Runden","num","Rundendifferenz")}
     ${mth("pick","Pick","num own","Von diesem Team gepickt")}${mth("ban","Ban","num own","Von diesem Team gebannt")}
     ${mth("opp_pick","Gegner-Pick","num","Vom Gegner gepickt")}${mth("opp_ban","Gegner-Ban","num","Vom Gegner gebannt")}
-    ${mth("decider","Decider","num","Übrig gebliebene Decider-Map")}${mth("atk","Start Atk/Def","num","Startseite dieses Teams auf gespielten Maps (sortiert nach Angriffs-Starts)")}
+    ${dec ? mth("decider","Decider","num","Übrig gebliebene Decider-Map") : ""}${mth("atk","Start Atk/Def","num","Startseite dieses Teams auf gespielten Maps (sortiert nach Angriffs-Starts)")}
     <th title="Häufigste gespielte Comp auf dieser Map – oder Prognose aus den Agent-Pools der aktiven Spieler und der Liga-Meta der Map">Wahrscheinlichste Comp</th>
   </tr></thead><tbody>${maps.map(([mp, v]) => {
     const wl = v.played ? `<span class="${v.won*2 > v.played ? "pos-up" : v.won*2 < v.played ? "pos-dn" : ""}">${v.won}–${v.played - v.won}</span>` : '<span class="sub">–</span>';
@@ -636,7 +703,7 @@ function mapPoolHtml(o){
     return `<tr class="${v.played ? "" : "never"}"><td class="mcell"><div class="mapname"><img src="${MAP_IMG(mp)}" alt="" loading="lazy" onerror="this.remove()"><span>${esc(cap(mp))}</span></div></td>
       <td class="num m-played" data-l="Gespielt">${z(v.played)}</td><td class="num m-wl" data-l="W–L">${wl}</td><td class="num m-rd" data-l="Runden">${rd}</td>
       <td class="num own m-pick" data-l="Pick">${z(v.pick)}</td><td class="num own ban m-ban" data-l="Ban">${z(v.ban)}</td>
-      <td class="num m-opick" data-l="Gegner-Pick">${z(v.opp_pick)}</td><td class="num m-oban" data-l="Gegner-Ban">${z(v.opp_ban)}</td><td class="num m-dec" data-l="Decider">${z(v.decider)}</td>
+      <td class="num m-opick" data-l="Gegner-Pick">${z(v.opp_pick)}</td><td class="num m-oban" data-l="Gegner-Ban">${z(v.opp_ban)}</td>${dec ? `<td class="num m-dec" data-l="Decider">${z(v.decider)}</td>` : ""}
       <td class="num m-side" data-l="Start Atk/Def">${v.atk || v.def ? `${v.atk}/${v.def}` : '<span class="sub">–</span>'}</td>
       <td class="m-comp" data-l="Wahrscheinlichste Comp">${compHtml(v.comp)}</td></tr>`;
   }).join("")}</tbody></table></div>`;
@@ -680,7 +747,8 @@ function matchesHtml(o){
   const now = Date.now()/1000;
   const r = o.record || {};
   const rec = (r.W || r.L || r.D) ? `<span class="record"><span class="pos-up">${r.W||0}S</span>${r.D ? ` / ${r.D}U` : ""} / <span class="pos-dn">${r.L||0}N</span>${r.ff ? ` <span class="sub">(${r.ff} ohne Spiel)</span>` : ""}</span>` : "";
-  return `<div class="sechead"><h3>Matches <span class="sub">(diese Saison)</span></h3>${rec}</div>
+  return `<div class="sechead"><h3>Matches <span class="sub">(diese Saison)</span></h3>${rec}
+    <label>Vergleich mit <select id="prepany"><option value="">Gegner wählen…</option>${(league?.teams || []).filter(t => t.id !== curTeam).map(t => `<option value="${esc(t.id)}">${esc(t.name)}</option>`).join("")}</select></label></div>
   <div class="matches">${ms.map(m => {
     const played = m.maps.length > 0;
     const cls = {W: "w", L: "l", D: "d"}[m.outcome] || "d";
@@ -693,10 +761,206 @@ function matchesHtml(o){
     const veto = m.veto.map(v => `<span class="veto ${v.action} ${v.by||"dec"}" title="${v.action === "ban" ? "Ban" : "Pick"} ${v.by === "self" ? "dieses Team" : v.by === "opp" ? "Gegner" : ""}${v.side ? ` · Start ${v.side === "atk" ? "Angriff" : "Verteidigung"}` : ""}">${v.action === "ban" ? "✕" : "✓"} ${esc(cap(v.map))}</span>`).join("");
     return `<div class="match"><div class="mhead"><span class="sub">${date(m.start)}</span>${res}
       <span class="opp">vs ${esc(m.opp.name)}</span>
+      ${!played && m.state !== "closed" && m.opp?.id && m.opp.id !== "-1" ? `<button class="tiny prepbtn" data-opp="${esc(m.opp.id)}" data-mid="${esc(m.id)}">Vorbereiten</button>` : ""}
       <a class="sub" href="https://www.opleague.pro/match/${esc(m.id)}" target="_blank" rel="noopener">OPL ↗</a></div>
       ${played ? `<div class="mmaps">${m.maps.map(x => `<span class="${x.us>x.them?"pos-up":x.us<x.them?"pos-dn":""}">${esc(cap(x.map))} ${x.us}:${x.them}</span>`).join(" · ")}</div>` : ""}
       ${m.veto.length ? `<div class="vetos">${veto}</div>` : ""}</div>`;
   }).join("")}</div>`;
+}
+
+
+// ================================================================== Match-Vorbereitung (Team A vs. Team B)
+let prepFirst = null;   // "A" | "B" | null (= Heimteam beginnt)
+async function openPrep(teamA, mtA, oppId, matchEntry = null){
+  const my = ++current;
+  $("#detail").innerHTML = '<div class="empty"><span class="spin"></span> Lade Gegner…</div>';
+  let teamB;
+  try{ teamB = await getJSON(`data/team-${oppId}.json?t=${meta.generated}`); }
+  catch(e){ $("#detail").innerHTML = `<div class="empty err">Für den Gegner liegen keine Daten vor.</div>`; return; }
+  if(my !== current) return;
+  const mtB = league.teams.find(t => t.id === String(oppId)) || {name: teamB.name};
+  prepFirst = null;
+  renderPrep(teamA, mtA, teamB, mtB, matchEntry);
+  window.scrollTo(0, 0); $("#detail").scrollTop = 0;
+}
+
+// Kennzahlen pro Map: Stärke (geglättete Winrate), Pick-/Ban-Quote pro Match mit Veto
+function mapProfile(T){
+  const o = T.opl || {}, ms = (o.matches || []).filter(m => m.maps.length && m.veto.length);
+  const n = ms.length;
+  const get = mp => {
+    const v = (o.maps || {})[mp] || {};
+    const played = v.played || 0, won = v.won || 0;
+    return {played, won, rw: v.rw || 0, rl: v.rl || 0,
+            str: (won + 1) / (played + 2),                  // Laplace: 0.5 ohne Daten
+            pick: n ? (v.pick || 0) / n : 0, ban: n ? (v.ban || 0) / n : 0,
+            pickN: v.pick || 0, banN: v.ban || 0, comp: v.comp};
+  };
+  return {n, get, maps: Object.keys(o.maps || {})};
+}
+function vetoFormat(A, B){
+  const seqs = {};
+  for(const T of [A, B]) for(const m of T.opl?.matches || [])
+    if(m.veto.length >= 5){ const k = m.veto.map(v => v.action).join(","); seqs[k] = (seqs[k] || 0) + 1; }
+  const best = Object.entries(seqs).sort((a, b) => b[1] - a[1])[0];
+  return best ? best[0].split(",") : ["ban","ban","pick","pick","ban","ban","pick"];
+}
+// Beginnt in dieser Liga immer das Heimteam? (aus den eigenen gespielten Matches)
+function homeAlwaysFirst(A, B){
+  let yes = 0, no = 0;
+  for(const T of [A, B]) for(const m of T.opl?.matches || []){
+    if(!m.veto.length || m.home === undefined) continue;
+    const firstSelf = m.veto[0].by === "self";
+    (firstSelf === m.home) ? yes++ : no++;
+  }
+  return no === 0 && yes > 0;
+}
+function simulateVeto(pA, pB, pool, seq, firstIsA){
+  const left = [...pool], steps = [];
+  seq.forEach((act, i) => {
+    if(!left.length) return;
+    const actorA = (i % 2 === 0) === firstIsA;
+    const X = actorA ? pA : pB, Y = actorA ? pB : pA;
+    if(act === "pick" && left.length === 1){ steps.push({act: "decider", map: left[0], actor: null}); left.length = 0; return; }
+    const score = mp => {
+      const x = X.get(mp), y = Y.get(mp);
+      return act === "ban"
+        ? 2 * x.ban + 0.8 * (y.str - x.str) + 0.4 * y.pick - 1.0 * x.pick   // bannt Gewohnheits-Bans bzw. Gegner-Stärke, nie die eigenen Picks
+        : 2 * x.pick + (x.str - y.str) - 1.5 * x.ban;                // pickt Stamm-Picks und eigene Stärke
+    };
+    left.sort((a, b) => score(b) - score(a));
+    steps.push({act, map: left[0], actor: actorA ? "A" : "B"});
+    left.shift();
+  });
+  if(left.length === 1 && !steps.some(s => s.act === "decider") && seq[seq.length - 1] !== "ban")
+    steps.push({act: "decider", map: left[0], actor: null});
+  return steps;
+}
+function prepRecs(pA, pB, pool){
+  const rows = pool.map(mp => {
+    const a = pA.get(mp), b = pB.get(mp);
+    const diff = a.str - b.str;
+    return {mp, a, b,
+      // Bannen: Gegner stark / pickt sie gern, wir schwach; nicht verschwenden, wenn der Gegner sie selbst bannt
+      ban: -2 * diff + 0.8 * b.pick + 0.5 * a.ban - 1.0 * b.ban - 0.5 * a.pick,
+      // Picken: wir stark, Gegner meidet sie; nicht, was wir selbst meist bannen oder nie gespielt haben
+      pick: 2 * diff + 0.5 * a.pick + 0.6 * b.ban - 1.0 * a.ban - (a.played ? 0 : 0.3)};
+  });
+  const why = (r, kind) => {
+    const t = [];
+    const wl = (x) => x.played ? `${x.won}–${x.played - x.won}` : "nie gespielt";
+    if(kind === "ban"){
+      if(r.b.pickN) t.push(`Gegner pickt sie (${r.b.pickN}×)`);
+      if(r.b.played) t.push(`Gegner ${wl(r.b)}`);
+      if(r.a.played) t.push(`ihr ${wl(r.a)}`); else t.push("ihr ohne Spiel");
+      if(r.a.banN) t.push(`ihr bannt sie selbst oft (${r.a.banN}×)`);
+    }else{
+      if(r.a.played) t.push(`ihr ${wl(r.a)}`); else t.push("ihr noch ohne Spiel");
+      if(r.a.pickN) t.push(`euer Pick (${r.a.pickN}×)`);
+      if(r.b.banN) t.push(`Gegner bannt sie oft (${r.b.banN}×)`);
+      else if(r.b.played) t.push(`Gegner ${wl(r.b)}`); else t.push("Gegner hat sie nie gespielt");
+    }
+    return t.join(" · ");
+  };
+  const bans = [...rows].sort((x, y) => y.ban - x.ban).slice(0, 2).map(r => ({...r, why: why(r, "ban")}));
+  // BO3 wie BO2: jedes Team pickt genau eine Map – Platz 2 ist die Ausweichmap, falls der Gegner Platz 1 bannt
+  const picks = [...rows].filter(r => !bans.some(b => b.mp === r.mp)).sort((x, y) => y.pick - x.pick).slice(0, 2).map(r => ({...r, why: why(r, "pick")}));
+  return {rows, bans, picks};
+}
+function topPlayers(T){
+  return Object.values(T.opl?.players || {}).sort((a, b) => b.maps - a.maps || b.acs - a.acs).slice(0, 5).map(p => {
+    const m = T.members.find(m => (m.riot_id || "").split("#")[0].toLowerCase() === p.name.toLowerCase()
+                                || (m.opl_name || "").toLowerCase() === p.name.toLowerCase());
+    const st = m && m.riot_id ? statsFor(T, m) : null;
+    return {...p, member: m, rank: st?.current};
+  });
+}
+
+function renderPrep(A, mtA, B, mtB, entry){
+  const pA = mapProfile(A), pB = mapProfile(B);
+  const pool = [...new Set([...pA.maps, ...pB.maps])];
+  const seq = vetoFormat(A, B);
+  const bo = entry?.format ? (+(/BO(\d)/i.exec(entry.format) || [0, 0])[1] || bestOf(A.opl)) : bestOf(A.opl);
+  const fixed = homeAlwaysFirst(A, B);
+  const homeA = entry ? entry.home : true;
+  const firstIsA = prepFirst ? prepFirst === "A" : homeA;
+  const steps = pool.length ? simulateVeto(pA, pB, pool, seq, firstIsA) : [];
+  const rec = prepRecs(pA, pB, pool);
+  const nameA = A.name || mtA?.name, nameB = B.name || mtB?.name;
+  const date = entry?.start ? new Date(entry.start * 1000).toLocaleString("de-DE", {weekday: "short", day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit"}) + " Uhr" : "";
+  const sumA = league.summaries[mtA?.id]?.top5, sumB = league.summaries[mtB?.id]?.top5;
+  const tcell = (mt, sm, name) => `<div class="pteam"><img src="${esc(mt?.logo || "")}" alt=""><div><b>${esc(name)}</b>
+    <div class="sub">${mt?.group ? `Gr. ${esc(mt.group)} · ` : ""}Platz ${esc(mt?.rank ?? "–")}</div>
+    ${sm ? `<div class="rank"><img src="${RANK_ICON(sm.tier)}" alt=""><span class="sub">Top 5: ${esc(TIERS[sm.tier])} · ${sm.elo}</span></div>` : ""}</div></div>`;
+
+  // Map-Vergleich
+  const z = (x, k) => x[k] ? x[k] : '<span class="sub">0</span>';
+  const wl = x => x.played ? `<span class="${x.won * 2 > x.played ? "pos-up" : x.won * 2 < x.played ? "pos-dn" : ""}">${x.won}–${x.played - x.won}</span>` : '<span class="sub">–</span>';
+  const mapRows = [...rec.rows].sort((x, y) => (y.a.str - y.b.str) - (x.a.str - x.b.str)).map(r => {
+    const d = r.a.str - r.b.str;
+    const amp = d > 0.15 ? "g" : d < -0.15 ? "r" : "y";
+    const tag = rec.bans.some(b => b.mp === r.mp) ? '<span class="rtag ban">Ban</span>' : rec.picks.some(p => p.mp === r.mp) ? '<span class="rtag pick">Pick</span>' : "";
+    return `<tr><td class="mcell"><div class="mapname"><img src="${MAP_IMG(r.mp)}" alt="" onerror="this.remove()"><span>${esc(cap(r.mp))}</span></div></td>
+      <td class="num" data-l="${esc(nameA)} W–L">${wl(r.a)}</td><td class="num" data-l="Pick/Ban">${z(r.a, "pickN")}/${z(r.a, "banN")}</td>
+      <td class="c amp" data-l="Vorteil"><span class="ampel ${amp}" title="${amp === "g" ? "Vorteil " + esc(nameA) : amp === "r" ? "Vorteil " + esc(nameB) : "ausgeglichen"}"></span>${tag}</td>
+      <td class="num" data-l="${esc(nameB)} W–L">${wl(r.b)}</td><td class="num" data-l="Pick/Ban">${z(r.b, "pickN")}/${z(r.b, "banN")}</td></tr>`;
+  }).join("");
+
+  // Veto-Simulation
+  const played = steps.filter(s => s.act === "pick" || s.act === "decider");
+  const stepHtml = steps.map((s, i) => `<div class="vstep ${s.act} ${s.actor || "dec"}"><span class="vn">${i + 1}</span>
+    <img src="${MAP_IMG(s.map)}" alt="" onerror="this.remove()"><span class="vm">${esc(cap(s.map))}</span>
+    <span class="vw">${s.act === "decider" ? "Decider" : `${s.act === "ban" ? "Ban" : "Pick"} ${esc(s.actor === "A" ? nameA : nameB)}`}</span></div>`).join("");
+  const compRows = played.map(s => `<div class="pcomp"><div class="pcm"><img src="${MAP_IMG(s.map)}" alt="" onerror="this.remove()"><b>${esc(cap(s.map))}</b></div>
+    <div class="pcc"><span class="sub">${esc(nameA)}</span>${compHtml(pA.get(s.map).comp)}</div>
+    <div class="pcc"><span class="sub">${esc(nameB)}</span>${compHtml(pB.get(s.map).comp)}</div></div>`).join("");
+
+  // Spieler-Duell
+  const plA = topPlayers(A), plB = topPlayers(B);
+  const maxAcsB = Math.max(0, ...plB.map(p => p.acs)), maxFbB = Math.max(0, ...plB.map(p => p.fb));
+  const plList = (pl, mark) => pl.length ? pl.map(p => `<div class="pp">
+      ${p.rank?.tier > 2 ? `<img class="ri" src="${RANK_ICON(p.rank.tier)}" alt="" title="${esc(p.rank.name || "")}">` : '<span class="ri"></span>'}
+      <span class="pn">${esc(p.member?.opl_name || p.name)}${mark && p.acs === maxAcsB ? ' <span class="star" title="Höchster ACS">★ ACS</span>' : ""}${mark && p.fb === maxFbB && p.fb ? ' <span class="star" title="Meiste First Bloods">★ FB</span>' : ""}</span>
+      <span class="pv">${p.acs}<small>ACS</small></span><span class="pv">${p.kd}<small>K/D</small></span>
+      <span class="pv">${p.fb}<small>FB</small></span>${agentIcons(p.agents, false, 2)}</div>`).join("") : '<p class="sub">Keine Ligaspiele.</p>';
+
+  // Head-to-Head
+  const h2h = (A.opl?.matches || []).filter(m => m.opp?.id === String(B.id) && (m.maps.length || m.outcome));
+
+  $("#detail").innerHTML = `
+    <div class="toolbar"><button class="ghost" id="prepback">← ${esc(nameA)}</button>
+      <label>Gegner <select id="prepopp">${league.teams.filter(t => t.id !== mtA?.id).map(t => `<option value="${esc(t.id)}"${t.id === String(B.id) ? " selected" : ""}>${esc(t.name)}</option>`).join("")}</select></label></div>
+    <h2 class="prephead">Match-Vorbereitung</h2>
+    <div class="pvs">${tcell(mtA, sumA, nameA)}<div class="vs">vs<div class="sub">${esc(date)}</div><div class="sub">BO${bo}${bo === 2 ? " · Unentschieden möglich" : ""}</div></div>${tcell(mtB, sumB, nameB)}</div>
+    <p class="sub">Grundlage: alle Ligaspiele dieser Saison (${pA.n} bzw. ${pB.n} Matches mit Veto). Ohne Spiele auf einer Map gilt eine Bilanz von 50 %.</p>
+
+    <div class="sechead"><h3>Empfehlung für ${esc(nameA)}</h3></div>
+    <div class="recs">
+      <div class="rec"><div class="rh ban">Bannen</div>${rec.bans.map(r => `<div class="ri2"><img src="${MAP_IMG(r.mp)}" alt="" onerror="this.remove()"><div><b>${esc(cap(r.mp))}</b><div class="sub">${esc(r.why)}</div></div></div>`).join("")}</div>
+      <div class="rec"><div class="rh pick">Picken <span class="sub">(1 Pick pro Team)</span></div>${rec.picks.map((r, i) => `<div class="ri2${i ? " alt" : ""}"><img src="${MAP_IMG(r.mp)}" alt="" onerror="this.remove()"><div><b>${esc(cap(r.mp))}</b>${i ? ' <span class="sub">– Ausweichmap, falls gebannt</span>' : ""}<div class="sub">${esc(r.why)}</div></div></div>`).join("")}</div>
+    </div>
+
+    <div class="sechead"><h3>Wahrscheinliches Veto <span class="sub">(BO${bo} · ${seq.map(a => a[0].toUpperCase()).join("")}, aus dem bisherigen Verhalten beider Teams)</span></h3>
+      <label>Beginnt <select id="prepfirst"><option value="A"${firstIsA ? " selected" : ""}>${esc(nameA)}</option><option value="B"${!firstIsA ? " selected" : ""}>${esc(nameB)}</option></select></label></div>
+    ${fixed ? "" : `<p class="sub">In dieser Liga beginnt mal das Heim-, mal das Auswärtsteam – Startrecht ggf. umstellen.</p>`}
+    <div class="vsteps">${stepHtml || '<span class="sub">Zu wenig Daten.</span>'}</div>
+    ${compRows ? `<div class="sechead"><h3>Comps auf den erwarteten Maps</h3></div><div class="pcomps">${compRows}</div>` : ""}
+
+    <div class="sechead"><h3>Map-Vergleich</h3></div>
+    <div class="scrollx"><table class="maptable prept"><thead><tr><th>Map</th><th class="num">${esc(nameA)} W–L</th><th class="num" title="eigene Picks/Bans">P/B</th>
+      <th class="c">Vorteil</th><th class="num">${esc(nameB)} W–L</th><th class="num" title="Picks/Bans des Gegners">P/B</th></tr></thead><tbody>${mapRows}</tbody></table></div>
+
+    <div class="sechead"><h3>Spieler-Duell <span class="sub">(Top 5 nach Ligamaps)</span></h3></div>
+    <div class="duel"><div><h4>${esc(nameA)}</h4>${plList(plA, false)}</div><div><h4>${esc(nameB)}</h4>${plList(plB, true)}</div></div>
+
+    <div class="sechead"><h3>Bisherige Duelle diese Saison</h3></div>
+    ${h2h.length ? `<div class="matches">${h2h.map(m => `<div class="match"><div class="mhead"><span class="res ${({W:"w",L:"l",D:"d"})[m.outcome] || "d"}">${m.score ? m.score.join(":") : m.outcome || "–"}</span>
+      <span class="opp">${m.maps.map(x => `${esc(cap(x.map))} ${x.us}:${x.them}`).join(" · ") || "ohne Spiel"}</span></div></div>`).join("")}</div>` : '<p class="sub">Noch kein Duell in dieser Saison.</p>'}`;
+
+  $("#prepback").onclick = () => renderTeam(A, mtA);
+  $("#prepfirst").onchange = e => { prepFirst = e.target.value; const y = window.scrollY; renderPrep(A, mtA, B, mtB, entry); window.scrollTo(0, y); };
+  $("#prepopp").onchange = e => openPrep(A, mtA, e.target.value,
+    (A.opl?.matches || []).find(m => m.opp?.id === e.target.value && !m.maps.length && m.state !== "closed") || null);
 }
 
 function refreshButton(){

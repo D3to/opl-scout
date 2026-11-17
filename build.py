@@ -211,7 +211,7 @@ def team_opl(tid, matches, meta=None):
         kind = "played" if played else ("bye" if opp.get("id") in ("-1", "") or "default" in opp.get("name", "").lower()
                                          else "ff" if outcome else None)
         entry = {"id": m["id"], "start": m.get("start"), "state": m.get("state"), "format": m.get("format"),
-                 "opp": opp, "score": [won, lost] if played else None, "outcome": outcome, "kind": kind,
+                 "opp": opp, "home": me == 1, "score": [won, lost] if played else None, "outcome": outcome, "kind": kind,
                  "veto": [{"action": v["action"], "map": v["map"],
                            "by": "self" if v["by"] == me else "opp" if v["by"] else None,
                            "side": v["side"] if v["side_team"] == me else
