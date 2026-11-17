@@ -3,8 +3,13 @@
   "schedule_minute": 15,
   "opl_daily": "23:00",
   "leagues": [
-    {"name": "1. Liga", "url": "https://www.opleague.pro/event/8283-UniligaVALORANTWinterseason202627-Gruppenphase-1Liga/standing/overview"},
-    {"name": "2. Liga", "url": "https://www.opleague.pro/event/8284-UniligaVALORANTWinterseason202627-Gruppenphase-2Liga/standing/overview"},
-    {"name": "3. Liga", "url": "https://www.opleague.pro/event/8285-UniligaVALORANTWinterseason202627-Gruppenphase-3Liga/standing"}
+    {"name": "1. Liga", "url": "https://www.opleague.pro/event/8283-UniligaVALORANTWinterseason202627-Gruppenphase-1Liga/standing/overview",
+     "zones": [{"to": 4, "key": "po", "label": "Playoffs"}, {"to": 5, "key": "safe", "label": "Klassenerhalt"},
+               {"to": 9, "key": "rel", "label": "Relegation"}, {"to": 10, "key": "down", "label": "Direktabstieg"}]},
+    {"name": "2. Liga", "url": "https://www.opleague.pro/event/8284-UniligaVALORANTWinterseason202627-Gruppenphase-2Liga/standing/overview",
+     "zones": [{"to": 4, "key": "po", "label": "Playoffs"}, {"to": 5, "key": "safe", "label": "Klassenerhalt"},
+               {"to": 7, "key": "rel", "label": "Relegation"}, {"to": 8, "key": "down", "label": "Direktabstieg"}]},
+    {"name": "3. Liga", "url": "https://www.opleague.pro/event/8285-UniligaVALORANTWinterseason202627-Gruppenphase-3Liga/standing",
+     "zones": [{"to": 8, "key": "po", "label": "Playoffs/Relegation 2./3. Liga"}]}
   ]
 }

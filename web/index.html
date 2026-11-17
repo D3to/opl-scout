@@ -42,7 +42,19 @@
   #teams tr.team.sel{background:#2a1a20;box-shadow:inset 3px 0 var(--acc)}
   .tn{display:flex;align-items:center;gap:8px}
   .tn img{width:24px;height:24px;border-radius:4px}
-  .z-promotion td:first-child{color:var(--good)}
+  /* Tabellenzonen (wie bei Fußballtabellen): farbiger Rand links + leichte Tönung */
+  :root{--zpo:#3ecf8e;--zsafe:#5aa9ff;--zrel:#ffa94d;--zdown:#ff6b6b}
+  tr.team[class*="zn-"] td:first-child{box-shadow:inset 4px 0 0 var(--zc)}
+  tr.team[class*="zn-"] td{background:color-mix(in srgb, var(--zc) 7%, transparent)}
+  tr.team.zn-po{--zc:var(--zpo)} tr.team.zn-safe{--zc:var(--zsafe)} tr.team.zn-rel{--zc:var(--zrel)} tr.team.zn-down{--zc:var(--zdown)}
+  tr.team.zn-po td:first-child{color:var(--zpo)} tr.team.zn-down td:first-child{color:var(--zdown)} tr.team.zn-rel td:first-child{color:var(--zrel)}
+  tr.team.grpend td{border-bottom:2px solid var(--line)}
+  .zlegend{display:flex;flex-wrap:wrap;gap:6px 14px;padding:10px 12px;font-size:11px;color:var(--mut);border-top:1px solid var(--line)}
+  .zlegend span{display:inline-flex;align-items:center;gap:5px}
+  .zlegend i{width:10px;height:10px;border-radius:2px;display:inline-block;background:var(--zc)}
+  .zlegend .zn-po{--zc:var(--zpo)} .zlegend .zn-safe{--zc:var(--zsafe)} .zlegend .zn-rel{--zc:var(--zrel)} .zlegend .zn-down{--zc:var(--zdown)}
+  .zchip{font-size:11px;padding:1px 7px;border-radius:4px;background:color-mix(in srgb, var(--zc) 18%, transparent);color:var(--zc);margin-left:6px}
+  .zchip.zn-po{--zc:var(--zpo)} .zchip.zn-safe{--zc:var(--zsafe)} .zchip.zn-rel{--zc:var(--zrel)} .zchip.zn-down{--zc:var(--zdown)}
   td.num{text-align:right;font-variant-numeric:tabular-nums}
   #detail{overflow:auto;padding:20px}
   .empty{color:var(--mut);padding:40px;text-align:center}
@@ -146,6 +158,46 @@
   .pp .pv{display:flex;flex-direction:column;align-items:center;font-variant-numeric:tabular-nums;min-width:34px}
   .pp .pv small{font-size:9px;color:var(--mut)}
   .star{font-size:10px;color:#ffc66b}
+  .plink{cursor:pointer} .plink:hover{text-decoration:underline}
+  .pp.plink:hover{text-decoration:none;background:var(--panel2)}
+  .phead{display:flex;align-items:center;gap:14px;margin-bottom:6px}
+  .phead>div{flex:1;min-width:0}
+  .phead h2{margin:0}
+  .phead .tlogo{width:44px;height:44px;object-fit:contain}
+  .kpis{display:grid;grid-template-columns:repeat(auto-fill,minmax(118px,1fr));gap:8px}
+  .kpi{background:var(--panel);border-radius:10px;padding:8px 12px}
+  .kpi .v{font-size:19px;font-weight:700}
+  .kpi.wide{grid-column:span 2}
+  .kpi .rank{margin-top:4px}
+  .kpi .l{font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:var(--mut)}
+  .kpi .rk{font-size:11px;color:var(--mut)} .kpi .rk.top{color:var(--good)}
+  .fmetric{display:flex;gap:4px;flex-wrap:wrap}
+  .fmetric button.on{border-color:var(--acc);color:var(--txt)}
+  .formbox{background:var(--panel);border-radius:10px;padding:10px 12px}
+  .formsum{display:flex;gap:18px;flex-wrap:wrap;margin-bottom:6px}
+  .formsum>span{display:flex;flex-direction:column}
+  .formsum small{font-size:10px;text-transform:uppercase;letter-spacing:.04em;color:var(--mut)}
+  .formsum b{font-size:17px} .formsum b+span{font-size:12px}
+  .formsum>span{display:block} .formsum small{display:block}
+  #formchart{overflow-x:auto;overflow-y:hidden}
+  .formsvg{display:block}
+  .formsvg .ax{font-size:10px;fill:var(--mut)} .formsvg .ax.dt{fill:var(--txt);opacity:.7}
+  .formsvg .area{fill:var(--acc);opacity:.07}
+  .formsvg .line{fill:none;stroke:var(--mut);stroke-width:1.5;opacity:.7}
+  .formsvg .trend{fill:none;stroke:var(--acc);stroke-width:2.5;stroke-linejoin:round}
+  .formsvg .avg{stroke-width:1.5}
+  .formsvg .avg.own{stroke:#ffc66b;stroke-dasharray:6 4}
+  .formsvg .avg.lg{stroke:var(--mut);stroke-dasharray:2 4}
+  .formsvg .msep{stroke:var(--line);stroke-dasharray:2 3}
+  .formsvg circle.w{fill:var(--good)} .formsvg circle.l{fill:var(--bad)}
+  .formsvg circle.hit{fill:transparent}
+  .formsvg .pt:hover circle.w,.formsvg .pt:hover circle.l{r:7;stroke:var(--txt);stroke-width:1.5}
+  .formleg{display:flex;gap:14px;flex-wrap:wrap;font-size:11px;color:var(--mut);margin-top:4px}
+  .formleg span{display:inline-flex;align-items:center;gap:5px}
+  .formleg .dot{width:9px;height:9px;border-radius:50%;display:inline-block} .formleg .dot.w{background:var(--good)} .formleg .dot.l{background:var(--bad)}
+  .formleg .ln{width:18px;height:0;display:inline-block;border-top:2px solid}
+  .formleg .ln.trend{border-color:var(--acc);border-top-width:3px} .formleg .ln.own{border-color:#ffc66b;border-top-style:dashed} .formleg .ln.lg{border-color:var(--mut);border-top-style:dotted}
+  .agic{width:22px;height:22px;border-radius:50%;vertical-align:middle;background:var(--panel2)}
   .sharebtn{margin-left:auto}
   .sharebtn.ok{border-color:var(--good);color:var(--good)}
   .rolechip{display:inline-flex;align-items:center;gap:3px;font-size:11px;color:var(--mut);margin-left:4px;vertical-align:middle}
@@ -273,6 +325,8 @@
 
     /* Map-Pool als Karten */
     .lbtable .opt{display:none}
+    .kpis{grid-template-columns:repeat(3,minmax(0,1fr))}
+    .kpi{padding:7px 9px} .kpi .v{font-size:16px}
     .lbtable .lbteam{display:block}
     .lbtable td,.lbtable th{white-space:normal;padding-left:5px;padding-right:5px}
     .metatable .m-ag{grid-column:1/-1}
@@ -470,6 +524,19 @@ function sortVal(t){
   if(sortKey === "avg") return league.summaries[t.id]?.[metric]?.elo ?? null;
   return num(t.stats[sortKey]);
 }
+// Tabellenzone nach Platz in der Gruppe (Regeln in config/leagues.json)
+function zoneOf(t){
+  const zs = meta?.leagues.find(l => l.id === league?.id)?.zones || [];
+  const r = num(t.rank);
+  return r == null ? null : zs.find(z => r <= z.to) || null;
+}
+function zoneLegend(){
+  const zs = meta?.leagues.find(l => l.id === league?.id)?.zones || [];
+  if(!zs.length) return "";
+  let from = 1;
+  return `<div class="zlegend">${zs.map(z => { const rng = from === z.to ? `${z.to}` : `${from}–${z.to}`; from = z.to + 1;
+    return `<span class="zn-${esc(z.key)}"><i></i>${esc(z.label)} <span class="sub">(${rng}${league.teams.some(t => t.group) ? " je Gruppe" : ""})</span></span>`; }).join("")}</div>`;
+}
 function renderTeams(){
   if(!league) return;
   const cols = league.columns;
@@ -485,10 +552,10 @@ function renderTeams(){
   const th = (k, label, cls="", title="") => `<th class="sortable ${cls}" data-k="${esc(k)}" title="${esc(title || "Sortieren")}">${label}${arrow(k)}</th>`;
   $("#teamlist").innerHTML = `<table><thead><tr>${th("rank","#")}${th("avg","Ø","c", METRICS[metric].tip)}${th("name","Team")}${
     cols.map(c => th(c, esc(SHORT[c]||c), "num" + (OPT_COLS.has(c) ? " opt" : ""), LONG[c]||c)).join("")}</tr></thead><tbody>${
-    teams.map(t => `<tr class="team z-${esc(t.zone)}${t.id===curTeam?" sel":""}" data-id="${esc(t.id)}"><td>${t.group ? `<span class="grp" title="Gruppe ${esc(t.group)}">${esc(t.group)}</span>` : ""}${esc(t.rank)}</td>
+    teams.map((t, i) => `<tr class="team${zoneOf(t) ? " zn-" + zoneOf(t).key : ""}${sortKey === "rank" && teams[i + 1] && teams[i + 1].group !== t.group ? " grpend" : ""}${t.id===curTeam?" sel":""}" title="${esc(zoneOf(t)?.label || "")}" data-id="${esc(t.id)}"><td>${t.group ? `<span class="grp" title="Gruppe ${esc(t.group)}">${esc(t.group)}</span>` : ""}${esc(t.rank)}</td>
       <td class="c">${avgIcon(league.summaries[t.id])}</td>
       <td><div class="tn"><img src="${esc(t.logo)}" alt="">${esc(t.name)}</div></td>
-      ${cols.map(c=>`<td class="num${OPT_COLS.has(c) ? " opt" : ""}">${esc(t.stats[c])}</td>`).join("")}</tr>`).join("")}</tbody></table>`;
+      ${cols.map(c=>`<td class="num${OPT_COLS.has(c) ? " opt" : ""}">${esc(t.stats[c])}</td>`).join("")}</tr>`).join("")}</tbody></table>${zoneLegend()}`;
   document.querySelectorAll("#teamlist th.sortable").forEach(h => h.onclick = () => setSort(h.dataset.k, true));
   document.querySelectorAll("tr.team").forEach(tr => tr.onclick = () => {
     document.querySelectorAll("tr.team.sel").forEach(x=>x.classList.remove("sel"));
@@ -542,7 +609,7 @@ function renderTeam(team, mt){
   const times = [team.updated];
   const elos = [];
   const items = members.map((m, idx) => {
-    const head = `<td class="c6"><div><span class="pname">${esc(m.opl_name)}</span> <span class="pos ${esc(m.position)} ${act(m)?"":"np"}">${esc(m.position||"–")}</span>${roleChip(oplPlayer(team, m))}</div>
+    const head = `<td class="c6"><div><span class="pname plink" data-key="${esc(memberKey(team, m))}" title="Spielerprofil öffnen">${esc(m.opl_name)}</span> <span class="pos ${esc(m.position)} ${act(m)?"":"np"}">${esc(m.position||"–")}</span>${roleChip(oplPlayer(team, m))}</div>
       <div class="sub">${m.riot_id ? esc(m.riot_id) : "keine Riot-ID hinterlegt"}</div></td>`;
     const NC = statSrc === "opl" ? 7 : 6;          // Anzahl Stat-Spalten je Quelle
     let body = `<td colspan="${NC + 3}" class="nomob"></td>`;
@@ -612,7 +679,7 @@ function renderTeam(team, mt){
       <span id="teamstatus" class="sub"></span>${shareBtn()}</div>
     <div class="th"><img src="${esc(mt?.logo||"")}" alt=""><div><h2>${esc(team.name||mt?.name)}</h2>
       <a href="${esc(mt?.url||"")}" target="_blank" rel="noopener">OPLeague-Profil ↗</a></div>${topMapsHtml(team.opl)}</div>
-    <p class="summary">${mt?.group ? `Gruppe ${esc(mt.group)} · ` : ""}Platz ${esc(mt?.rank)} · ${esc(s.wins)}S / ${esc(s.losses)}N · Rundendiff. ${esc(s["round dif"])}</p>
+    <p class="summary">${mt?.group ? `Gruppe ${esc(mt.group)} · ` : ""}Platz ${esc(mt?.rank)}${mt && zoneOf(mt) ? `<span class="zchip zn-${esc(zoneOf(mt).key)}">${esc(zoneOf(mt).label)}</span>` : ""} · ${esc(s.wins)}S / ${esc(s.losses)}N · Rundendiff. ${esc(s["round dif"])}</p>
     <div class="avgs">
       ${avgBox("Top 5 aktive", byOpl ? "(5 beste mit Ligaspiel)" : "(5 beste Player + Captain)", elos.filter(e=>e.core).map(e=>e.elo).sort((a,b)=>b-a).slice(0,5))}
       ${avgBox("aktive Spieler", byOpl ? "(mind. 1 Ligaspiel diese Saison)" : "(Player + Captain – noch keine Ligaspiele)", elos.filter(e=>e.core).map(e=>e.elo))}
@@ -649,6 +716,7 @@ function renderTeam(team, mt){
     window.scrollTo(0, y); $("#detail").scrollTop = d;
   });
   const sr = $("#sortreset"); if(sr) sr.onclick = () => { playerSort = {k: null, dir: 1}; renderTeam(team, mt); };
+  document.querySelectorAll("#detail .plink[data-key]").forEach(el => el.onclick = () => openPlayer(team, mt, el.dataset.key));
   document.querySelectorAll(".prepbtn").forEach(btn => btn.onclick = () =>
     openPrep(team, mt, btn.dataset.opp, (team.opl?.matches || []).find(m => m.id === btn.dataset.mid)));
   const pa = $("#prepany");
@@ -876,12 +944,12 @@ function rolesCompact(T){
 let routing = false;   // während eine URL angewendet wird, keine neuen History-Einträge
 function parseRoute(){
   const q = new URLSearchParams(location.hash.slice(1));
-  return {l: q.get("l"), t: q.get("t"), vs: q.get("vs"), m: q.get("m"), meta: q.has("meta")};
+  return {l: q.get("l"), t: q.get("t"), vs: q.get("vs"), m: q.get("m"), p: q.get("p"), meta: q.has("meta")};
 }
 function hashOf(r){
   if(!r.l) return "";
   return "#l=" + encodeURIComponent(r.l) + (r.t ? "&t=" + encodeURIComponent(r.t) : "") + (r.vs ? "&vs=" + encodeURIComponent(r.vs) : "")
-    + (r.vs && r.m ? "&m=" + encodeURIComponent(r.m) : "") + (r.meta && !r.t ? "&meta" : "");
+    + (r.vs && r.m ? "&m=" + encodeURIComponent(r.m) : "") + (r.t && r.p && !r.vs ? "&p=" + encodeURIComponent(r.p) : "") + (r.meta && !r.t ? "&meta" : "");
 }
 function setUrl(r, push = true){
   if(routing) return;
@@ -897,7 +965,10 @@ async function applyRoute(r){
     if(r.t && league.teams.some(t => t.id === r.t)){
       metaShown = false; $("#metabtn").classList.remove("active");
       document.querySelectorAll("tr.team").forEach(x => x.classList.toggle("sel", x.dataset.id === r.t));
-      if(r.vs){
+      if(r.p && !r.vs){
+        curTeam = r.t;
+        await openPlayerById(r.t, r.p);
+      }else if(r.vs){
         let team;
         try{ team = await getJSON(`data/team-${r.t}.json?t=${meta.generated}`); }catch(e){ await loadTeam(r.t); showDetail(true, true); return; }
         curTeam = r.t;
@@ -917,7 +988,7 @@ async function applyRoute(r){
     }
   }finally{ routing = false; }
   // ungültige Teile der URL (z. B. Team nicht in der Liga) bereinigen
-  const want = hashOf({l: league?.id, t: curTeam, vs: r.t === curTeam ? r.vs : null, m: r.m, meta: metaShown && r.meta});
+  const want = hashOf({l: league?.id, t: curTeam, vs: r.t === curTeam ? r.vs : null, m: r.m, p: r.t === curTeam ? r.p : null, meta: metaShown && r.meta});
   if(location.hash && want !== location.hash && !(r.t && r.t === curTeam)) history.replaceState(null, "", want || location.pathname);
 }
 const shareBtn = () => `<button class="ghost tiny sharebtn" title="Link zu dieser Ansicht kopieren – z. B. für Discord">🔗 Link kopieren</button>`;
@@ -929,6 +1000,204 @@ document.addEventListener("click", async e => {
   catch(err){ window.prompt("Link kopieren:", url); return; }
   setTimeout(() => { b.textContent = "🔗 Link kopieren"; b.classList.remove("ok"); }, 2000);
 });
+
+// ================================================================== Spielerprofil
+function memberKey(team, m){
+  const agg = oplPlayer(team, m);
+  return agg ? agg.name.toLowerCase() : (m.riot_id || "").split("#")[0].toLowerCase() || (m.opl_name || "").toLowerCase();
+}
+function findMember(team, key){
+  return team.members.find(m => (m.riot_id || "").split("#")[0].toLowerCase() === key || (m.opl_name || "").toLowerCase() === key)
+    || team.members.find(m => memberKey(team, m) === key) || null;
+}
+async function openPlayerById(tid, key){
+  const my = ++current;
+  $("#detail").innerHTML = '<div class="empty"><span class="spin"></span> Lade Spieler…</div>';
+  let team;
+  try{ team = await getJSON(`data/team-${tid}.json?t=${meta.generated}`); }
+  catch(e){ $("#detail").innerHTML = '<div class="empty err">Für dieses Team liegen keine Daten vor.</div>'; return; }
+  if(my !== current) return;
+  openPlayer(team, league.teams.find(t => t.id === String(tid)), key);
+}
+function openPlayer(team, mt, key){
+  ++current;
+  curTeam = String(team.id); metaShown = false; $("#metabtn").classList.remove("active");
+  document.querySelectorAll("tr.team").forEach(x => x.classList.toggle("sel", x.dataset.id === curTeam));
+  setUrl({l: league.id, t: curTeam, p: key});
+  renderPlayer(team, mt, key);
+  showDetail(true);
+  $("#detail").scrollTop = 0; if(isMobile()) window.scrollTo(0, 0);
+}
+// Rang in der Liga (unter Spielern mit mind. 3 Maps bzw. so vielen wie möglich)
+function leagueRank(name, tid, k){
+  const pl = league.overview?.players || [];
+  const me = pl.find(p => p.team === String(tid) && p.name.toLowerCase() === name.toLowerCase());
+  if(!me) return null;
+  const min = Math.min(3, me.maps);
+  const pool = pl.filter(p => p.maps >= min);
+  return {rank: 1 + pool.filter(p => p[k] > me[k]).length, of: pool.length, min};
+}
+function groupHist(hist, key){
+  const g = {};
+  for(const h of hist){
+    const x = g[h[key]] ??= {n: 0, won: 0, acs: 0, k: 0, d: 0, a: 0, fb: 0, agents: {}};
+    x.n++; x.won += h.us > h.them; x.acs += h.acs; x.k += h.k; x.d += h.d; x.a += h.a; x.fb += h.fb;
+    if(h.agent) x.agents[h.agent] = (x.agents[h.agent] || 0) + 1;
+  }
+  return Object.entries(g).sort((a, b) => b[1].n - a[1].n);
+}
+function renderPlayer(team, mt, key){
+  const P = team.opl?.players || {};
+  const agg = P[key] || Object.values(P).find(p => p.name.toLowerCase() === key) || null;
+  const m = findMember(team, key);
+  const name = m?.opl_name || agg?.name || key;
+  const st = m?.riot_id ? statsFor(team, m) : null;
+  const c = st?.current || {}, rec = st?.recent;
+  const hist = [...(agg?.history || [])].sort((a, b) => (a.start || 0) - (b.start || 0));
+  const kd = (k, d) => d ? (k / d).toFixed(2) : String(k);
+  const wr = (w, n) => n ? `<span class="${w * 2 > n ? "pos-up" : w * 2 < n ? "pos-dn" : ""}">${Math.round(100 * w / n)}%</span>` : "–";
+  const agIcon = a => { const ic = AGENT_ICONS[(a || "").toLowerCase()]; return ic ? `<img class="agic" src="${esc(ic)}" alt="${esc(a)}" title="${esc(a)}">` : `<span class="sub">${esc(a || "–")}</span>`; };
+  const kpi = (v, l, rk, tip = "") => `<div class="kpi" title="${esc(tip)}"><div class="v">${v}</div><div class="l">${l}</div>${rk ? `<div class="rk${rk.rank <= 3 ? " top" : ""}" title="Platz in der Liga unter ${rk.of} Spielern mit mind. ${rk.min} Maps">#${rk.rank} von ${rk.of}</div>` : ""}</div>`;
+  const lr = k => agg ? leagueRank(agg.name, team.id, k) : null;
+
+  // OPL-Kennzahlen
+  const n = agg?.maps || 0;
+  const oplKpis = agg ? `<div class="kpis">
+    ${kpi(n, "Maps")}${kpi(agg.acs, "ACS", lr("acs"))}${kpi(Number(agg.kd).toFixed(2), "K/D", lr("kd"))}
+    ${kpi(`${agg.k}/${agg.d}/${agg.a}`, "K/D/A")}${kpi((agg.fb / (n || 1)).toFixed(2), "FB pro Map", lr("fbpm"), `${agg.fb} First Bloods`)}
+    ${kpi(agg.econ, "Econ", lr("econ"))}${kpi(wr(agg.won, n), "Map-Winrate", null, `${agg.won} von ${n} Maps gewonnen`)}
+    ${kpi(`${agg.plants}/${agg.defuses}`, "Plants/Defuses")}</div>` : '<p class="sub">Keine Ligaspiele in dieser Saison.</p>';
+
+  // Form: Diagramm wird nach dem Rendern gezeichnet (braucht die Breite)
+  formHist = hist;
+  const date = t => t ? new Date(t * 1000).toLocaleDateString("de-DE", {day: "2-digit", month: "2-digit"}) : "";
+  const form = hist.length ? `<div class="sechead"><h3>Form <span class="sub">(jede gespielte Map, älteste links)</span></h3>
+    <div class="fmetric">${Object.entries(FORM_METRICS).map(([k, x]) => `<button class="ghost tiny${k === formMetric ? " on" : ""}" data-fm="${k}">${x.l}</button>`).join("")}</div></div>
+    <div class="formbox"><div id="formsum" class="formsum"></div><div id="formchart"></div>
+    <div class="formleg"><span><i class="dot w"></i>gewonnen</span><span><i class="dot l"></i>verloren</span><span><i class="ln trend"></i>Trend (Ø 3 Maps)</span><span><i class="ln own"></i>Saison-Ø</span><span><i class="ln lg"></i>Liga-Ø</span></div></div>` : "";
+
+  // Agents + Maps
+  const grpTable = (rows, first, extra) => `<div class="lbwrap"><table class="lbtable"><thead><tr><th>${first}</th><th class="num">Maps</th><th class="num">Winrate</th><th class="num">ACS</th><th class="num">K/D</th><th class="num opt">FB/Map</th>${extra ? `<th class="opt">${extra}</th>` : ""}</tr></thead><tbody>
+    ${rows}</tbody></table></div>`;
+  const agRows = groupHist(hist, "agent").map(([a, x]) => `<tr><td>${agIcon(a)} ${esc(a)}</td><td class="num">${x.n}</td><td class="num">${wr(x.won, x.n)}</td>
+    <td class="num">${Math.round(x.acs / x.n)}</td><td class="num">${kd(x.k, x.d)}</td><td class="num opt">${(x.fb / x.n).toFixed(2)}</td></tr>`).join("");
+  const mapRows = groupHist(hist, "map").map(([mp, x]) => `<tr><td><div class="mapname"><img src="${MAP_IMG(mp)}" alt="" loading="lazy" onerror="this.remove()"><span>${esc(cap(mp))}</span></div></td><td class="num">${x.n}</td><td class="num">${wr(x.won, x.n)}</td>
+    <td class="num">${Math.round(x.acs / x.n)}</td><td class="num">${kd(x.k, x.d)}</td><td class="num opt">${(x.fb / x.n).toFixed(2)}</td>
+    <td class="opt">${Object.entries(x.agents).sort((a, b) => b[1] - a[1]).map(([a]) => agIcon(a)).join(" ")}</td></tr>`).join("");
+
+  // Verlauf (neueste zuerst)
+  const histRows = [...hist].reverse().map(h => `<tr><td class="sub">${esc(date(h.start))}</td>
+    <td>${h.opp_id ? `<span class="tlink" data-team="${esc(h.opp_id)}">${esc(h.opp)}</span>` : esc(h.opp)}</td><td>${esc(cap(h.map))}</td><td>${agIcon(h.agent)}</td>
+    <td class="num"><span class="${h.us > h.them ? "pos-up" : "pos-dn"}">${h.us}:${h.them}</span></td><td class="num">${h.k}/${h.d}/${h.a}</td>
+    <td class="num">${h.acs}</td><td class="num opt">${h.fb}</td><td class="num opt">${h.econ}</td></tr>`).join("");
+
+  const rr = c.rr != null && c.tier > 2 ? ` <span class="sub">${c.rr} RR</span>` : "";
+  const teamName = team.name || mt?.name || "";
+  $("#detail").innerHTML = `
+    <div class="toolbar"><button class="ghost" id="pback">← ${esc(teamName)}</button>${shareBtn()}</div>
+    <div class="phead"><img class="tlogo" src="${esc(mt?.logo || "")}" alt="" onerror="this.remove()"><div>
+      <h2>${esc(name)}${roleChip(agg)}</h2>
+      <div class="sub">${m?.position ? `<span class="pos ${esc(m.position)}">${esc(m.position)}</span> · ` : ""}<span class="tlink" data-team="${esc(team.id)}">${esc(teamName)}</span>${mt?.rank ? ` · Platz ${esc(mt.rank)}` : ""}
+        ${m?.riot_id ? ` · ${esc(m.riot_id)} · <a href="https://tracker.gg/valorant/profile/riot/${encodeURIComponent(m.riot_id)}/overview" target="_blank" rel="noopener">tracker.gg ↗</a>` : ""}</div></div></div>
+
+    <div class="sechead"><h3>Rang <span class="sub">(Ranked)</span></h3></div>
+    ${st && (st.current || st.peak) ? `<div class="kpis">
+      <div class="kpi wide"><div class="l">Aktuell</div>${rankCell(c, rr)}</div>
+      <div class="kpi wide"><div class="l">Peak</div>${rankCell(st.peak, st.peak?.season ? ` <span class="sub">(${esc(st.peak.season)})</span>` : "")}</div>
+      ${rec?.matches ? `${kpi(rec.kd, "K/D Ranked")}${kpi(rec.hs + "%", "HS%")}${kpi(rec.adr, "ADR")}${kpi(rec.acs, "ACS Ranked")}${kpi(rec.winrate + "%", "Winrate", null, `${rec.wins} von ${rec.matches} Matches`)}` : ""}
+    </div>${rec?.matches ? `<p class="sub">Ranked-Werte aus den letzten ${rec.matches} Competitive-Matches${st.updated ? `, Stand ${fmtTime(st.updated)}` : ""}.</p>` : ""}`
+      : `<p class="sub">${m?.riot_id ? "Rang noch nicht geladen." : "Keine Riot-ID hinterlegt."}</p>`}
+
+    <div class="sechead"><h3>Liga-Stats <span class="sub">(OPL, diese Saison)</span></h3></div>
+    ${oplKpis}
+    ${form}
+    ${hist.length ? `<div class="sechead"><h3>Agents</h3></div>${grpTable(agRows, "Agent", "")}
+    <div class="sechead"><h3>Maps</h3></div>${grpTable(mapRows, "Map", "Agents")}
+    <div class="sechead"><h3>Verlauf <span class="sub">(jede gespielte Map)</span></h3></div>
+    <div class="lbwrap"><table class="lbtable hist"><thead><tr><th>Datum</th><th>Gegner</th><th>Map</th><th>Agent</th><th class="num">Score</th><th class="num">K/D/A</th><th class="num">ACS</th><th class="num opt">FB</th><th class="num opt">Econ</th></tr></thead>
+      <tbody>${histRows}</tbody></table></div>` : ""}`;
+  $("#pback").onclick = () => loadTeam(String(team.id));
+  document.querySelectorAll(".fmetric button").forEach(b => b.onclick = () => {
+    formMetric = b.dataset.fm; store.set("formMetric", formMetric);
+    document.querySelectorAll(".fmetric button").forEach(x => x.classList.toggle("on", x === b));
+    drawForm();
+  });
+  requestAnimationFrame(drawForm);   // erst zeichnen, wenn die Ansicht sichtbar ist (Breite)
+  document.querySelectorAll("#detail .tlink[data-team]").forEach(el => el.onclick = () => openTeamFromMeta(el.dataset.team));
+}
+
+// ------------------------------------------------------------------ Form-Diagramm (Spielerprofil)
+const FORM_METRICS = {
+  acs: {l: "ACS", v: h => h.acs, f: v => Math.round(v)},
+  kd:  {l: "K/D", v: h => h.d ? h.k / h.d : h.k, f: v => v.toFixed(2)},
+  k:   {l: "Kills", v: h => h.k, f: v => v.toFixed(1)},
+  fb:  {l: "First Bloods", v: h => h.fb, f: v => v.toFixed(1)},
+};
+let formMetric = FORM_METRICS[store.get("formMetric")] ? store.get("formMetric") : "acs", formHist = [];
+function avgOf(rows, k){
+  if(!rows.length) return null;
+  const sum = f => rows.reduce((a, r) => a + (r[f] || 0), 0);
+  if(k === "kd"){ const d = sum("d"); return d ? sum("k") / d : null; }
+  return sum(k) / rows.length;
+}
+function leagueAvgOf(k){
+  const pl = league?.overview?.players || [];
+  const maps = pl.reduce((a, p) => a + p.maps, 0);
+  if(!maps) return null;
+  const sum = f => pl.reduce((a, p) => a + p[f], 0);
+  if(k === "acs") return pl.reduce((a, p) => a + p.acs * p.maps, 0) / maps;
+  if(k === "kd") return sum("d") ? sum("k") / sum("d") : null;
+  return sum(k) / maps;   // k, fb: pro Map
+}
+function drawForm(){
+  const box = $("#formchart");
+  if(!box || !formHist.length) return;
+  const M = FORM_METRICS[formMetric], H = formHist, n = H.length;
+  const vals = H.map(M.v);
+  const own = avgOf(H, formMetric), lg = leagueAvgOf(formMetric);
+  const roll = vals.map((_, i) => { const w = vals.slice(Math.max(0, i - 2), i + 1); return w.reduce((a, b) => a + b, 0) / w.length; });
+  // Kopfzeile: Saison, letzte 3 Maps, Liga
+  const last = avgOf(H.slice(-3), formMetric), diff = last != null && own != null ? last - own : 0;
+  const trendCls = Math.abs(diff) < (formMetric === "acs" ? 10 : formMetric === "kd" ? 0.08 : 0.4) ? "" : diff > 0 ? "pos-up" : "pos-dn";
+  $("#formsum").innerHTML = `<span><small>Saison-Ø</small><b>${M.f(own)}</b></span>`
+    + (n > 3 ? `<span><small>Letzte 3 Maps</small><b>${M.f(last)}</b> <span class="${trendCls}">${trendCls ? (diff > 0 ? "▲ +" : "▼ ") + M.f(diff) : "≈"}</span></span>` : "")
+    + (lg != null ? `<span><small>Liga-Ø</small><b>${M.f(lg)}</b> <span class="${own > lg ? "pos-up" : own < lg ? "pos-dn" : ""}">${own >= lg ? "+" : ""}${M.f(own - lg)}</span></span>` : "")
+    + `<span><small>Bestwert</small><b>${M.f(Math.max(...vals))}</b></span>`;
+  // Geometrie
+  const W = Math.max(box.clientWidth || 600, n * 28 + 50), Hh = 210, pl = 40, pr = 14, pt = 12, pb = 42;
+  const hi = Math.max(...vals, lg || 0, own || 0), lo = Math.min(...vals, lg ?? Infinity, own ?? Infinity);
+  const top = hi + (hi - lo) * 0.12 || hi * 1.1 || 1;
+  const bot = Math.max(0, lo - (hi - lo) * 0.25);
+  const step = (() => { const raw = (top - bot) / 4 || top / 4, p = 10 ** Math.floor(Math.log10(raw)), m = raw / p; return (m <= 1 ? 1 : m <= 2 ? 2 : m <= 2.5 ? 2.5 : m <= 5 ? 5 : 10) * p; })();
+  const ymax = Math.ceil(top / step) * step, ymin = Math.floor(bot / step) * step;
+  const X = i => n === 1 ? (pl + W - pr) / 2 : pl + i * (W - pl - pr) / (n - 1);
+  const Y = v => pt + (Hh - pt - pb) * (1 - (v - ymin) / (ymax - ymin || 1));
+  const path = arr => arr.map((v, i) => `${i ? "L" : "M"}${X(i).toFixed(1)},${Y(v).toFixed(1)}`).join("");
+  let g = "";
+  for(let v = ymin; v <= ymax + 1e-9; v += step)
+    g += `<line x1="${pl}" x2="${W - pr}" y1="${Y(v)}" y2="${Y(v)}" style="stroke:var(--line)"/><text x="${pl - 6}" y="${Y(v) + 4}" text-anchor="end" class="ax">${step < 1 ? v.toFixed(step < 0.1 ? 2 : 1) : Math.round(v * 10) / 10}</text>`;
+  const hline = (v, cls) => v == null ? "" : `<line x1="${pl}" x2="${W - pr}" y1="${Y(v)}" y2="${Y(v)}" class="${cls}"/>`;
+  const area = n > 1 ? `<path d="${path(vals)}L${X(n - 1)},${Y(ymin)}L${X(0)},${Y(ymin)}Z" class="area"/>` : "";
+  const date = t => t ? new Date(t * 1000).toLocaleDateString("de-DE", {day: "2-digit", month: "2-digit"}) : "";
+  let labels = "", sep = "";
+  H.forEach((h, i) => {
+    labels += `<text x="${X(i)}" y="${Hh - pb + 15}" text-anchor="middle" class="ax">${esc(cap(h.map).slice(0, 3))}</text>`;
+    if(i === 0 || h.m !== H[i - 1].m){
+      labels += `<text x="${X(i)}" y="${Hh - pb + 29}" text-anchor="${n === 1 ? "middle" : i === 0 ? "start" : "middle"}" class="ax dt">${esc(date(h.start))}</text>`;
+      if(i) sep += `<line x1="${(X(i) + X(i - 1)) / 2}" x2="${(X(i) + X(i - 1)) / 2}" y1="${pt}" y2="${Hh - pb}" class="msep"/>`;
+    }
+  });
+  const pts = H.map((h, i) => { const w = h.us > h.them;
+    return `<g class="pt"><circle cx="${X(i)}" cy="${Y(vals[i])}" r="13" class="hit"/><circle cx="${X(i)}" cy="${Y(vals[i])}" r="5" class="${w ? "w" : "l"}"/>
+      <title>${esc(date(h.start))} · ${esc(cap(h.map))} vs ${esc(h.opp)} · ${h.us}:${h.them} ${w ? "gewonnen" : "verloren"}
+${esc(h.agent || "")} · ${M.l} ${M.f(vals[i])} · K/D/A ${h.k}/${h.d}/${h.a} · ACS ${h.acs} · FB ${h.fb}</title></g>`; }).join("");
+  box.innerHTML = `<svg width="${W}" height="${Hh}" viewBox="0 0 ${W} ${Hh}" class="formsvg">${g}${sep}${area}
+    ${hline(lg, "avg lg")}${hline(own, "avg own")}
+    ${n > 2 ? `<path d="${path(roll)}" class="trend"/>` : ""}${n > 1 ? `<path d="${path(vals)}" class="line"/>` : ""}${pts}${labels}</svg>`;
+  box.scrollLeft = box.scrollWidth;   // neueste Maps sichtbar
+}
+let formResizeT;
+window.addEventListener("resize", () => { clearTimeout(formResizeT); formResizeT = setTimeout(drawForm, 150); });
 
 // ================================================================== Liga-Meta
 let metaSort = {k: null, dir: -1}, lbSort = {k: "acs", dir: -1}, lbMin = null, lbAll = false, metaShown = false;
@@ -1001,7 +1270,7 @@ function renderMeta(){
   const pls = sortRows(ov.players.filter(p => p.maps >= lbMin), lbSort, lbVal, (a, b) => b.acs - a.acs);
   const shown = lbAll ? pls : pls.slice(0, 25);
   const lt = (k, l, c = "num", t = "") => sth(lbSort, "data-lb", k, l, c, t);
-  const lbRows = shown.map((p, i) => `<tr><td class="rk">${i + 1}</td><td><b>${esc(p.name)}</b><div class="lbteam"><span class="tlink" data-team="${esc(p.team)}">${esc(p.team_name)}</span></div></td>
+  const lbRows = shown.map((p, i) => `<tr><td class="rk">${i + 1}</td><td><b class="plink" data-team="${esc(p.team)}" data-key="${esc(p.name.toLowerCase())}">${esc(p.name)}</b><div class="lbteam"><span class="tlink" data-team="${esc(p.team)}">${esc(p.team_name)}</span></div></td>
     <td class="opt"><span class="tlink" data-team="${esc(p.team)}">${esc(p.team_name)}</span></td>
     <td class="num">${p.maps}</td><td class="num">${p.acs}</td><td class="num">${p.kd.toFixed(2)}</td>
     <td class="num opt" title="${p.k}/${p.d}/${p.a}">${p.k}/${p.d}/${p.a}</td><td class="num">${p.fbpm.toFixed(2)}</td>
@@ -1045,6 +1314,7 @@ function renderMeta(){
   $("#lbmin").onchange = e => { lbMin = +e.target.value; rerender(); };
   if($("#lball")) $("#lball").onclick = () => { lbAll = !lbAll; rerender(); };
   document.querySelectorAll(".lbtable .tlink").forEach(el => el.onclick = () => openTeamFromMeta(el.dataset.team));
+  document.querySelectorAll(".lbtable .plink").forEach(el => el.onclick = () => openPlayerById(el.dataset.team, el.dataset.key));
   $("#detail").scrollTop = keep; if(isMobile()) window.scrollTo(0, keepW);
 }
 function openTeamFromMeta(id){
@@ -1204,7 +1474,7 @@ function renderPrep(A, mtA, B, mtB, entry){
   // Spieler-Duell
   const plA = topPlayers(A), plB = topPlayers(B);
   const maxAcsB = Math.max(0, ...plB.map(p => p.acs)), maxFbB = Math.max(0, ...plB.map(p => p.fb));
-  const plList = (pl, mark) => pl.length ? pl.map(p => `<div class="pp">
+  const plList = (pl, mark) => pl.length ? pl.map(p => `<div class="pp plink" data-team="${esc(mark ? B.id : A.id)}" data-key="${esc(p.name.toLowerCase())}" title="Spielerprofil öffnen">
       ${p.rank?.tier > 2 ? `<img class="ri" src="${RANK_ICON(p.rank.tier)}" alt="" title="${esc(p.rank.name || "")}">` : '<span class="ri"></span>'}
       <span class="pn">${esc(p.member?.opl_name || p.name)}${roleChip(p, true)}${mark && p.acs === maxAcsB ? ' <span class="star" title="Höchster ACS">★ ACS</span>' : ""}${mark && p.fb === maxFbB && p.fb ? ' <span class="star" title="Meiste First Bloods">★ FB</span>' : ""}</span>
       <span class="pv">${p.acs}<small>ACS</small></span><span class="pv">${p.kd}<small>K/D</small></span>
@@ -1246,6 +1516,7 @@ function renderPrep(A, mtA, B, mtB, entry){
     ${h2h.length ? `<div class="matches">${h2h.map(m => `<div class="match"><div class="mhead"><span class="res ${({W:"w",L:"l",D:"d"})[m.outcome] || "d"}">${m.score ? m.score.join(":") : m.outcome || "–"}</span>
       <span class="opp">${m.maps.map(x => `${esc(cap(x.map))} ${x.us}:${x.them}`).join(" · ") || "ohne Spiel"}</span></div></div>`).join("")}</div>` : '<p class="sub">Noch kein Duell in dieser Saison.</p>'}`;
 
+  document.querySelectorAll(".duel .pp.plink").forEach(el => el.onclick = () => openPlayerById(el.dataset.team, el.dataset.key));
   $("#prepback").onclick = () => { setUrl({l: league.id, t: String(A.id)}); renderTeam(A, mtA); };
   $("#prepfirst").onchange = e => { prepFirst = e.target.value; const y = window.scrollY; renderPrep(A, mtA, B, mtB, entry); window.scrollTo(0, y); };
   $("#prepopp").onchange = e => openPrep(A, mtA, e.target.value,

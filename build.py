@@ -260,6 +260,11 @@ def team_opl(tid, matches, meta=None):
                 agg["won"] += (x["s1"] > x["s2"]) == (me == 1)
                 for f in ("acs", "k", "d", "a", "econ", "fb", "plants", "defuses"):
                     agg[f] += p[f] or 0
+                us, them = (x["s1"], x["s2"]) if me == 1 else (x["s2"], x["s1"])
+                agg.setdefault("history", []).append({
+                    "m": m["id"], "start": m.get("start"), "opp": opp.get("name"), "opp_id": opp.get("id"),
+                    "map": x["map"], "agent": p["agent"], "us": us, "them": them,
+                    **{f: p[f] or 0 for f in ("acs", "k", "d", "a", "econ", "fb", "plants", "defuses")}})
                 if p["agent"]:
                     agg["agents"][p["agent"]] = agg["agents"].get(p["agent"], 0) + 1
                     ma = agg.setdefault("map_agents", {}).setdefault(x["map"], {})
@@ -384,7 +389,8 @@ def export(out, leagues, region, repo, ref, base_cfg):
             {**st, "id": lg["id"], "name": lg["name"], "summaries": summaries, "overview": overview,
              "updated": time.time() - (core.cache.age("standing:" + lg["url"]) or 0)},
             ensure_ascii=False, separators=(",", ":")))
-        meta_leagues.append({"id": lg["id"], "name": lg["name"], "url": lg["url"], "title": st["title"]})
+        meta_leagues.append({"id": lg["id"], "name": lg["name"], "url": lg["url"], "title": st["title"],
+                             "zones": lg.get("zones") or []})
         team_ids.update(t["id"] for t in st["teams"])
 
 
