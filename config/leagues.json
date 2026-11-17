@@ -1,6 +1,6 @@
 {
   "region": "eu",
-  "schedule_minute": 17,
+  "schedule_minute": 15,
   "opl_daily": "23:00",
   "leagues": [
     {"name": "1. Liga", "url": "https://www.opleague.pro/event/8283-UniligaVALORANTWinterseason202627-Gruppenphase-1Liga/standing/overview"},

@@ -1,12 +1,18 @@
 name: Update data
+run-name: "Update data (${{ inputs.mode || github.event_name }})"
 
 on:
   schedule:
     - cron: "15 * * * *"          # stündlich: nur Rang/Ranked-Stats (HenrikDev), OPL aus dem Cache
     - cron: "0 22 * * *"          # täglich 22:00 UTC = 23:00 Uhr deutscher Winterzeit (Sommerzeit: 0:00 Uhr): OPL komplett
     # GitHub startet geplante Läufe oft einige Minuten verspätet
-  workflow_dispatch:               # manuell: über die Webseite (Admin-Login) oder den Actions-Tab
+  workflow_dispatch:               # manuell (Webseite/Actions-Tab) oder per externem Cron-Dienst (mode=hourly/daily)
     inputs:
+      mode:
+        description: "manual = Liga/Team wie angegeben, hourly = nur Ranked-Stats, daily = OPL komplett"
+        type: choice
+        options: [manual, hourly, daily]
+        default: manual
       league:
         description: "Liga: 'all', Event-ID oder Standing-URL"
         default: "all"
@@ -60,6 +66,7 @@ jobs:
           HENRIKDEV_API_KEY: ${{ secrets.HENRIKDEV_API_KEY }}
           EVENT: ${{ github.event_name }}
           CRON: ${{ github.event.schedule }}
+          IN_MODE: ${{ inputs.mode }}
           IN_LEAGUE: ${{ inputs.league }}
           IN_TEAM: ${{ inputs.team }}
           IN_ADD: ${{ inputs.add_league }}
@@ -68,9 +75,9 @@ jobs:
           ARGS=(--state state --out _site)
           if [ "$EVENT" = "push" ]; then
             ARGS+=(--matches-only)                        # Code-Änderung: OPL-Matches nachladen + neu bauen (keine API)
-          elif [ "$EVENT" = "schedule" ] && [ "$CRON" = "0 22 * * *" ]; then
+          elif [ "$IN_MODE" = "daily" ] || { [ "$EVENT" = "schedule" ] && [ "$CRON" = "0 22 * * *" ]; }; then
             ARGS+=(--budget-minutes 30)                   # täglicher OPL-Crawl: Standings, Kader, Riot-IDs, Matches
-          elif [ "$EVENT" = "schedule" ]; then
+          elif [ "$IN_MODE" = "hourly" ] || [ "$EVENT" = "schedule" ]; then
             ARGS+=(--budget-minutes 30 --skip-opl)        # stündlich: nur Ranked-Stats
           else
             ARGS+=(--budget-minutes 40 --league "${IN_LEAGUE:-all}")
