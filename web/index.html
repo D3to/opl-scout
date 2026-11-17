@@ -146,6 +146,8 @@
   .pp .pv{display:flex;flex-direction:column;align-items:center;font-variant-numeric:tabular-nums;min-width:34px}
   .pp .pv small{font-size:9px;color:var(--mut)}
   .star{font-size:10px;color:#ffc66b}
+  .sharebtn{margin-left:auto}
+  .sharebtn.ok{border-color:var(--good);color:var(--good)}
   .rolechip{display:inline-flex;align-items:center;gap:3px;font-size:11px;color:var(--mut);margin-left:4px;vertical-align:middle}
   .roleic{width:14px;height:14px;opacity:.85;filter:invert(0)}
   .roleic.big{width:26px;height:26px;opacity:1}
@@ -436,6 +438,7 @@ async function openLeague(id, keepTeam=false){
   if(!lg) { $("#teamlist").innerHTML = '<div class="empty">Noch keine Daten – die GitHub Action ist noch nicht gelaufen.</div>'; return; }
   $("#url").value = lg.url;
   store.set("league", lg.id);
+  if(!keepTeam) setUrl({l: lg.id}, !!league);
   $("#curleague").textContent = lg.name;
   setMenu(false);
   document.querySelectorAll("#leagues button").forEach(b => b.classList.toggle("active", b.dataset.id === lg.id));
@@ -513,6 +516,7 @@ function avgIcon(sm){
 async function loadTeam(id, silent=false){
   const my = ++current;
   curTeam = id;
+  if(!silent) setUrl({l: league.id, t: id});
   const meta_t = league.teams.find(t => t.id === id);
   if(!silent) $("#detail").innerHTML = `<div class="empty"><span class="spin"></span> Lade ${esc(meta_t?.name || "")}…</div>`;
   let team;
@@ -605,7 +609,7 @@ function renderTeam(team, mt){
   $("#detail").innerHTML = `
     <div class="toolbar"><button class="back ghost" id="back">← Teams</button>${refreshButton()}
       <span class="sub">Letztes Update: ${fmtTime(oldest)}${newest - oldest > 300 ? ` (teils neuer, bis ${fmtTime(newest)})` : ""}</span>
-      <span id="teamstatus" class="sub"></span></div>
+      <span id="teamstatus" class="sub"></span>${shareBtn()}</div>
     <div class="th"><img src="${esc(mt?.logo||"")}" alt=""><div><h2>${esc(team.name||mt?.name)}</h2>
       <a href="${esc(mt?.url||"")}" target="_blank" rel="noopener">OPLeague-Profil ↗</a></div>${topMapsHtml(team.opl)}</div>
     <p class="summary">${mt?.group ? `Gruppe ${esc(mt.group)} · ` : ""}Platz ${esc(mt?.rank)} · ${esc(s.wins)}S / ${esc(s.losses)}N · Rundendiff. ${esc(s["round dif"])}</p>
@@ -868,6 +872,64 @@ function rolesCompact(T){
       <span class="rstat ${st.cls}" title="${esc(st.tip)}">${esc(st.cls === "ok" ? r.depth + "×" : st.cls === "thin" ? "nur 1" : "keiner")}</span></div>`; }).join("");
 }
 
+// ================================================================== Links (URL-Hash: #l=Liga&t=Team&vs=Gegner&m=Match | &meta)
+let routing = false;   // während eine URL angewendet wird, keine neuen History-Einträge
+function parseRoute(){
+  const q = new URLSearchParams(location.hash.slice(1));
+  return {l: q.get("l"), t: q.get("t"), vs: q.get("vs"), m: q.get("m"), meta: q.has("meta")};
+}
+function hashOf(r){
+  if(!r.l) return "";
+  return "#l=" + encodeURIComponent(r.l) + (r.t ? "&t=" + encodeURIComponent(r.t) : "") + (r.vs ? "&vs=" + encodeURIComponent(r.vs) : "")
+    + (r.vs && r.m ? "&m=" + encodeURIComponent(r.m) : "") + (r.meta && !r.t ? "&meta" : "");
+}
+function setUrl(r, push = true){
+  if(routing) return;
+  const h = hashOf(r);
+  if(h === location.hash || (!h && !location.hash)) return;
+  history[push ? "pushState" : "replaceState"](null, "", h || location.pathname + location.search);
+}
+async function applyRoute(r){
+  routing = true;
+  try{
+    const lid = meta.leagues.some(l => l.id === r.l) ? r.l : (league?.id || store.get("league") || meta.leagues[0]?.id);
+    if(!league || league.id !== lid) await openLeague(lid);
+    if(r.t && league.teams.some(t => t.id === r.t)){
+      metaShown = false; $("#metabtn").classList.remove("active");
+      document.querySelectorAll("tr.team").forEach(x => x.classList.toggle("sel", x.dataset.id === r.t));
+      if(r.vs){
+        let team;
+        try{ team = await getJSON(`data/team-${r.t}.json?t=${meta.generated}`); }catch(e){ await loadTeam(r.t); showDetail(true, true); return; }
+        curTeam = r.t;
+        const entry = (team.opl?.matches || []).find(m => m.id === r.m)
+          || (team.opl?.matches || []).find(m => m.opp?.id === r.vs && !m.maps.length && m.state !== "closed") || null;
+        await openPrep(team, league.teams.find(t => t.id === r.t), r.vs, entry);
+      }else{
+        await loadTeam(r.t);
+      }
+      showDetail(true, true);
+    }else if(r.meta){
+      showMeta(false); $("#metabtn").classList.add("active");
+      showDetail(true, true);
+    }else{
+      if(curTeam || !metaShown){ curTeam = null; document.querySelectorAll("tr.team.sel").forEach(x => x.classList.remove("sel")); showMeta(false); }
+      showDetail(false, true);
+    }
+  }finally{ routing = false; }
+  // ungültige Teile der URL (z. B. Team nicht in der Liga) bereinigen
+  const want = hashOf({l: league?.id, t: curTeam, vs: r.t === curTeam ? r.vs : null, m: r.m, meta: metaShown && r.meta});
+  if(location.hash && want !== location.hash && !(r.t && r.t === curTeam)) history.replaceState(null, "", want || location.pathname);
+}
+const shareBtn = () => `<button class="ghost tiny sharebtn" title="Link zu dieser Ansicht kopieren – z. B. für Discord">🔗 Link kopieren</button>`;
+document.addEventListener("click", async e => {
+  const b = e.target.closest(".sharebtn");
+  if(!b) return;
+  const url = location.href;
+  try{ await navigator.clipboard.writeText(url); b.textContent = "✓ Kopiert"; b.classList.add("ok"); }
+  catch(err){ window.prompt("Link kopieren:", url); return; }
+  setTimeout(() => { b.textContent = "🔗 Link kopieren"; b.classList.remove("ok"); }, 2000);
+});
+
 // ================================================================== Liga-Meta
 let metaSort = {k: null, dir: -1}, lbSort = {k: "acs", dir: -1}, lbMin = null, lbAll = false, metaShown = false;
 const pct = (a, b) => b ? Math.round(100 * a / b) : null;
@@ -899,6 +961,7 @@ function showMeta(push = true){
   ++current; curTeam = null; metaShown = true;
   document.querySelectorAll("tr.team.sel").forEach(x => x.classList.remove("sel"));
   $("#metabtn").classList.toggle("active", push || !isMobile());
+  if(push) setUrl({l: league.id, meta: 1});
   renderMeta();
   if(push) showDetail(true);
 }
@@ -947,7 +1010,7 @@ function renderMeta(){
   const minOpts = [...new Set([1, 2, 3, 4, 5, 6, 8, 10].filter(x => x <= Math.max(1, maxMaps)))];
   $("#detail").innerHTML = `
     <div class="toolbar"><button class="back ghost" id="back">← Teams</button>
-      <span class="sub">OPL-Stand: ${meta.opl_updated ? fmtTime(meta.opl_updated) : "–"}</span></div>
+      <span class="sub">OPL-Stand: ${meta.opl_updated ? fmtTime(meta.opl_updated) : "–"}</span>${shareBtn()}</div>
     <h2 style="margin:0 0 4px">📊 Liga-Meta · ${esc(league.name || "")}</h2>
     <p class="summary">${ov.matches} gespielte Matches · ${ov.maps_played} Maps · BO${ov.bo} · nur diese Saison</p>
     <div class="sechead"><h3>Maps <span class="sub">(Raten bezogen auf ${n} Matches mit Veto)</span></h3>
@@ -995,6 +1058,7 @@ function openTeamFromMeta(id){
 let prepFirst = null;   // "A" | "B" | null (= Heimteam beginnt)
 async function openPrep(teamA, mtA, oppId, matchEntry = null){
   const my = ++current;
+  setUrl({l: league.id, t: String(teamA.id), vs: String(oppId), m: matchEntry?.id});
   $("#detail").innerHTML = '<div class="empty"><span class="spin"></span> Lade Gegner…</div>';
   let teamB;
   try{ teamB = await getJSON(`data/team-${oppId}.json?t=${meta.generated}`); }
@@ -1151,7 +1215,7 @@ function renderPrep(A, mtA, B, mtB, entry){
 
   $("#detail").innerHTML = `
     <div class="toolbar"><button class="ghost" id="prepback">← ${esc(nameA)}</button>
-      <label>Gegner <select id="prepopp">${league.teams.filter(t => t.id !== mtA?.id).map(t => `<option value="${esc(t.id)}"${t.id === String(B.id) ? " selected" : ""}>${esc(t.name)}</option>`).join("")}</select></label></div>
+      <label>Gegner <select id="prepopp">${league.teams.filter(t => t.id !== mtA?.id).map(t => `<option value="${esc(t.id)}"${t.id === String(B.id) ? " selected" : ""}>${esc(t.name)}</option>`).join("")}</select></label>${shareBtn()}</div>
     <h2 class="prephead">Match-Vorbereitung</h2>
     <div class="pvs">${tcell(mtA, sumA, nameA)}<div class="vs">vs<div class="sub">${esc(date)}</div><div class="sub">BO${bo}${bo === 2 ? " · Unentschieden möglich" : ""}</div></div>${tcell(mtB, sumB, nameB)}</div>
     <p class="sub">Grundlage: alle Ligaspiele dieser Saison (${pA.n} bzw. ${pB.n} Matches mit Veto). Ohne Spiele auf einer Map gilt eine Bilanz von 50 %.</p>
@@ -1182,7 +1246,7 @@ function renderPrep(A, mtA, B, mtB, entry){
     ${h2h.length ? `<div class="matches">${h2h.map(m => `<div class="match"><div class="mhead"><span class="res ${({W:"w",L:"l",D:"d"})[m.outcome] || "d"}">${m.score ? m.score.join(":") : m.outcome || "–"}</span>
       <span class="opp">${m.maps.map(x => `${esc(cap(x.map))} ${x.us}:${x.them}`).join(" · ") || "ohne Spiel"}</span></div></div>`).join("")}</div>` : '<p class="sub">Noch kein Duell in dieser Saison.</p>'}`;
 
-  $("#prepback").onclick = () => renderTeam(A, mtA);
+  $("#prepback").onclick = () => { setUrl({l: league.id, t: String(A.id)}); renderTeam(A, mtA); };
   $("#prepfirst").onchange = e => { prepFirst = e.target.value; const y = window.scrollY; renderPrep(A, mtA, B, mtB, entry); window.scrollTo(0, y); };
   $("#prepopp").onchange = e => openPrep(A, mtA, e.target.value,
     (A.opl?.matches || []).find(m => m.opp?.id === e.target.value && !m.maps.length && m.state !== "closed") || null);
@@ -1218,17 +1282,14 @@ function showDetail(on, silent=false){
   if(on){
     listScroll = window.scrollY;
     document.body.classList.add("show-detail");
-    if(isMobile()){ window.scrollTo(0, 0); if(!silent) history.pushState({team: curTeam || "meta"}, ""); }
+    if(isMobile()) window.scrollTo(0, 0);
   }else{
-    if(!silent && history.state?.team){ history.back(); return; }   // popstate erledigt den Rest
+    if(!silent) setUrl({l: league?.id});
     document.body.classList.remove("show-detail");
     if(isMobile()) requestAnimationFrame(() => window.scrollTo(0, listScroll));
   }
 }
-window.addEventListener("popstate", () => {
-  document.body.classList.remove("show-detail");
-  if(isMobile()) requestAnimationFrame(() => window.scrollTo(0, listScroll));
-});
+window.addEventListener("popstate", () => applyRoute(parseRoute()));
 
 // ------------------------------------------------------------------ Agent-Bilder
 let AGENT_ICONS = {}, AGENT_ROLE = {}, ROLE_ICON = {};
@@ -1493,7 +1554,7 @@ async function openUrl(){
   catch(e){ $("#teamlist").innerHTML = '<div class="empty">Noch keine Daten – die GitHub Action ist noch nicht gelaufen.</div>'; return; }
   await agentsReady;
   afterAuthChange();
-  await openLeague(store.get("league") || meta.leagues[0]?.id);
+  await applyRoute(parseRoute());
   // alle 5 Minuten prüfen, ob es neue Daten gibt
   setInterval(async () => {
     try{ const m = await getJSON("data/meta.json?t=" + Date.now()); if(m.generated > meta.generated) await reloadAll(); }catch(e){}
