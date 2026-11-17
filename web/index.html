@@ -146,6 +146,21 @@
   .pp .pv{display:flex;flex-direction:column;align-items:center;font-variant-numeric:tabular-nums;min-width:34px}
   .pp .pv small{font-size:9px;color:var(--mut)}
   .star{font-size:10px;color:#ffc66b}
+  #metabtn.active{border-color:var(--acc);color:var(--txt)}
+  .metabar{display:inline-block;width:44px;height:4px;background:var(--panel2);border-radius:2px;overflow:hidden;vertical-align:middle;margin-left:6px}
+  .metabar i{display:block;height:100%;background:var(--acc)}
+  .metabar.ban i{background:var(--mut)}
+  .metatable .agents img{width:24px;height:24px}
+  .mcomps{display:flex;flex-direction:column;gap:3px}
+  .mcomps .comp{display:flex;align-items:center;gap:2px}
+  .lbwrap{overflow-x:auto;background:var(--panel);border-radius:10px}
+  .lbtable{width:100%;border-collapse:collapse}
+  .lbtable td{border-top:1px solid var(--line);white-space:nowrap}
+  .lbtable th.num,.lbtable td.num{text-align:center}
+  .lbtable .tlink{color:var(--mut);cursor:pointer} .lbtable .tlink:hover{color:var(--txt);text-decoration:underline}
+  .lbtable td.rk{color:var(--mut);width:28px}
+  .lbteam{display:none;font-size:12px;white-space:normal}
+  .lbtools{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
   .sechead{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:22px 0 8px;flex-wrap:wrap}
   .sechead h3{margin:0;font-size:15px}
   .scrollx{overflow-x:auto;background:var(--panel);border-radius:10px}
@@ -237,6 +252,10 @@
     #players .nomob{display:none}
 
     /* Map-Pool als Karten */
+    .lbtable .opt{display:none}
+    .lbtable .lbteam{display:block}
+    .lbtable td,.lbtable th{white-space:normal;padding-left:5px;padding-right:5px}
+    .metatable .m-ag{grid-column:1/-1}
     .mobile-sort{display:flex !important;align-items:center;gap:6px}
     .scrollx{background:none;overflow:visible}
     .maptable,.maptable tbody{display:block}
@@ -312,6 +331,7 @@
       <label>Ø <select id="metric" title="Welcher Durchschnitt in der Leiste angezeigt wird"></select></label>
       <label><span class="lbl">Sortieren</span> <select id="sort" aria-label="Sortieren"></select></label>
       <button id="sortdir" class="ghost" title="Richtung umkehren">⇅</button>
+      <button id="metabtn" class="ghost" title="Liga-weite Auswertung: Maps, Agents, Comps, Bestenliste">📊 Liga-Meta</button>
       <button id="leaguerefresh" style="display:none" title="Startet die GitHub Action für diese Liga (Kader + Stats aller Teams)">⟳ Liga aktualisieren</button>
       <div id="admininfo"></div>
     </div>
@@ -402,7 +422,7 @@ async function openLeague(id, keepTeam=false){
   if(!keepTeam){
     $("#teamlist").innerHTML = '<div class="empty"><span class="spin"></span> Lade Standings…</div>';
     $("#detail").innerHTML = '<div class="empty">← Team anklicken, um Spieler und Stats zu sehen</div>';
-    curTeam = null;
+    curTeam = null; metaShown = false; $("#metabtn").classList.remove("active");
     showDetail(false, true);
   }
   try{
@@ -416,6 +436,7 @@ async function openLeague(id, keepTeam=false){
   renderTeams();
   updateAdminUI();
   if(keepTeam && curTeam) loadTeam(curTeam, true);
+  else if(metaShown || !curTeam) showMeta(false);   // Desktop: Liga-Meta als Startansicht
 }
 
 // ------------------------------------------------------------------ Seitenleiste
@@ -449,6 +470,7 @@ function renderTeams(){
   document.querySelectorAll("tr.team").forEach(tr => tr.onclick = () => {
     document.querySelectorAll("tr.team.sel").forEach(x=>x.classList.remove("sel"));
     tr.classList.add("sel");
+    metaShown = false; $("#metabtn").classList.remove("active");
     loadTeam(tr.dataset.id);
     showDetail(true);
   });
@@ -769,6 +791,129 @@ function matchesHtml(o){
 }
 
 
+// ================================================================== Liga-Meta
+let metaSort = {k: null, dir: -1}, lbSort = {k: "acs", dir: -1}, lbMin = null, lbAll = false, metaShown = false;
+const pct = (a, b) => b ? Math.round(100 * a / b) : null;
+const bar = (p, cls = "") => p == null ? "" : `<span class="metabar ${cls}"><i style="width:${Math.min(100, p)}%"></i></span>`;
+function metaMapVal([mp, v], k, n){
+  if(k === "map") return mp;
+  if(k === "pickr") return pct(v.pick + v.decider, n);
+  if(k === "banr") return pct(v.ban, n);
+  if(k === "pickwin") return pct(v.pick_won, v.pick_n);
+  if(k === "atkwin") return pct(v.atk_won, v.atk_n);
+  return v[k] ?? null;
+}
+function sortRows(rows, st, val, dflt){
+  return rows.sort((a, b) => {
+    if(!st.k) return dflt(a, b);
+    const va = val(a, st.k), vb = val(b, st.k);
+    if(va == null && vb != null) return 1;
+    if(vb == null && va != null) return -1;
+    if(va != null && vb != null && va !== vb) return (typeof va === "string" ? va.localeCompare(vb) : va - vb) * st.dir;
+    return dflt(a, b);
+  });
+}
+function sth(st, attr, k, label, cls = "", title = ""){
+  const on = st.k === k;
+  return `<th class="${cls} psort${on ? " on" : ""}" ${attr}="${k}" title="${esc(title ? title + " – " : "")}Sortieren">${label}${on ? `<span class="arrow">${st.dir > 0 ? "▲" : "▼"}</span>` : ""}</th>`;
+}
+function showMeta(push = true){
+  if(!league) return;
+  ++current; curTeam = null; metaShown = true;
+  document.querySelectorAll("tr.team.sel").forEach(x => x.classList.remove("sel"));
+  $("#metabtn").classList.toggle("active", push || !isMobile());
+  renderMeta();
+  if(push) showDetail(true);
+}
+function renderMeta(){
+  const ov = league.overview;
+  const keep = $("#detail").scrollTop, keepW = window.scrollY;
+  if(!ov || !ov.matches){
+    $("#detail").innerHTML = `<div class="toolbar"><button class="back ghost" id="back">← Teams</button></div>
+      <div class="empty">Noch keine gespielten Ligaspiele in dieser Saison.</div>`;
+    $("#back").onclick = () => showDetail(false); return;
+  }
+  const n = ov.veto_matches, dec = ov.bo !== 2;
+  // ---- Maps
+  const maps = sortRows(Object.entries(ov.maps), metaSort, (r, k) => metaMapVal(r, k, n),
+    (a, b) => b[1].played - a[1].played || (b[1].pick + b[1].decider) - (a[1].pick + a[1].decider) || a[1].ban - b[1].ban);
+  const mapRows = maps.map(([mp, v]) => {
+    const pr = pct(v.pick + v.decider, n), br = pct(v.ban, n), pw = pct(v.pick_won, v.pick_n), aw = pct(v.atk_won, v.atk_n);
+    const comps = v.comps.length ? `<div class="mcomps">${v.comps.slice(0, 2).map(([ags, c, w]) =>
+      `<div class="comp">${ags.map(a => { const ic = AGENT_ICONS[a.toLowerCase()]; return ic ? `<img src="${esc(ic)}" alt="${esc(a)}" title="${esc(a)}">` : `<span class="sub">${esc(a)}</span>`; }).join("")}<span class="ctag played" title="${c}× gespielt, ${w} gewonnen">${c}× · ${w}S</span></div>`).join("")}</div>` : '<span class="sub">–</span>';
+    return `<tr class="${v.played ? "" : "never"}"><td class="mcell"><div class="mapname"><img src="${MAP_IMG(mp)}" alt="" loading="lazy" onerror="this.remove()"><span>${esc(cap(mp))}</span></div></td>
+      <td class="num" data-l="Gespielt">${v.played || '<span class="sub">0</span>'}</td>
+      <td class="num own" data-l="Pick-Rate" title="${v.pick} Picks${dec ? ` + ${v.decider}× Decider` : ""} in ${n} Matches">${pr}%${bar(pr)}</td>
+      <td class="num" data-l="Ban-Rate" title="${v.ban} Bans in ${n} Matches">${br}%${bar(br, "ban")}</td>
+      ${dec ? `<td class="num" data-l="Decider">${v.decider || '<span class="sub">0</span>'}</td>` : ""}
+      <td class="num" data-l="Picker gewinnt" title="${v.pick_won} von ${v.pick_n} gepickten Maps vom pickenden Team gewonnen">${pw == null ? '<span class="sub">–</span>' : `<span class="${pw > 50 ? "pos-up" : pw < 50 ? "pos-dn" : ""}">${pw}%</span> <span class="sub">(${v.pick_n})</span>`}</td>
+      <td class="num" data-l="Atk-Start gewinnt" title="${v.atk_won} von ${v.atk_n} Maps vom Team gewonnen, das im Angriff gestartet ist">${aw == null ? '<span class="sub">–</span>' : `${aw}% <span class="sub">(${v.atk_n})</span>`}</td>
+      <td class="num" data-l="Ø Runden" title="${v.close} von ${v.played} Maps knapp (≤ 3 Runden Differenz)">${v.avg_rounds ?? '<span class="sub">–</span>'}</td>
+      <td class="m-ag" data-l="Top-Agents">${agentIcons(v.agents, true, 6) || '<span class="sub">–</span>'}</td>
+      <td class="m-comp" data-l="Häufigste Comps">${comps}</td></tr>`;
+  }).join("");
+  const mapOpts = [["", "Standard"], ["played", "Gespielt"], ["pickr", "Pick-Rate"], ["banr", "Ban-Rate"], ...(dec ? [["decider", "Decider"]] : []),
+    ["pickwin", "Picker gewinnt"], ["atkwin", "Angriffsstart gewinnt"], ["avg_rounds", "Ø Runden"], ["map", "Map A–Z"]];
+  // ---- Bestenliste
+  const maxMaps = Math.max(0, ...ov.players.map(p => p.maps));
+  if(lbMin == null || lbMin > maxMaps) lbMin = Math.min(3, Math.max(1, maxMaps));
+  const lbVal = (p, k) => k === "name" ? p.name.toLowerCase() : k === "team" ? p.team_name.toLowerCase() : p[k];
+  const pls = sortRows(ov.players.filter(p => p.maps >= lbMin), lbSort, lbVal, (a, b) => b.acs - a.acs);
+  const shown = lbAll ? pls : pls.slice(0, 25);
+  const lt = (k, l, c = "num", t = "") => sth(lbSort, "data-lb", k, l, c, t);
+  const lbRows = shown.map((p, i) => `<tr><td class="rk">${i + 1}</td><td><b>${esc(p.name)}</b><div class="lbteam"><span class="tlink" data-team="${esc(p.team)}">${esc(p.team_name)}</span></div></td>
+    <td class="opt"><span class="tlink" data-team="${esc(p.team)}">${esc(p.team_name)}</span></td>
+    <td class="num">${p.maps}</td><td class="num">${p.acs}</td><td class="num">${p.kd.toFixed(2)}</td>
+    <td class="num opt" title="${p.k}/${p.d}/${p.a}">${p.k}/${p.d}/${p.a}</td><td class="num">${p.fbpm.toFixed(2)}</td>
+    <td class="num opt">${p.econ}</td><td class="num opt"><span class="${p.winrate > 50 ? "pos-up" : p.winrate < 50 ? "pos-dn" : ""}">${p.winrate}%</span></td>
+    <td class="opt">${agentIcons(p.agents, false, 3)}</td></tr>`).join("");
+  const minOpts = [...new Set([1, 2, 3, 4, 5, 6, 8, 10].filter(x => x <= Math.max(1, maxMaps)))];
+  $("#detail").innerHTML = `
+    <div class="toolbar"><button class="back ghost" id="back">← Teams</button>
+      <span class="sub">OPL-Stand: ${meta.opl_updated ? fmtTime(meta.opl_updated) : "–"}</span></div>
+    <h2 style="margin:0 0 4px">📊 Liga-Meta · ${esc(league.name || "")}</h2>
+    <p class="summary">${ov.matches} gespielte Matches · ${ov.maps_played} Maps · BO${ov.bo} · nur diese Saison</p>
+    <div class="sechead"><h3>Maps <span class="sub">(Raten bezogen auf ${n} Matches mit Veto)</span></h3>
+      <label class="mobile-sort">Sortieren <select id="metasortsel">${mapOpts.map(([k, l]) => `<option value="${k}"${(metaSort.k || "") === k ? " selected" : ""}>${l}</option>`).join("")}</select></label></div>
+    <div class="scrollx"><table class="maptable metatable"><thead><tr>
+      ${sth(metaSort,"data-mm","map","Map")}${sth(metaSort,"data-mm","played","Gespielt","num")}
+      ${sth(metaSort,"data-mm","pickr","Pick-Rate","num own", dec ? "Anteil der Matches, in denen die Map gepickt wurde (inkl. Decider)" : "Anteil der Matches, in denen die Map gepickt wurde")}
+      ${sth(metaSort,"data-mm","banr","Ban-Rate","num","Anteil der Matches, in denen die Map gebannt wurde")}
+      ${dec ? sth(metaSort,"data-mm","decider","Decider","num","Wie oft die Map als Decider übrig blieb") : ""}
+      ${sth(metaSort,"data-mm","pickwin","Picker gewinnt","num","Wie oft das Team, das die Map gepickt hat, sie auch gewinnt")}
+      ${sth(metaSort,"data-mm","atkwin","Atk-Start gewinnt","num","Wie oft das Team gewinnt, das im Angriff startet")}
+      ${sth(metaSort,"data-mm","avg_rounds","Ø Runden","num","Ø gespielte Runden pro Map")}
+      <th title="Anteil der Teams, die den Agent auf dieser Map gespielt haben">Top-Agents</th><th>Häufigste Comps</th>
+    </tr></thead><tbody>${mapRows}</tbody></table></div>
+    <div class="sechead"><h3>Agents <span class="sub">(Anteil aller ${2 * ov.maps_played} Team-Maps)</span></h3></div>
+    <div class="teamagents">${ov.agents.map(([a, c, p]) => { const ic = AGENT_ICONS[a.toLowerCase()];
+      return `<span class="ag" title="${esc(a)}: ${c} von ${2 * ov.maps_played} Team-Maps">${ic ? `<img src="${esc(ic)}" alt="${esc(a)}">` : `<span class="sub">${esc(a)}</span>`}<span class="bar"><i style="width:${p}%"></i></span><small>${p}%</small></span>`; }).join("")}</div>
+    <div class="sechead"><h3>Bestenliste <span class="sub">(OPL-Stats dieser Saison)</span></h3>
+      <div class="lbtools"><label>min. Maps <select id="lbmin">${minOpts.map(x => `<option${x === lbMin ? " selected" : ""}>${x}</option>`).join("")}</select></label>
+      <span class="sub">${pls.length} Spieler</span></div></div>
+    <div class="lbwrap"><table class="lbtable"><thead><tr><th>#</th>${lt("name","Spieler","")}${lt("team","Team","opt")}${lt("maps","Maps")}${lt("acs","ACS")}${lt("kd","K/D")}
+      <th class="num opt">K/D/A</th>${lt("fbpm","FB/Map","num","First Bloods pro Map")}${lt("econ","Econ","num opt")}${lt("winrate","Map-WR","num opt")}<th class="opt">Agents</th></tr></thead>
+      <tbody>${lbRows || `<tr><td colspan="11" class="sub">Keine Spieler mit so vielen Maps.</td></tr>`}</tbody></table></div>
+    ${pls.length > 25 ? `<p><button class="ghost" id="lball">${lbAll ? "Nur Top 25" : `Alle ${pls.length} anzeigen`}</button></p>` : ""}`;
+  $("#back").onclick = () => showDetail(false);
+  const rerender = () => { renderMeta(); };
+  document.querySelectorAll(".metatable th[data-mm]").forEach(h => h.onclick = () => {
+    const k = h.dataset.mm; metaSort = metaSort.k === k ? {k, dir: -metaSort.dir} : {k, dir: k === "map" ? 1 : -1}; rerender(); });
+  $("#metasortsel").onchange = e => { const k = e.target.value || null; metaSort = {k, dir: k === "map" ? 1 : -1}; rerender(); };
+  document.querySelectorAll(".lbtable th[data-lb]").forEach(h => h.onclick = () => {
+    const k = h.dataset.lb; lbSort = lbSort.k === k ? {k, dir: -lbSort.dir} : {k, dir: k === "name" || k === "team" ? 1 : -1}; rerender(); });
+  $("#lbmin").onchange = e => { lbMin = +e.target.value; rerender(); };
+  if($("#lball")) $("#lball").onclick = () => { lbAll = !lbAll; rerender(); };
+  document.querySelectorAll(".lbtable .tlink").forEach(el => el.onclick = () => openTeamFromMeta(el.dataset.team));
+  $("#detail").scrollTop = keep; if(isMobile()) window.scrollTo(0, keepW);
+}
+function openTeamFromMeta(id){
+  metaShown = false; $("#metabtn").classList.remove("active");
+  document.querySelectorAll("tr.team").forEach(x => x.classList.toggle("sel", x.dataset.id === id));
+  loadTeam(id);
+  $("#detail").scrollTop = 0; if(isMobile()) window.scrollTo(0, 0);
+}
+
 // ================================================================== Match-Vorbereitung (Team A vs. Team B)
 let prepFirst = null;   // "A" | "B" | null (= Heimteam beginnt)
 async function openPrep(teamA, mtA, oppId, matchEntry = null){
@@ -993,7 +1138,7 @@ function showDetail(on, silent=false){
   if(on){
     listScroll = window.scrollY;
     document.body.classList.add("show-detail");
-    if(isMobile()){ window.scrollTo(0, 0); if(!silent) history.pushState({team: curTeam}, ""); }
+    if(isMobile()){ window.scrollTo(0, 0); if(!silent) history.pushState({team: curTeam || "meta"}, ""); }
   }else{
     if(!silent && history.state?.team){ history.back(); return; }   // popstate erledigt den Rest
     document.body.classList.remove("show-detail");
@@ -1251,6 +1396,7 @@ async function openUrl(){
   $("#open").onclick = openUrl;
   $("#url").addEventListener("keydown", e => { if(e.key === "Enter") openUrl(); });
   $("#leaguerefresh").onclick = adminRefreshLeague;
+  $("#metabtn").onclick = () => showMeta(true);
   $("#loginbtn").onclick = () => { setMenu(false); openLogin(); };
   $("#menubtn").onclick = () => setMenu(!document.body.classList.contains("menu-open"));
   document.addEventListener("click", e => {

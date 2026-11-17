@@ -285,6 +285,80 @@ def team_opl(tid, matches, meta=None):
             "record": record}
 
 
+def league_overview(matches, opl_by_team, teams):
+    """Liga-weite Auswertung: Map-Raten, Startseite, Agents, Comps, Spieler-Bestenliste."""
+    maps, agents, comps = {}, {}, {}
+    nv = nmaps = 0
+    bo = {}
+    def mp(name):
+        return maps.setdefault(name, {"played": 0, "pick": 0, "ban": 0, "decider": 0, "pick_won": 0, "pick_n": 0,
+                                      "atk_won": 0, "atk_n": 0, "rounds": 0, "close": 0, "agents": {}, "teams": 0})
+    for m in matches:
+        if not m["maps"]:
+            continue
+        b = re.search(r"BO(\d)", m.get("format") or "", re.I)
+        if b:
+            bo[b.group(1)] = bo.get(b.group(1), 0) + 1
+        winner = {x["map"]: (1 if x["s1"] > x["s2"] else 2 if x["s2"] > x["s1"] else 0) for x in m["maps"]}
+        if m["veto"]:
+            nv += 1
+        for i, v in enumerate(m["veto"]):
+            s = mp(v["map"])
+            if v["action"] == "ban":
+                s["ban"] += 1
+            elif v["by"] and not (i == len(m["veto"]) - 1 and len(m["veto"]) >= 5):   # letzter Pick = Decider
+                s["pick"] += 1
+                if winner.get(v["map"]):
+                    s["pick_n"] += 1
+                    s["pick_won"] += winner[v["map"]] == v["by"]
+            else:
+                s["decider"] += 1
+            if v["side_team"] and v["side"] in ("atk", "def") and winner.get(v["map"]):
+                atk_team = v["side_team"] if v["side"] == "atk" else 3 - v["side_team"]
+                s["atk_n"] += 1
+                s["atk_won"] += winner[v["map"]] == atk_team
+        for x in m["maps"]:
+            nmaps += 1
+            s = mp(x["map"])
+            s["played"] += 1
+            s["rounds"] += x["s1"] + x["s2"]
+            s["close"] += abs(x["s1"] - x["s2"]) <= 3
+            for team in (1, 2):
+                ags = sorted({p["agent"] for p in x["players"] if p["team"] == team and p["agent"]})
+                if not ags:
+                    continue
+                s["teams"] += 1
+                for a in ags:
+                    s["agents"][a] = s["agents"].get(a, 0) + 1
+                    agents[a] = agents.get(a, 0) + 1
+                if len(ags) == 5:
+                    key = tuple(ags)
+                    c = comps.setdefault(x["map"], {}).setdefault(key, [0, 0])
+                    c[0] += 1
+                    c[1] += x["s1" if team == 1 else "s2"] > x["s2" if team == 1 else "s1"]
+    out_maps = {}
+    for name, s in maps.items():
+        t = s.pop("teams")
+        s["agents"] = [[a, c, round(100 * c / t)] for a, c in sorted(s["agents"].items(), key=lambda kv: -kv[1])] if t else []
+        s["comps"] = [[list(k), n, w] for k, (n, w) in sorted(comps.get(name, {}).items(), key=lambda kv: -kv[1][0])[:3]]
+        s["avg_rounds"] = round(s.pop("rounds") / s["played"], 1) if s["played"] else None
+        out_maps[name] = s
+    total_teams = 2 * nmaps
+    players = []
+    names = {t["id"]: t["name"] for t in teams}
+    for tid in names:
+        for agg in (opl_by_team.get(tid) or {}).get("players", {}).values():
+            players.append({"name": agg["name"], "team": tid, "team_name": names[tid], "maps": agg["maps"],
+                            "acs": agg["acs"], "kd": agg["kd"], "k": agg["k"], "d": agg["d"], "a": agg["a"],
+                            "econ": agg["econ"], "fb": agg["fb"], "fbpm": round(agg["fb"] / agg["maps"], 2) if agg["maps"] else 0,
+                            "winrate": agg["winrate"], "agents": agg["agents"][:3]})
+    return {"matches": sum(1 for m in matches if m["maps"]), "veto_matches": nv, "maps_played": nmaps,
+            "bo": int(max(bo.items(), key=lambda kv: kv[1])[0]) if bo else 3,
+            "maps": out_maps,
+            "agents": [[a, c, round(100 * c / total_teams)] for a, c in sorted(agents.items(), key=lambda kv: -kv[1])] if total_teams else [],
+            "players": players}
+
+
 def export(out, leagues, region, repo, ref, base_cfg):
     data = out / "data"
     data.mkdir(parents=True, exist_ok=True)
@@ -305,8 +379,9 @@ def export(out, leagues, region, repo, ref, base_cfg):
             # aktive Spieler = mind. ein Ligaspiel; ohne gespielte Matches → OPL-Position
             active = set(opl["players"]) if opl["maps_played"] else None
             summaries[t["id"]] = core.team_summary(t["id"], region, active)
+        overview = league_overview(league_matches[lg["id"]], opl_by_team, st["teams"])
         (data / f"league-{lg['id']}.json").write_text(json.dumps(
-            {**st, "id": lg["id"], "name": lg["name"], "summaries": summaries,
+            {**st, "id": lg["id"], "name": lg["name"], "summaries": summaries, "overview": overview,
              "updated": time.time() - (core.cache.age("standing:" + lg["url"]) or 0)},
             ensure_ascii=False, separators=(",", ":")))
         meta_leagues.append({"id": lg["id"], "name": lg["name"], "url": lg["url"], "title": st["title"]})
