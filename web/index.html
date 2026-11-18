@@ -1389,8 +1389,8 @@ function mirrorInfo([a, c, p, w, mir = 0, nmn = 0, nmw = 0]){
   const share = 2 * mir / c, wr = 100 * w / c;
   if(share < 0.4 || wr < 40 || wr > 60) return null;
   const nm = nmn ? `${nmw}–${nmn - nmw} (${Math.round(100 * nmw / nmn)} %)` : "keine";
-  return {tip: `⇄ Mirror: In ${mir} Maps spielten beide Teams ${a}`
-    + `Die Winrate liegt deshalb nahe 50 % und sagt wenig über seine Stärke. Nur Maps, in denen ein Team ihn allein hatte: ${nm}.`};
+  return {tip: `⇄ Mirror: In ${mir} Maps spielten beide Teams ${a}. `
+    + `Die Winrate liegt deshalb nahe 50 % und sagt wenig über seine Stärke aus. Nur Maps, in denen ein Team ihn allein hatte: ${nm}.`};
 }
 // Streudiagramm: x = Pickrate, y = Winrate, Punkte = Agent-Icons
 function drawScatter(list){
