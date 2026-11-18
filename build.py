@@ -21,6 +21,10 @@ import shutil
 import sys
 import threading
 import time
+import unicodedata
+import urllib.parse
+import urllib.request
+from html import unescape
 from concurrent.futures import ThreadPoolExecutor, wait, FIRST_COMPLETED
 from pathlib import Path
 
@@ -433,6 +437,118 @@ def rank_history(lg, st, opl_by_team):
     return prev
 
 
+# ------------------------------------------------------------------ YouTube-VODs (RSS, ohne API-Schlüssel)
+def _http(url, cookie=None):
+    h = {"User-Agent": "Mozilla/5.0 (OPL Scout)"}
+    if cookie:
+        h["Cookie"] = cookie
+    req = urllib.request.Request(url, headers=h)
+    with urllib.request.urlopen(req, timeout=20) as r:
+        return r.read().decode("utf-8", "replace")
+
+
+def fetch_youtube(cfg):
+    """Neue Videos der konfigurierten Kanäle (RSS: jeweils die 15 neuesten) und einzeln
+    eingetragener Videos (oEmbed) dauerhaft im Cache sammeln."""
+    yt = cfg.get("youtube") or {}
+    videos = core.cache.peek("yt:videos") or {}
+    new = 0
+    for ch in yt.get("channels", []):
+        try:
+            x = _http("https://www.youtube.com/feeds/videos.xml?channel_id=" + ch["id"])
+        except Exception as e:
+            log(f"  YouTube {ch.get('name')}: {e}")
+            continue
+        for e in re.findall(r"<entry>(.*?)</entry>", x, re.S):
+            vid = re.search(r"<yt:videoId>(.*?)</yt:videoId>", e).group(1)
+            pub = re.search(r"<published>(.*?)</published>", e).group(1)
+            new += vid not in videos
+            videos[vid] = {"id": vid, "title": unescape(re.search(r"<title>(.*?)</title>", e, re.S).group(1)),
+                           "channel": ch.get("name"), "official": bool(ch.get("official")),
+                           "published": time.mktime(time.strptime(pub[:19], "%Y-%m-%dT%H:%M:%S")) - time.timezone}
+    for vid in yt.get("videos", []):
+        vid = vid if isinstance(vid, str) else vid.get("id")
+        if vid in videos:
+            continue
+        try:
+            o = json.loads(_http("https://www.youtube.com/oembed?format=json&url=" +
+                                 urllib.parse.quote("https://www.youtube.com/watch?v=" + vid)))
+            # Upload-Datum steht nicht im oEmbed → von der Videoseite (Cookie überspringt die Zustimmungsseite)
+            pub = None
+            try:
+                page = _http("https://www.youtube.com/watch?v=" + vid, cookie="SOCS=CAI")
+                d = re.search(r'itemprop="(?:uploadDate|datePublished)" content="([^"]+)"', page)
+                if d:
+                    from datetime import datetime
+                    pub = datetime.fromisoformat(d.group(1)).timestamp()
+            except Exception:
+                pass
+            official = any(c.get("official") and c.get("name") == o.get("author_name") for c in yt.get("channels", []))
+            videos[vid] = {"id": vid, "title": o.get("title", ""), "channel": o.get("author_name"),
+                           "official": official, "published": pub}
+            new += 1
+        except Exception as e:
+            log(f"  YouTube-Video {vid}: {e}")
+    core.cache.set("yt:videos", videos)
+    log(f"YouTube: {len(videos)} Videos bekannt, {new} neu")
+
+
+def _norm(s):
+    s = unicodedata.normalize("NFKC", s or "").lower()
+    return re.sub(r"[^0-9a-zäöüß]+", "", s)
+
+
+SEASON_RE = re.compile(r"(sommer|summer|winter)\s*(?:season)?\s*'?(\d{2,4})", re.I)
+
+
+def _season_ok(title, league_title):
+    """Titel mit fremder Saison (z. B. „Sommer 26“ in der Wintersaison) aussortieren."""
+    m = SEASON_RE.search(title or "")
+    if not m:
+        return True
+    cur = SEASON_RE.search(league_title or "")
+    if not cur:
+        return True
+    same_kind = (m.group(1).lower() in ("sommer", "summer")) == (cur.group(1).lower() in ("sommer", "summer"))
+    return same_kind and m.group(2)[-2:] == cur.group(2)[-2:]
+
+
+def match_vods(matches, league_title):
+    """Match-ID → [Videos]. Zuordnung: beide Teamnamen im Titel, passende Saison und
+    Video nach Matchbeginn (bis 45 Tage) veröffentlicht."""
+    videos = core.cache.peek("yt:videos") or {}
+    out = {}
+    for v in videos.values():
+        if not _season_ok(v["title"], league_title):
+            continue
+        nt = _norm(v["title"])
+        # Paarungen im Titel („A ⚔️ B | C ⚔️ D“ oder „A vs B“): beide Teams müssen in derselben stehen
+        parts = [_norm(p) for p in re.split(r"\|", unicodedata.normalize("NFKC", v["title"])) if "⚔" in p or re.search(r"\bvs\.?\b", p, re.I)]
+        # YouTube kürzt Titel auf 100 Zeichen → letzte Paarung evtl. abgeschnitten („KIT SC HN…“)
+        cut = len(v["title"]) >= 95 and parts
+        last_sides = [_norm(x) for x in re.split(r"⚔️?|\bvs\.?\b", unicodedata.normalize("NFKC", v["title"].split("|")[-1]), flags=re.I)] if cut else []
+        for m in matches:
+            a, b = _norm(m["t1"].get("name")), _norm(m["t2"].get("name"))
+            if len(a) < 3 or len(b) < 3:
+                continue
+            start = m.get("start") or 0
+            if v["published"] and start and not (start - 6 * 3600 <= v["published"] <= start + 45 * 86400):
+                continue
+            idx = next((i + 1 for i, p in enumerate(parts) if a in p and b in p), None)
+            if idx is None and cut and len(last_sides) == 2 and v["published"] and start and 0 <= v["published"] - start <= 2 * 86400:
+                l, r = last_sides
+                if (l == a and b.startswith(r)) or (l == b and a.startswith(r)):
+                    idx = len(parts)   # abgeschnittene letzte Paarung, nur bei Upload kurz nach dem Match
+            if idx is None and (parts or a not in nt or b not in nt):
+                continue
+            # Position im Video (offizielle Streams zeigen 2 Matches hintereinander)
+            out.setdefault(m["id"], []).append({"id": v["id"], "title": v["title"], "channel": v["channel"],
+                                                 "official": v["official"], "part": idx if len(parts) > 1 else None})
+    for lst in out.values():
+        lst.sort(key=lambda x: (not x["official"], x["channel"] or ""))
+    return out
+
+
 def export(out, leagues, region, repo, ref, base_cfg):
     data = out / "data"
     data.mkdir(parents=True, exist_ok=True)
@@ -454,6 +570,12 @@ def export(out, leagues, region, repo, ref, base_cfg):
             active = set(opl["players"]) if opl["maps_played"] else None
             summaries[t["id"]] = core.team_summary(t["id"], region, active)
         overview = league_overview(league_matches[lg["id"]], opl_by_team, st["teams"])
+        vods = match_vods(league_matches[lg["id"]], st.get("title", ""))
+        for t in st["teams"]:
+            for e in (opl_by_team.get(t["id"]) or {}).get("matches", []):
+                if e["id"] in vods:
+                    e["vods"] = vods[e["id"]]
+        log(f"  {lg['name']}: {len(vods)} Matches mit VOD")
         prev = rank_history(lg, st, opl_by_team)
         movement = {"md": prev["md"], "src": prev["src"], "ranks": prev["ranks"]} if prev else None
         (data / f"league-{lg['id']}.json").write_text(json.dumps(
@@ -529,6 +651,11 @@ def main():
     if not has_key and not a.export_only:
         log("WARNUNG: kein HENRIKDEV_API_KEY – es werden nur OPL-Daten aktualisiert")
 
+    if not a.export_only:
+        try:
+            fetch_youtube(base_cfg)
+        except Exception as e:
+            log(f"YouTube fehlgeschlagen: {e}")
     try:
         if a.matches_only:
             for lg in leagues if a.league in ("", "all") else [x for x in leagues if x["id"] == league_id(a.league)]:

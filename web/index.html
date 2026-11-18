@@ -64,6 +64,10 @@
   tr.team.zn-po{--zc:var(--zpo)} tr.team.zn-safe{--zc:var(--zsafe)} tr.team.zn-rel{--zc:var(--zrel)} tr.team.zn-down{--zc:var(--zdown)}
   tr.team.zn-po td:first-child{color:var(--zpo)} tr.team.zn-down td:first-child{color:var(--zdown)} tr.team.zn-rel td:first-child{color:var(--zrel)}
   tr.team.grpend td{border-bottom:2px solid var(--line)}
+  .vod{display:inline-flex;align-items:center;gap:3px;font-size:12px;padding:1px 7px;border-radius:4px;border:1px solid var(--line);color:var(--txt);white-space:nowrap}
+  .vod:hover{text-decoration:none;border-color:var(--acc)}
+  .vod.off{background:color-mix(in srgb, var(--acc) 14%, transparent);border-color:color-mix(in srgb, var(--acc) 45%, transparent)}
+  .vod small{color:var(--mut);font-size:10px}
   .mv{display:inline-block;width:12px;margin-left:3px;font-size:10px;text-align:center;vertical-align:1px}
   .mv.up{color:var(--good)} .mv.dn{color:var(--bad)} .mv.eq{color:var(--mut)}
   .zlegend{display:flex;flex-wrap:wrap;gap:6px 14px;padding:10px 12px;font-size:11px;color:var(--mut);border-top:1px solid var(--line)}
@@ -892,6 +896,11 @@ function teamAgentsHtml(o){
     return `<span class="ag" title="${esc(a)}: ${c} von ${o.maps_played} Maps">${ic ? `<img src="${esc(ic)}" alt="${esc(a)}">` : `<span class="sub">${esc(a)}</span>`}<span class="bar"><i style="width:${p}%"></i></span><small>${p}%</small></span>`;
   }).join("")}</div>`;
 }
+// YouTube-VODs eines Matches (offiziell zuerst)
+function vodLinks(m){
+  return (m.vods || []).map(v => `<a class="vod${v.official ? " off" : ""}" href="https://www.youtube.com/watch?v=${encodeURIComponent(v.id)}" target="_blank" rel="noopener"
+    title="${esc(v.title)} – ${esc(v.channel || "")}${v.part ? ` · Match ${v.part} im Video` : ""}">▶ ${v.official ? "VOD" : esc(v.channel || "VOD")}${v.part ? ` <small>${v.part}/2</small>` : ""}</a>`).join("");
+}
 function matchesHtml(o){
   const ms = o?.matches || [];
   if(!ms.length) return "";
@@ -914,7 +923,7 @@ function matchesHtml(o){
     return `<div class="match"><div class="mhead"><span class="sub">${date(m.start)}</span>${res}
       <span class="opp">vs ${esc(m.opp.name)}</span>
       ${!played && m.state !== "closed" && m.opp?.id && m.opp.id !== "-1" ? `<button class="tiny prepbtn" data-opp="${esc(m.opp.id)}" data-mid="${esc(m.id)}">Vorbereiten</button>` : ""}
-      <a class="sub" href="https://www.opleague.pro/match/${esc(m.id)}" target="_blank" rel="noopener">OPL ↗</a></div>
+      ${vodLinks(m)}<a class="sub" href="https://www.opleague.pro/match/${esc(m.id)}" target="_blank" rel="noopener">OPL ↗</a></div>
       ${played ? `<div class="mmaps">${m.maps.map(x => `<span class="${x.us>x.them?"pos-up":x.us<x.them?"pos-dn":""}">${esc(cap(x.map))} ${x.us}:${x.them}</span>`).join(" · ")}</div>` : ""}
       ${m.veto.length ? `<div class="vetos">${veto}</div>` : ""}</div>`;
   }).join("")}</div>`;
@@ -1473,6 +1482,17 @@ function topPlayers(T){
   });
 }
 
+// Alle VODs eines Teams aus dieser Saison (für die Gegner-Analyse)
+function vodSection(T, name){
+  const ms = (T.opl?.matches || []).filter(m => m.vods?.length).sort((a, b) => (b.start || 0) - (a.start || 0));
+  const date = t => t ? new Date(t * 1000).toLocaleDateString("de-DE", {day: "2-digit", month: "2-digit"}) : "";
+  return `<div class="sechead"><h3>VODs von ${esc(name)} <span class="sub">(YouTube, diese Saison)</span></h3></div>
+    ${ms.length ? `<div class="matches">${ms.map(m => `<div class="match"><div class="mhead"><span class="sub">${date(m.start)}</span>
+      <span class="res ${({W: "w", L: "l", D: "d"})[m.outcome] || "d"}">${m.score ? m.score.join(":") : m.outcome || "–"}</span>
+      <span class="opp">vs ${esc(m.opp.name)}</span>${vodLinks(m)}</div>
+      ${m.maps.length ? `<div class="mmaps">${m.maps.map(x => `${esc(cap(x.map))} ${x.us}:${x.them}`).join(" · ")}</div>` : ""}</div>`).join("")}</div>`
+      : '<p class="sub">Keine VODs gefunden (offizieller Kanal Uniliga VODS und bekannte POV-Kanäle).</p>'}`;
+}
 function renderPrep(A, mtA, B, mtB, entry){
   const pA = mapProfile(A), pB = mapProfile(B);
   const pool = [...new Set([...pA.maps, ...pB.maps])];
@@ -1555,7 +1575,8 @@ function renderPrep(A, mtA, B, mtB, entry){
 
     <div class="sechead"><h3>Bisherige Duelle diese Saison</h3></div>
     ${h2h.length ? `<div class="matches">${h2h.map(m => `<div class="match"><div class="mhead"><span class="res ${({W:"w",L:"l",D:"d"})[m.outcome] || "d"}">${m.score ? m.score.join(":") : m.outcome || "–"}</span>
-      <span class="opp">${m.maps.map(x => `${esc(cap(x.map))} ${x.us}:${x.them}`).join(" · ") || "ohne Spiel"}</span></div></div>`).join("")}</div>` : '<p class="sub">Noch kein Duell in dieser Saison.</p>'}`;
+      <span class="opp">${m.maps.map(x => `${esc(cap(x.map))} ${x.us}:${x.them}`).join(" · ") || "ohne Spiel"}</span>${vodLinks(m)}</div></div>`).join("")}</div>` : '<p class="sub">Noch kein Duell in dieser Saison.</p>'}
+    ${vodSection(B, nameB)}`;
 
   document.querySelectorAll(".duel .pp.plink").forEach(el => el.onclick = () => openPlayerById(el.dataset.team, el.dataset.key));
   $("#prepback").onclick = () => { setUrl({l: league.id, t: String(A.id)}); renderTeam(A, mtA); };
