@@ -364,6 +364,75 @@ def league_overview(matches, opl_by_team, teams):
             "players": players}
 
 
+def _int(v):
+    try:
+        return int(str(v).strip())
+    except (TypeError, ValueError):
+        return None
+
+
+def matchday(teams):
+    """Aktueller Spieltag = häufigste Spielzahl (robust gegen Freilose und Nachholspiele)."""
+    cnt = {}
+    for t in teams:
+        n = _int(t["stats"].get("played")) or 0
+        cnt[n] = cnt.get(n, 0) + 1
+    return max(cnt.items(), key=lambda kv: (kv[1], kv[0]))[0] if cnt else 0
+
+
+def rebuild_previous(teams, opl_by_team, swiss):
+    """Startwert ohne gespeicherte Historie: Tabelle vor dem letzten Spieltag aus den Ergebnissen
+    zurückrechnen (letztes Ergebnis jedes Teams mit voller Spielzahl abziehen). Sortierung wie OPL:
+    Punkte (Swiss: Siege, dann Buchholz), dann Rundendifferenz – Tiebreaker nur angenähert."""
+    md = matchday(teams)
+    rows = []
+    for t in teams:
+        st = t["stats"]
+        wins, draws = _int(st.get("wins")) or 0, _int(st.get("draws")) or 0
+        pts = _int(st.get("points")) if not swiss else wins
+        rd = _int(st.get("round dif")) or 0
+        if pts is None:
+            pts = 2 * wins + draws
+        res = [m for m in (opl_by_team.get(t["id"]) or {}).get("matches", []) if m["outcome"]]
+        res.sort(key=lambda m: m.get("start") or 0)
+        for last in res[max(0, md - 1):]:   # alles nach Spieltag md-1 abziehen
+            if swiss:
+                pts -= last["outcome"] == "W"
+            else:
+                pts -= {"W": 2, "D": 1}.get(last["outcome"], 0)
+            rd -= sum(x["us"] - x["them"] for x in last["maps"])
+        tb = _int(st.get("tiebreaker")) or 0   # Buchholz lässt sich nicht zurückrechnen → aktueller Wert als Näherung
+        rows.append((t, pts, tb, rd))
+    ranks = {}
+    for g in {t.get("group", "") for t in teams}:
+        grp = sorted([r for r in rows if r[0].get("group", "") == g], key=lambda r: (-r[1], -r[2], -r[3], _int(r[0]["rank"]) or 99))
+        for i, (t, *_rest) in enumerate(grp):
+            ranks[t["id"]] = i + 1
+    return md - 1, ranks
+
+
+def rank_history(lg, st, opl_by_team):
+    """Speichert pro Spieltag den letzten Tabellenstand und liefert den Vergleichsstand
+    (Ende des vorigen Spieltags). Spieltag = höchste Spielzahl eines Teams."""
+    teams = st["teams"]
+    md = matchday(teams)
+    key = f"standing_hist:{lg['id']}"
+    hist = core.cache.peek(key) or []
+    if not hist and md > 0:
+        pmd, pranks = rebuild_previous(teams, opl_by_team, "swiss" in (st.get("title", "") + json.dumps(st.get("columns", []))).lower()
+                                       or "lives" in st.get("columns", []))
+        hist = [{"md": pmd, "t": 0, "src": "rebuilt", "ranks": pranks}]
+    cur = {"md": md, "t": time.time(), "src": "opl", "ranks": {t["id"]: _int(t["rank"]) for t in teams}}
+    if hist and hist[-1]["md"] == md:
+        hist[-1] = cur
+    else:
+        hist.append(cur)
+    hist = hist[-12:]
+    core.cache.set(key, hist)
+    prev = next((h for h in reversed(hist) if h["md"] < md), None)
+    return prev
+
+
 def export(out, leagues, region, repo, ref, base_cfg):
     data = out / "data"
     data.mkdir(parents=True, exist_ok=True)
@@ -385,8 +454,10 @@ def export(out, leagues, region, repo, ref, base_cfg):
             active = set(opl["players"]) if opl["maps_played"] else None
             summaries[t["id"]] = core.team_summary(t["id"], region, active)
         overview = league_overview(league_matches[lg["id"]], opl_by_team, st["teams"])
+        prev = rank_history(lg, st, opl_by_team)
+        movement = {"md": prev["md"], "src": prev["src"], "ranks": prev["ranks"]} if prev else None
         (data / f"league-{lg['id']}.json").write_text(json.dumps(
-            {**st, "id": lg["id"], "name": lg["name"], "summaries": summaries, "overview": overview,
+            {**st, "id": lg["id"], "name": lg["name"], "summaries": summaries, "overview": overview, "movement": movement,
              "updated": time.time() - (core.cache.age("standing:" + lg["url"]) or 0)},
             ensure_ascii=False, separators=(",", ":")))
         meta_leagues.append({"id": lg["id"], "name": lg["name"], "url": lg["url"], "title": st["title"],
@@ -508,6 +579,7 @@ def main():
     repo = os.environ.get("GITHUB_REPOSITORY", "")
     ref = os.environ.get("GITHUB_REF_NAME", "main")
     export(out, leagues, region, repo, ref, base_cfg)
+    core.cache.save()   # Tabellen-Historie (für die Pfeile) sichern
 
 
 if __name__ == "__main__":

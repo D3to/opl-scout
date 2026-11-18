@@ -64,6 +64,8 @@
   tr.team.zn-po{--zc:var(--zpo)} tr.team.zn-safe{--zc:var(--zsafe)} tr.team.zn-rel{--zc:var(--zrel)} tr.team.zn-down{--zc:var(--zdown)}
   tr.team.zn-po td:first-child{color:var(--zpo)} tr.team.zn-down td:first-child{color:var(--zdown)} tr.team.zn-rel td:first-child{color:var(--zrel)}
   tr.team.grpend td{border-bottom:2px solid var(--line)}
+  .mv{display:inline-block;width:12px;margin-left:3px;font-size:10px;text-align:center;vertical-align:1px}
+  .mv.up{color:var(--good)} .mv.dn{color:var(--bad)} .mv.eq{color:var(--mut)}
   .zlegend{display:flex;flex-wrap:wrap;gap:6px 14px;padding:10px 12px;font-size:11px;color:var(--mut);border-top:1px solid var(--line)}
   .zlegend span{display:inline-flex;align-items:center;gap:5px}
   .zlegend i{width:10px;height:10px;border-radius:2px;display:inline-block;background:var(--zc)}
@@ -546,6 +548,19 @@ function sortVal(t){
   if(sortKey === "avg") return league.summaries[t.id]?.[metric]?.elo ?? null;
   return num(t.stats[sortKey]);
 }
+// Platzierungsänderung seit dem Ende des vorigen Spieltags
+function moveOf(t){
+  const mv = league?.movement, prev = mv?.ranks?.[t.id], cur = num(t.rank);
+  if(prev == null || cur == null) return null;
+  return {d: prev - cur, prev, md: mv.md, rebuilt: mv.src === "rebuilt"};
+}
+function moveHtml(t){
+  const m = moveOf(t);
+  if(!m) return "";
+  const tip = `${m.d > 0 ? `${m.d} ${m.d === 1 ? "Platz" : "Plätze"} hoch` : m.d < 0 ? `${-m.d} ${m.d === -1 ? "Platz" : "Plätze"} runter` : "Platz gehalten"}`
+    + ` · nach Spieltag ${m.md}: Platz ${m.prev}` + (m.rebuilt ? " (aus den Ergebnissen zurückgerechnet)" : "");
+  return m.d > 0 ? `<span class="mv up" title="${esc(tip)}">▲</span>` : m.d < 0 ? `<span class="mv dn" title="${esc(tip)}">▼</span>` : `<span class="mv eq" title="${esc(tip)}">–</span>`;
+}
 // Tabellenzone nach Platz in der Gruppe (Regeln in config/leagues.json)
 function zoneOf(t){
   const zs = meta?.leagues.find(l => l.id === league?.id)?.zones || [];
@@ -574,7 +589,7 @@ function renderTeams(){
   const th = (k, label, cls="", title="") => `<th class="sortable ${cls}" data-k="${esc(k)}" title="${esc(title || "Sortieren")}">${label}${arrow(k)}</th>`;
   $("#teamlist").innerHTML = `<table><thead><tr>${th("rank","#")}${th("avg","Ø","c", METRICS[metric].tip)}${th("name","Team")}${
     cols.map(c => th(c, esc(SHORT[c]||c), "num" + (OPT_COLS.has(c) ? " opt" : ""), LONG[c]||c)).join("")}</tr></thead><tbody>${
-    teams.map((t, i) => `<tr class="team${zoneOf(t) ? " zn-" + zoneOf(t).key : ""}${sortKey === "rank" && teams[i + 1] && teams[i + 1].group !== t.group ? " grpend" : ""}${t.id===curTeam?" sel":""}" title="${esc(zoneOf(t)?.label || "")}" data-id="${esc(t.id)}"><td>${t.group ? `<span class="grp" title="Gruppe ${esc(t.group)}">${esc(t.group)}</span>` : ""}${esc(t.rank)}</td>
+    teams.map((t, i) => `<tr class="team${zoneOf(t) ? " zn-" + zoneOf(t).key : ""}${sortKey === "rank" && teams[i + 1] && teams[i + 1].group !== t.group ? " grpend" : ""}${t.id===curTeam?" sel":""}" title="${esc(zoneOf(t)?.label || "")}" data-id="${esc(t.id)}"><td>${t.group ? `<span class="grp" title="Gruppe ${esc(t.group)}">${esc(t.group)}</span>` : ""}${esc(t.rank)}${moveHtml(t)}</td>
       <td class="c">${avgIcon(league.summaries[t.id])}</td>
       <td><div class="tn"><img src="${esc(t.logo)}" alt="">${esc(t.name)}</div></td>
       ${cols.map(c=>`<td class="num${OPT_COLS.has(c) ? " opt" : ""}">${esc(t.stats[c])}</td>`).join("")}</tr>`).join("")}</tbody></table>${zoneLegend()}`;
@@ -701,7 +716,7 @@ function renderTeam(team, mt){
       <span id="teamstatus" class="sub"></span>${shareBtn()}</div>
     <div class="th"><img src="${esc(mt?.logo||"")}" alt=""><div><h2>${esc(team.name||mt?.name)}</h2>
       <a href="${esc(mt?.url||"")}" target="_blank" rel="noopener">OPLeague-Profil ↗</a></div>${topMapsHtml(team.opl)}</div>
-    <p class="summary">${mt?.group ? `Gruppe ${esc(mt.group)} · ` : ""}Platz ${esc(mt?.rank)}${mt && zoneOf(mt) ? `<span class="zchip zn-${esc(zoneOf(mt).key)}">${esc(zoneOf(mt).label)}</span>` : ""} · ${esc(s.wins)}S / ${esc(s.losses)}N · Rundendiff. ${esc(s["round dif"])}</p>
+    <p class="summary">${mt?.group ? `Gruppe ${esc(mt.group)} · ` : ""}Platz ${esc(mt?.rank)}${mt && moveOf(mt) ? ` <span class="sub">(${moveOf(mt).d > 0 ? `<span class="pos-up">▲ ${moveOf(mt).d}</span>` : moveOf(mt).d < 0 ? `<span class="pos-dn">▼ ${-moveOf(mt).d}</span>` : "–"} seit Spieltag ${moveOf(mt).md})</span>` : ""}${mt && zoneOf(mt) ? `<span class="zchip zn-${esc(zoneOf(mt).key)}">${esc(zoneOf(mt).label)}</span>` : ""} · ${esc(s.wins)}S / ${esc(s.losses)}N · Rundendiff. ${esc(s["round dif"])}</p>
     <div class="avgs">
       ${avgBox("Top 5 aktive", byOpl ? "(5 beste mit Ligaspiel)" : "(5 beste Player + Captain)", elos.filter(e=>e.core).map(e=>e.elo).sort((a,b)=>b-a).slice(0,5))}
       ${avgBox("aktive Spieler", byOpl ? "(mind. 1 Ligaspiel diese Saison)" : "(Player + Captain – noch keine Ligaspiele)", elos.filter(e=>e.core).map(e=>e.elo))}
