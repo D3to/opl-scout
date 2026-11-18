@@ -409,7 +409,7 @@ def league_overview(matches, opl_by_team, teams):
     bo = {}
     def mp(name):
         return maps.setdefault(name, {"played": 0, "pick": 0, "ban": 0, "decider": 0, "pick_won": 0, "pick_n": 0,
-                                      "atk_won": 0, "atk_n": 0, "rounds": 0, "close": 0, "agents": {}, "teams": 0})
+                                      "atk_won": 0, "atk_n": 0, "rounds": 0, "close": 0, "agents": {}, "agent_won": {}, "mirror": {}, "nm_n": {}, "nm_w": {}, "teams": 0})
     for m in matches:
         if not m["maps"]:
             continue
@@ -440,13 +440,21 @@ def league_overview(matches, opl_by_team, teams):
             s["played"] += 1
             s["rounds"] += x["s1"] + x["s2"]
             s["close"] += abs(x["s1"] - x["s2"]) <= 3
+            side = {t: {p["agent"] for p in x["players"] if p["team"] == t and p["agent"]} for t in (1, 2)}
+            for a in side[1] & side[2]:          # Mirror: beide Teams spielen den Agent
+                s["mirror"][a] = s["mirror"].get(a, 0) + 1
             for team in (1, 2):
-                ags = sorted({p["agent"] for p in x["players"] if p["team"] == team and p["agent"]})
+                ags = sorted(side[team])
                 if not ags:
                     continue
                 s["teams"] += 1
+                won = x["s1" if team == 1 else "s2"] > x["s2" if team == 1 else "s1"]
                 for a in ags:
                     s["agents"][a] = s["agents"].get(a, 0) + 1
+                    s["agent_won"][a] = s["agent_won"].get(a, 0) + won
+                    if a not in side[3 - team]:      # nur ein Team hatte ihn
+                        s["nm_n"][a] = s["nm_n"].get(a, 0) + 1
+                        s["nm_w"][a] = s["nm_w"].get(a, 0) + won
                     agents[a] = agents.get(a, 0) + 1
                 if len(ags) == 5:
                     key = tuple(ags)
@@ -456,8 +464,11 @@ def league_overview(matches, opl_by_team, teams):
     out_maps = {}
     for name, s in maps.items():
         t = s.pop("teams")
-        s["agents"] = [[a, c, round(100 * c / t)] for a, c in sorted(s["agents"].items(), key=lambda kv: -kv[1])] if t else []
-        s["comps"] = [[list(k), n, w] for k, (n, w) in sorted(comps.get(name, {}).items(), key=lambda kv: -kv[1][0])[:3]]
+        aw, mir, nmn, nmw = s.pop("agent_won"), s.pop("mirror"), s.pop("nm_n"), s.pop("nm_w")
+        # [Agent, Team-Maps, Anteil %, gewonnen, Mirror-Maps, Team-Maps ohne Mirror, davon gewonnen]
+        s["agents"] = [[a, c, round(100 * c / t), aw.get(a, 0), mir.get(a, 0), nmn.get(a, 0), nmw.get(a, 0)]
+                       for a, c in sorted(s["agents"].items(), key=lambda kv: -kv[1])] if t else []
+        s["comps"] = [[list(k), n, w] for k, (n, w) in sorted(comps.get(name, {}).items(), key=lambda kv: (-kv[1][0], -kv[1][1]))[:6]]
         s["avg_rounds"] = round(s.pop("rounds") / s["played"], 1) if s["played"] else None
         out_maps[name] = s
     total_teams = 2 * nmaps
@@ -469,6 +480,32 @@ def league_overview(matches, opl_by_team, teams):
                             "acs": agg["acs"], "kd": agg["kd"], "k": agg["k"], "d": agg["d"], "a": agg["a"],
                             "econ": agg["econ"], "fb": agg["fb"], "fbpm": round(agg["fb"] / agg["maps"], 2) if agg["maps"] else 0,
                             "winrate": agg["winrate"], "agents": agg["agents"][:3]})
+    # Pro Map: Bilanz jedes Teams und Stats jedes Spielers
+    map_teams, map_players = {}, {}
+    for tid in names:
+        o = opl_by_team.get(tid) or {}
+        for mpn, v in (o.get("maps") or {}).items():
+            if v["played"] or v["pick"] or v["ban"]:
+                map_teams.setdefault(mpn, []).append({"team": tid, "name": names[tid], **{k: v[k] for k in
+                    ("played", "won", "rw", "rl", "pick", "ban", "opp_pick", "opp_ban", "decider", "atk", "def")}})
+        for agg in (o.get("players") or {}).values():
+            per = {}
+            for h in agg.get("history", []):
+                x = per.setdefault(h["map"], {"maps": 0, "won": 0, "acs": 0, "k": 0, "d": 0, "a": 0, "fb": 0, "agents": {}})
+                x["maps"] += 1; x["won"] += h["us"] > h["them"]; x["acs"] += h["acs"]
+                for f in ("k", "d", "a", "fb"):
+                    x[f] += h[f]
+                if h.get("agent"):
+                    x["agents"][h["agent"]] = x["agents"].get(h["agent"], 0) + 1
+            for mpn, x in per.items():
+                map_players.setdefault(mpn, []).append({
+                    "name": agg["name"], "team": tid, "team_name": names[tid], "maps": x["maps"], "won": x["won"],
+                    "acs": round(x["acs"] / x["maps"]), "kd": round(x["k"] / x["d"], 2) if x["d"] else float(x["k"]),
+                    "k": x["k"], "d": x["d"], "a": x["a"], "fbpm": round(x["fb"] / x["maps"], 2),
+                    "agents": [a for a, _ in sorted(x["agents"].items(), key=lambda kv: -kv[1])]})
+    for mpn, s in out_maps.items():
+        s["teams_list"] = sorted(map_teams.get(mpn, []), key=lambda t: (-t["played"], -t["won"]))
+        s["players"] = map_players.get(mpn, [])
     return {"matches": sum(1 for m in matches if m["maps"]), "veto_matches": nv, "maps_played": nmaps,
             "bo": int(max(bo.items(), key=lambda kv: kv[1])[0]) if bo else 3,
             "maps": out_maps,

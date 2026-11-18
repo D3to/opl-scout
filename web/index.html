@@ -220,6 +220,32 @@
   .formleg .ln{width:18px;height:0;display:inline-block;border-top:2px solid}
   .formleg .ln.trend{border-color:var(--acc);border-top-width:3px} .formleg .ln.own{border-color:var(--warn);border-top-style:dashed} .formleg .ln.lg{border-color:var(--mut);border-top-style:dotted}
   .agic{width:22px;height:22px;border-radius:50%;vertical-align:middle;background:var(--panel2)}
+  .maplink{cursor:pointer} .maplink:hover span{text-decoration:underline}
+  .mapbanner{position:relative;border-radius:12px;overflow:hidden;margin-bottom:12px;height:130px;background:var(--panel2)}
+  .mapbanner img{width:100%;height:100%;object-fit:cover;display:block;filter:brightness(.6)}
+  .mapbanner>div{position:absolute;left:16px;bottom:12px;color:#fff;text-shadow:0 1px 4px rgba(0,0,0,.8)}
+  .mapbanner h2{margin:0;font-size:26px;color:#fff}
+  .magents{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px}
+  .magent{display:flex;align-items:center;gap:8px;background:var(--panel);border-radius:10px;padding:7px 10px}
+  .magent .agic{width:30px;height:30px} .magent>div:nth-child(2){flex:1;min-width:0} .magent .mwr{font-weight:600}
+  .mroles{display:grid;grid-template-columns:repeat(auto-fit,minmax(175px,1fr));gap:10px}
+  .mrole{display:flex;flex-direction:column;gap:6px}
+  .mrh{display:flex;align-items:center;gap:6px;padding:0 2px 2px}
+  .mrh{flex-wrap:wrap} .mrh .sub{margin-left:auto;font-size:11px;white-space:nowrap}
+  .mrole .magent{padding:6px 8px} .mrole .magent .agic{width:26px;height:26px}
+  .scatterbox{background:var(--panel);border-radius:10px;padding:10px 12px}
+  .scatter .grid{stroke:var(--line)} .scatter .mid{stroke:var(--mut);stroke-dasharray:4 4}
+  .scatter .ax{font-size:10px;fill:var(--mut)} .scatter .ax.lbl{font-size:11px;fill:var(--txt);opacity:.7}
+  .scatter .ring{fill:var(--panel2);stroke:var(--line);stroke-width:2} .scatter .ring.w{stroke:var(--good)} .scatter .ring.l{stroke:var(--bad)}
+  .scatter .sp.low{opacity:.4}
+  .scatter .ring.mir{stroke-dasharray:3 2;stroke:var(--warn)}
+  .mirror{display:block;font-size:10px;font-weight:500;color:var(--warn);white-space:nowrap}
+  .mirrornote{margin:8px 0 0}
+  .scatter .sp:hover{opacity:1}
+  .mcomps2{display:flex;flex-direction:column;gap:6px}
+  .mcomp{display:flex;align-items:center;gap:12px;background:var(--panel);border-radius:10px;padding:6px 10px;flex-wrap:wrap}
+  .mcomp .comp{display:flex;gap:3px} .mcomp .agic{width:28px;height:28px}
+  .lbtable tr.never td{opacity:.6}
   .sharebtn{margin-left:auto}
   .sharebtn.ok{border-color:var(--good);color:var(--good)}
   .rolechip{display:inline-flex;align-items:center;gap:3px;font-size:11px;color:var(--mut);margin-left:4px;vertical-align:middle}
@@ -347,6 +373,8 @@
 
     /* Map-Pool als Karten */
     .lbtable .opt{display:none}
+    .mroles{grid-template-columns:repeat(2,minmax(0,1fr))}
+    .mrh .sub{margin-left:0;width:100%}
     .kpis{grid-template-columns:repeat(3,minmax(0,1fr))}
     .kpi{padding:7px 9px} .kpi .v{font-size:16px}
     .lbtable .lbteam{display:block}
@@ -624,7 +652,7 @@ function avgIcon(sm){
 // ------------------------------------------------------------------ Teamansicht
 async function loadTeam(id, silent=false){
   const my = ++current;
-  curTeam = id;
+  curTeam = id; mapShown = null;
   if(!silent) setUrl({l: league.id, t: id});
   const meta_t = league.teams.find(t => t.id === id);
   if(!silent) $("#detail").innerHTML = `<div class="empty"><span class="spin"></span> Lade ${esc(meta_t?.name || "")}…</div>`;
@@ -857,7 +885,7 @@ function mapPoolHtml(o){
   </tr></thead><tbody>${maps.map(([mp, v]) => {
     const wl = v.played ? `<span class="${v.won*2 > v.played ? "pos-up" : v.won*2 < v.played ? "pos-dn" : ""}">${v.won}–${v.played - v.won}</span>` : '<span class="sub">–</span>';
     const rd = v.played ? `${v.rw}:${v.rl}` : '<span class="sub">–</span>';
-    return `<tr class="${v.played ? "" : "never"}"><td class="mcell"><div class="mapname"><img src="${MAP_IMG(mp)}" alt="" loading="lazy" onerror="this.remove()"><span>${esc(cap(mp))}</span></div></td>
+    return `<tr class="${v.played ? "" : "never"}"><td class="mcell"><div class="mapname maplink" data-map="${esc(mp)}" title="Map-Stats der Liga öffnen"><img src="${MAP_IMG(mp)}" alt="" loading="lazy" onerror="this.remove()"><span>${esc(cap(mp))}</span></div></td>
       <td class="num m-played" data-l="Gespielt">${z(v.played)}</td><td class="num m-wl" data-l="W–L">${wl}</td><td class="num m-rd" data-l="Runden">${rd}</td>
       <td class="num own m-pick" data-l="Pick">${z(v.pick)}</td><td class="num own ban m-ban" data-l="Ban">${z(v.ban)}</td>
       <td class="num m-opick" data-l="Gegner-Pick">${z(v.opp_pick)}</td><td class="num m-oban" data-l="Gegner-Ban">${z(v.opp_ban)}</td>${dec ? `<td class="num m-dec" data-l="Decider">${z(v.decider)}</td>` : ""}
@@ -994,12 +1022,12 @@ function rolesCompact(T){
 let routing = false;   // während eine URL angewendet wird, keine neuen History-Einträge
 function parseRoute(){
   const q = new URLSearchParams(location.hash.slice(1));
-  return {l: q.get("l"), t: q.get("t"), vs: q.get("vs"), m: q.get("m"), p: q.get("p"), meta: q.has("meta")};
+  return {l: q.get("l"), t: q.get("t"), vs: q.get("vs"), m: q.get("m"), p: q.get("p"), map: q.get("map"), meta: q.has("meta")};
 }
 function hashOf(r){
   if(!r.l) return "";
   return "#l=" + encodeURIComponent(r.l) + (r.t ? "&t=" + encodeURIComponent(r.t) : "") + (r.vs ? "&vs=" + encodeURIComponent(r.vs) : "")
-    + (r.vs && r.m ? "&m=" + encodeURIComponent(r.m) : "") + (r.t && r.p && !r.vs ? "&p=" + encodeURIComponent(r.p) : "") + (r.meta && !r.t ? "&meta" : "");
+    + (r.vs && r.m ? "&m=" + encodeURIComponent(r.m) : "") + (r.t && r.p && !r.vs ? "&p=" + encodeURIComponent(r.p) : "") + (r.map && !r.t ? "&map=" + encodeURIComponent(r.map) : r.meta && !r.t ? "&meta" : "");
 }
 function setUrl(r, push = true){
   if(routing) return;
@@ -1029,6 +1057,9 @@ async function applyRoute(r){
         await loadTeam(r.t);
       }
       showDetail(true, true);
+    }else if(r.map && league.overview?.maps?.[r.map]){
+      showMap(r.map, false);
+      showDetail(true, true);
     }else if(r.meta){
       showMeta(false); $("#metabtn").classList.add("active");
       showDetail(true, true);
@@ -1038,7 +1069,8 @@ async function applyRoute(r){
     }
   }finally{ routing = false; }
   // ungültige Teile der URL (z. B. Team nicht in der Liga) bereinigen
-  const want = hashOf({l: league?.id, t: curTeam, vs: r.t === curTeam ? r.vs : null, m: r.m, p: r.t === curTeam ? r.p : null, meta: metaShown && r.meta});
+  const want = hashOf({l: league?.id, t: curTeam, vs: r.t === curTeam ? r.vs : null, m: r.m, p: r.t === curTeam ? r.p : null, meta: metaShown && r.meta,
+                       map: !curTeam && mapShown ? mapShown : null});
   if(location.hash && want !== location.hash && !(r.t && r.t === curTeam)) history.replaceState(null, "", want || location.pathname);
 }
 const shareBtn = () => `<button class="ghost tiny sharebtn" title="Link zu dieser Ansicht kopieren – z. B. für Discord">🔗 Link kopieren</button>`;
@@ -1253,6 +1285,143 @@ ${esc(h.agent || "")} · ${M.l} ${M.f(vals[i])} · K/D/A ${h.k}/${h.d}/${h.a} ·
 let formResizeT;
 window.addEventListener("resize", () => { clearTimeout(formResizeT); formResizeT = setTimeout(drawForm, 150); });
 
+// ================================================================== Map-Stats (eine Map, ganze Liga)
+let mapShown = null, mapTeamSort = {k: null, dir: -1}, mapPlSort = {k: "acs", dir: -1}, mapPlMin = null;
+document.addEventListener("click", e => {
+  const el = e.target.closest(".maplink[data-map]");
+  if(el && league?.overview?.maps?.[el.dataset.map]){ e.preventDefault(); showMap(el.dataset.map, true); }
+});
+function showMap(mp, push = true){
+  ++current; curTeam = null; metaShown = false; mapShown = mp; mapPlMin = null;
+  document.querySelectorAll("tr.team.sel").forEach(x => x.classList.remove("sel"));
+  $("#metabtn").classList.add("active");
+  if(push) setUrl({l: league.id, map: mp});
+  renderMap(mp);
+  showDetail(true);
+  $("#detail").scrollTop = 0; if(isMobile()) window.scrollTo(0, 0);
+}
+function renderMap(mp){
+  const ov = league.overview, s = ov?.maps?.[mp];
+  if(!s){ $("#detail").innerHTML = '<div class="empty">Keine Daten zu dieser Map.</div>'; return; }
+  const keep = $("#detail").scrollTop, keepW = window.scrollY;
+  const n = ov.veto_matches, dec = ov.bo !== 2;
+  const pct = (a, b) => b ? Math.round(100 * a / b) : null;
+  const wrc = (w, n) => n ? `<span class="${w * 2 > n ? "pos-up" : w * 2 < n ? "pos-dn" : ""}">${Math.round(100 * w / n)}%</span>` : '<span class="sub">–</span>';
+  const kpi = (v, l, tip = "") => `<div class="kpi" title="${esc(tip)}"><div class="v">${v}</div><div class="l">${l}</div></div>`;
+  const agIcon = a => { const ic = AGENT_ICONS[(a || "").toLowerCase()]; return ic ? `<img class="agic" src="${esc(ic)}" alt="${esc(a)}" title="${esc(a)}">` : `<span class="sub">${esc(a)}</span>`; };
+
+  // Teams
+  const tv = (t, k) => k === "name" ? t.name.toLowerCase() : k === "wr" ? (t.played ? t.won / t.played : null) : k === "rd" ? (t.played ? t.rw - t.rl : null) : t[k];
+  const teams = sortRows([...s.teams_list], mapTeamSort, tv, (a, b) => b.played - a.played || (b.won - a.won) || (b.pick - a.pick) || (a.ban - b.ban));
+  const tt = (k, l, c = "num", tip = "") => sth(mapTeamSort, "data-mt", k, l, c, tip);
+  const teamRows = teams.map(t => `<tr class="${t.played ? "" : "never"}"><td><span class="tlink" data-team="${esc(t.team)}">${esc(t.name)}</span></td>
+    <td class="num">${t.played || '<span class="sub">0</span>'}</td><td class="num opt">${t.played ? `${t.won}–${t.played - t.won}` : '<span class="sub">–</span>'}</td>
+    <td class="num">${wrc(t.won, t.played)}</td><td class="num opt">${t.played ? `${t.rw}:${t.rl} <span class="sub">(${t.rw - t.rl > 0 ? "+" : ""}${t.rw - t.rl})</span>` : '<span class="sub">–</span>'}</td>
+    <td class="num">${t.pick || '<span class="sub">0</span>'}</td><td class="num">${t.ban || '<span class="sub">0</span>'}</td>
+    <td class="num opt">${t.opp_pick || '<span class="sub">0</span>'}</td><td class="num opt">${t.atk || t.def ? `${t.atk}/${t.def}` : '<span class="sub">–</span>'}</td></tr>`).join("");
+
+  // Agents: nach Rolle gruppiert
+  const card = x => { const [a, c, p, w] = x, mi = mirrorInfo(x);
+    return `<div class="magent" title="${esc(a)}: in ${c} Team-Maps gespielt (${p}%), davon ${w} gewonnen${mi ? "\n\n" + mi.tip : ""}">
+    ${agIcon(a)}<div><b>${esc(a)}</b><div class="sub">${p}% · ${c}×</div></div><div class="mwr">${wrc(w, c)}${mi ? '<span class="mirror">⇄ Mirror</span>' : ""}</div></div>`; };
+  const byRole = ROLES.map(([ro, de]) => ({ro, de, list: s.agents.filter(x => AGENT_ROLE[x[0].toLowerCase()] === ro)}));
+  const other = s.agents.filter(x => !ROLES.some(([ro]) => AGENT_ROLE[x[0].toLowerCase()] === ro));
+  const agents = `<div class="mroles">${byRole.map(g => `<div class="mrole"><div class="mrh">${roleImg(g.ro)}<b>${esc(g.de)}</b>
+      <span class="sub">${g.list.reduce((t, x) => t + x[1], 0) && s.played ? `Ø ${(g.list.reduce((t, x) => t + x[1], 0) / (2 * s.played)).toFixed(1).replace(".", ",")} pro Team` : ""}</span></div>
+    ${g.list.map(card).join("") || '<div class="sub">–</div>'}</div>`).join("")}</div>${other.length ? `<div class="magents">${other.map(card).join("")}</div>` : ""}`;
+
+  // Comps
+  const comps = s.comps.map(([ags, c, w]) => `<div class="mcomp"><div class="comp">${ags.map(agIcon).join("")}</div>
+    <span class="sub">${c}× gespielt</span><span>${w}–${c - w}</span>${wrc(w, c)}</div>`).join("");
+
+  // Spieler
+  const maxMaps = Math.max(0, ...s.players.map(p => p.maps));
+  if(mapPlMin == null || mapPlMin > maxMaps) mapPlMin = maxMaps >= 3 ? 2 : 1;
+  const pv = (p, k) => k === "name" ? p.name.toLowerCase() : k === "team" ? p.team_name.toLowerCase() : k === "wr" ? p.won / p.maps : p[k];
+  const pls = sortRows(s.players.filter(p => p.maps >= mapPlMin), mapPlSort, pv, (a, b) => b.acs - a.acs);
+  const pt = (k, l, c = "num", tip = "") => sth(mapPlSort, "data-mpl", k, l, c, tip);
+  const plRows = pls.slice(0, 30).map((p, i) => `<tr><td class="rk">${i + 1}</td>
+    <td><b class="plink" data-team="${esc(p.team)}" data-key="${esc(p.name.toLowerCase())}">${esc(p.name)}</b><div class="lbteam"><span class="tlink" data-team="${esc(p.team)}">${esc(p.team_name)}</span></div></td>
+    <td class="opt"><span class="tlink" data-team="${esc(p.team)}">${esc(p.team_name)}</span></td>
+    <td class="num">${p.maps}</td><td class="num">${wrc(p.won, p.maps)}</td><td class="num">${p.acs}</td><td class="num">${Number(p.kd).toFixed(2)}</td>
+    <td class="num opt">${p.fbpm.toFixed(2)}</td><td class="opt">${p.agents.slice(0, 3).map(agIcon).join(" ")}</td></tr>`).join("");
+  const minOpts = [1, 2, 3, 4, 5].filter(x => x <= Math.max(1, maxMaps));
+
+  const allMaps = Object.entries(ov.maps).sort((a, b) => b[1].played - a[1].played);
+  $("#detail").innerHTML = `
+    <div class="toolbar"><button class="ghost" id="mapback">← Liga-Meta</button>
+      <label>Map <select id="mapsel">${allMaps.map(([m]) => `<option value="${esc(m)}"${m === mp ? " selected" : ""}>${esc(cap(m))}</option>`).join("")}</select></label>${shareBtn()}</div>
+    <div class="mapbanner"><img src="${MAP_IMG(mp)}" alt="" onerror="this.remove()"><div><h2>${esc(cap(mp))}</h2><div>${esc(league.name || "")} · diese Saison</div></div></div>
+    <div class="kpis">
+      ${kpi(s.played, "Gespielt", "Gespielte Maps in der Liga")}${kpi((pct(s.pick + s.decider, n) ?? 0) + "%", "Pick-Rate", `${s.pick} Picks${dec ? ` + ${s.decider}× Decider` : ""} in ${n} Matches`)}
+      ${kpi((pct(s.ban, n) ?? 0) + "%", "Ban-Rate", `${s.ban} Bans in ${n} Matches`)}${dec ? kpi(s.decider, "Decider", "Wie oft die Map als Decider übrig blieb") : ""}
+      ${kpi(s.pick_n ? wrc(s.pick_won, s.pick_n) : "–", "Picker gewinnt", `${s.pick_won} von ${s.pick_n} gepickten Maps (ohne Decider)`)}
+      ${kpi(s.atk_n ? Math.round(100 * s.atk_won / s.atk_n) + "%" : "–", "Atk-Start gewinnt", `${s.atk_won} von ${s.atk_n} Maps`)}
+      ${kpi(s.avg_rounds ?? "–", "Ø Runden")}${kpi(s.played ? Math.round(100 * s.close / s.played) + "%" : "–", "Knapp (≤ 3)", `${s.close} von ${s.played} Maps mit höchstens 3 Runden Differenz`)}
+    </div>
+    ${s.agents.length ? `<div class="sechead"><h3>Agents <span class="sub">(Anteil der Team-Maps · Winrate, nach Rolle)</span></h3></div>${agents}
+    <div class="sechead"><h3>Meta-Diagramm <span class="sub">(Pickrate gegen Winrate)</span></h3></div>
+    <div class="scatterbox"><div id="mscatter"></div><div class="formleg"><span>rechts = oft gespielt</span><span>oben = gewinnt oft</span><span>blass = weniger als 3 Team-Maps, Winrate unsicher</span><span>gestrichelt (⇄) = oft im Mirror, Winrate darum nahe 50 %</span></div>
+    ${s.agents.some(x => mirrorInfo(x)) ? `<p class="sub mirrornote">⇄ <b>Mirror-Effekt:</b> ${s.agents.filter(x => mirrorInfo(x)).map(x => esc(x[0])).join(", ")} ${s.agents.filter(x => mirrorInfo(x)).length === 1 ? "wird" : "werden"} so oft von beiden Teams gleichzeitig gespielt, dass ${s.agents.filter(x => mirrorInfo(x)).length === 1 ? "seine" : "ihre"} Winrate zwangsläufig nahe 50 % liegt. Das heißt nicht „durchschnittlich stark“, sondern „Standard-Pick auf dieser Map“. Details im Tooltip.</p>` : ""}</div>` : ""}
+    ${s.comps.length ? `<div class="sechead"><h3>Häufigste Comps</h3></div><div class="mcomps2">${comps}</div>` : ""}
+    <div class="sechead"><h3>Teams <span class="sub">(Bilanz, eigene Picks/Bans)</span></h3></div>
+    <div class="lbwrap"><table class="lbtable"><thead><tr>${tt("name","Team","")}${tt("played","Gespielt")}<th class="num opt">W–L</th>${tt("wr","Winrate")}${tt("rd","Runden","num opt","Rundendifferenz")}
+      ${tt("pick","Pick")}${tt("ban","Ban")}${tt("opp_pick","Gegner-Pick","num opt")}<th class="num opt" title="Startseite Angriff/Verteidigung">Start A/V</th></tr></thead><tbody>${teamRows}</tbody></table></div>
+    ${s.players.length ? `<div class="sechead"><h3>Spieler auf ${esc(cap(mp))}</h3><label>min. Maps <select id="mapplmin">${minOpts.map(x => `<option${x === mapPlMin ? " selected" : ""}>${x}</option>`).join("")}</select></label></div>
+    <div class="lbwrap"><table class="lbtable"><thead><tr><th>#</th>${pt("name","Spieler","")}${pt("team","Team","opt")}${pt("maps","Maps")}${pt("wr","Winrate")}${pt("acs","ACS")}${pt("kd","K/D")}${pt("fbpm","FB/Map","num opt","First Bloods pro Map")}<th class="opt">Agents</th></tr></thead>
+      <tbody>${plRows || '<tr><td colspan="9" class="sub">Keine Spieler mit so vielen Maps.</td></tr>'}</tbody></table></div>` : ""}`;
+  $("#mapback").onclick = () => showMeta(true);
+  requestAnimationFrame(() => drawScatter(s.agents));
+  $("#mapsel").onchange = e => showMap(e.target.value, true);
+  document.querySelectorAll("th[data-mt]").forEach(h => h.onclick = () => { const k = h.dataset.mt;
+    mapTeamSort = mapTeamSort.k === k ? {k, dir: -mapTeamSort.dir} : {k, dir: k === "name" ? 1 : -1}; renderMap(mp); });
+  document.querySelectorAll("th[data-mpl]").forEach(h => h.onclick = () => { const k = h.dataset.mpl;
+    mapPlSort = mapPlSort.k === k ? {k, dir: -mapPlSort.dir} : {k, dir: k === "name" || k === "team" ? 1 : -1}; renderMap(mp); });
+  if($("#mapplmin")) $("#mapplmin").onchange = e => { mapPlMin = +e.target.value; renderMap(mp); };
+  document.querySelectorAll("#detail .tlink[data-team]").forEach(el => el.onclick = () => openTeamFromMeta(el.dataset.team));
+  document.querySelectorAll("#detail .plink[data-key]").forEach(el => el.onclick = () => openPlayerById(el.dataset.team, el.dataset.key));
+  $("#detail").scrollTop = keep; if(isMobile()) window.scrollTo(0, keepW);
+}
+
+// Oft gespielter Agent mit ~50 % Winrate, weil beide Teams ihn spielen (Mirror)
+function mirrorInfo([a, c, p, w, mir = 0, nmn = 0, nmw = 0]){
+  if(!c || !mir) return null;
+  const share = 2 * mir / c, wr = 100 * w / c;
+  if(share < 0.4 || wr < 40 || wr > 60) return null;
+  const nm = nmn ? `${nmw}–${nmn - nmw} (${Math.round(100 * nmw / nmn)} %)` : "keine";
+  return {tip: `⇄ Mirror: In ${mir} Maps spielten beide Teams ${a}`
+    + `Die Winrate liegt deshalb nahe 50 % und sagt wenig über seine Stärke. Nur Maps, in denen ein Team ihn allein hatte: ${nm}.`};
+}
+// Streudiagramm: x = Pickrate, y = Winrate, Punkte = Agent-Icons
+function drawScatter(list){
+  const box = $("#mscatter");
+  if(!box || !list?.length) return;
+  const W = Math.max(box.clientWidth || 600, 300), H = Math.round(Math.min(380, Math.max(240, W * 0.55)));
+  const pl = 40, pr = 18, pt = 16, pb = 34, sz = W < 500 ? 22 : 28;
+  const xmax = Math.min(100, Math.ceil(Math.max(...list.map(x => x[2])) / 10) * 10 + 10);
+  const X = v => pl + (W - pl - pr) * v / xmax, Y = v => pt + (H - pt - pb) * (1 - v / 100);
+  let g = "";
+  for(let v = 0; v <= 100; v += 25)
+    g += `<line x1="${pl}" x2="${W - pr}" y1="${Y(v)}" y2="${Y(v)}" class="${v === 50 ? "mid" : "grid"}"/><text x="${pl - 6}" y="${Y(v) + 4}" text-anchor="end" class="ax">${v}%</text>`;
+  for(let v = 0; v <= xmax; v += xmax > 60 ? 20 : 10)
+    g += `<line x1="${X(v)}" x2="${X(v)}" y1="${pt}" y2="${H - pb}" class="grid"/><text x="${X(v)}" y="${H - pb + 16}" text-anchor="middle" class="ax">${v}%</text>`;
+  g += `<text x="${(pl + W - pr) / 2}" y="${H - 3}" text-anchor="middle" class="ax lbl">Pickrate</text>
+        <text x="11" y="${(pt + H - pb) / 2}" text-anchor="middle" class="ax lbl" transform="rotate(-90 11 ${(pt + H - pb) / 2})">Winrate</text>`;
+  // seltene zuerst zeichnen, damit häufige oben liegen
+  const pts = [...list].sort((a, b) => a[1] - b[1]).map(item => {
+    const [a, c, p, w] = item, mi = mirrorInfo(item);
+    const wr = c ? 100 * w / c : 50, ic = AGENT_ICONS[a.toLowerCase()];
+    const x = X(p), y = Y(wr), low = c < 3;
+    const tip = `${a}: Pickrate ${p}% (${c} Team-Maps) · Winrate ${Math.round(wr)}% (${w}–${c - w})${low ? " · wenig Daten" : ""}${mi ? "\n" + mi.tip : ""}`;
+    return `<g class="sp${low ? " low" : ""}"><title>${esc(tip)}</title>${ic
+      ? `<circle cx="${x}" cy="${y}" r="${sz / 2 + 1.5}" class="ring ${wr > 50 ? "w" : wr < 50 ? "l" : ""}${mi ? " mir" : ""}"/><image href="${esc(ic)}" x="${x - sz / 2}" y="${y - sz / 2}" width="${sz}" height="${sz}" clip-path="circle(50%)"/>`
+      : `<circle cx="${x}" cy="${y}" r="5" class="ring"/><text x="${x + 7}" y="${y + 4}" class="ax">${esc(a)}</text>`}</g>`;
+  }).join("");
+  box.innerHTML = `<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" class="scatter">${g}${pts}</svg>`;
+}
+let scatterT;
+window.addEventListener("resize", () => { clearTimeout(scatterT); scatterT = setTimeout(() => { if(mapShown && $("#mscatter")) drawScatter(league.overview.maps[mapShown].agents); }, 150); });
+
 // ================================================================== Liga-Meta
 let metaSort = {k: null, dir: -1}, lbSort = {k: "acs", dir: -1}, lbMin = null, lbAll = false, metaShown = false;
 const pct = (a, b) => b ? Math.round(100 * a / b) : null;
@@ -1281,7 +1450,7 @@ function sth(st, attr, k, label, cls = "", title = ""){
 }
 function showMeta(push = true){
   if(!league) return;
-  ++current; curTeam = null; metaShown = true;
+  ++current; curTeam = null; metaShown = true; mapShown = null;
   document.querySelectorAll("tr.team.sel").forEach(x => x.classList.remove("sel"));
   $("#metabtn").classList.toggle("active", push || !isMobile());
   if(push) setUrl({l: league.id, meta: 1});
@@ -1304,7 +1473,7 @@ function renderMeta(){
     const pr = pct(v.pick + v.decider, n), br = pct(v.ban, n), pw = pct(v.pick_won, v.pick_n), aw = pct(v.atk_won, v.atk_n);
     const comps = v.comps.length ? `<div class="mcomps">${v.comps.slice(0, 2).map(([ags, c, w]) =>
       `<div class="comp">${ags.map(a => { const ic = AGENT_ICONS[a.toLowerCase()]; return ic ? `<img src="${esc(ic)}" alt="${esc(a)}" title="${esc(a)}">` : `<span class="sub">${esc(a)}</span>`; }).join("")}<span class="ctag played" title="${c}× gespielt, ${w} gewonnen">${c}× · ${w}S</span></div>`).join("")}</div>` : '<span class="sub">–</span>';
-    return `<tr class="${v.played ? "" : "never"}"><td class="mcell"><div class="mapname"><img src="${MAP_IMG(mp)}" alt="" loading="lazy" onerror="this.remove()"><span>${esc(cap(mp))}</span></div></td>
+    return `<tr class="${v.played ? "" : "never"}"><td class="mcell"><div class="mapname maplink" data-map="${esc(mp)}" title="Map-Stats der Liga öffnen"><img src="${MAP_IMG(mp)}" alt="" loading="lazy" onerror="this.remove()"><span>${esc(cap(mp))}</span></div></td>
       <td class="num" data-l="Gespielt">${v.played || '<span class="sub">0</span>'}</td>
       <td class="num own" data-l="Pick-Rate" title="${v.pick} Picks${dec ? ` + ${v.decider}× Decider` : ""} in ${n} Matches">${pr}%${bar(pr)}</td>
       <td class="num" data-l="Ban-Rate" title="${v.ban} Bans in ${n} Matches">${br}%${bar(br, "ban")}</td>
