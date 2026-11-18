@@ -154,33 +154,141 @@ def league_meta(matches):
     return {mp: {a: c / tot[mp] for a, c in ags.items()} for mp, ags in cnt.items()}
 
 
-def likely_comp(mp, map_comps, players, tagents, meta=None):
-    """Gespielte Comp (häufigste, bei Gleichstand die neueste) – sonst Prognose aus den
-    Agent-Vorlieben der aktiven Spieler (erst auf dieser Map, dann insgesamt)."""
-    if map_comps:
-        comp, (n, _) = max(map_comps.items(), key=lambda kv: (kv[1][0], kv[1][1]))
-        return {"agents": list(comp), "src": "played", "n": n, "of": sum(v[0] for v in map_comps.values())}
-    taken, picks = set(), []
-    # Spieler mit den meisten Maps zuerst – sie spielen am wahrscheinlichsten
-    for agg in sorted(players.values(), key=lambda a: -a["maps"])[:5]:
-        overall = {a: c for a, c, _ in agg["agents"]}
-        on_map = agg.get("map_agents", {}).get(mp, {})
-        mm = (meta or {}).get(mp, {})
-        # 1. selbst auf dieser Map gespielt, 2. eigener Anteil + Liga-Meta der Map
-        cands = sorted(overall, key=lambda a: (-on_map.get(a, 0), -(overall[a] / agg["maps"] + mm.get(a, 0))))
-        ag = next((a for a in cands if a not in taken), None)
-        if ag:
-            taken.add(ag)
-            picks.append({"player": agg["name"], "agent": ag})
-    for ag, _ in sorted(tagents.items(), key=lambda kv: -kv[1]):   # auffüllen, falls nötig
-        if len(picks) >= 5:
-            break
-        if ag not in taken:
-            taken.add(ag)
-            picks.append({"player": None, "agent": ag})
-    if not picks:
+# Rollen der Agents (valorant-api.com, wöchentlich; Fallback falls die API nicht erreichbar ist)
+AGENT_ROLES_FALLBACK = {
+    "Gekko": "Initiator", "Fade": "Initiator", "Breach": "Initiator", "Tejo": "Initiator", "KAY/O": "Initiator",
+    "Skye": "Initiator", "Sova": "Initiator", "Deadlock": "Sentinel", "Chamber": "Sentinel", "Cypher": "Sentinel",
+    "Killjoy": "Sentinel", "Vyse": "Sentinel", "Veto": "Sentinel", "Sage": "Sentinel", "Miks": "Controller",
+    "Harbor": "Controller", "Viper": "Controller", "Astra": "Controller", "Brimstone": "Controller", "Clove": "Controller",
+    "Omen": "Controller", "Raze": "Duelist", "Hush": "Duelist", "Phoenix": "Duelist", "Iso": "Duelist", "Neon": "Duelist",
+    "Yoru": "Duelist", "Waylay": "Duelist", "Reyna": "Duelist", "Jett": "Duelist"}
+_ROLES = None
+
+
+def agent_roles():
+    global _ROLES
+    if _ROLES is None:
+        roles = core.cache.get("agent_roles", 7 * 24)
+        if not roles:
+            try:
+                d = json.loads(_http("https://valorant-api.com/v1/agents?isPlayableCharacter=true"))["data"]
+                roles = {a["displayName"]: a["role"]["displayName"] for a in d if a.get("role")}
+                core.cache.set("agent_roles", roles)
+            except Exception:
+                roles = core.cache.peek("agent_roles") or {}
+        _ROLES = {**AGENT_ROLES_FALLBACK, **roles}
+    return _ROLES
+
+
+ROLE_LIMITS = {"Duelist": 2, "Initiator": 3, "Controller": 2, "Sentinel": 2}
+
+
+def likely_comp(mp, map_comps, players, tagents, meta=None, mlist=None):
+    """Wahrscheinlichste Comp einer Map.
+    1. Aufstellung: Spieler der letzten 3 Matches (neuere zählen mehr).
+    2. Pro Spieler Agent-Wahrscheinlichkeiten: auf dieser Map gespielt > eigener Pool > Liga-Meta der Map,
+       neuere Maps zählen mehr.
+    3. Beste Gesamtzuordnung (alle Kombinationen) mit Rollenregeln: mind. 1 Controller, Rollen-Obergrenzen,
+       Nähe zur üblichen Rollenverteilung der Map in der Liga.
+    Hat das Team die Map gespielt, wird die zuletzt gespielte Comp übernommen und nur die Slots von Spielern
+    neu besetzt, die nicht mehr zur Aufstellung gehören."""
+    import itertools, math
+    roles = agent_roles()
+    mm = (meta or {}).get(mp, {})
+    played = [m for m in (mlist or []) if m.get("maps")]
+    order = {m["id"]: i for i, m in enumerate(reversed(played))}          # 0 = neuestes Match
+    decay = lambda mid: 0.75 ** order.get(mid, len(order))
+    plist = list(players.values())
+
+    # 1. Aufstellung
+    recent = [m["id"] for m in reversed(played)][:3]
+    def lineup_score(agg):
+        hist = agg.get("history", [])
+        seen = {h["m"] for h in hist}
+        return sum((3 - i) * 10 for i, mid in enumerate(recent) if mid in seen) + agg["maps"]
+    lineup = sorted(plist, key=lambda a: -lineup_score(a))[:5]
+
+    # Übliche Rollenverteilung auf dieser Map (Ø Agents je Rolle pro Comp)
+    template = {}
+    for a, share in mm.items():
+        r = roles.get(a)
+        if r:
+            template[r] = template.get(r, 0) + share
+
+    # 2. Agent-Wahrscheinlichkeiten pro Spieler
+    def probs(agg):
+        w = {}
+        for h in agg.get("history", []):
+            if not h.get("agent"):
+                continue
+            k = decay(h["m"])
+            w[h["agent"]] = w.get(h["agent"], 0) + k * (3.0 if h["map"] == mp else 1.0)
+        tot = sum(w.values())
+        p = {a: 0.85 * v / tot for a, v in w.items()} if tot else {}
+        # Liga-Meta der Map als kleiner Grundwert (ganz ohne eigene Daten: nur Meta)
+        meta_w = 0.15 if tot else 1.0
+        msum = sum(mm.values()) or 1
+        for a, share in sorted(mm.items(), key=lambda kv: -kv[1])[:8]:
+            p[a] = p.get(a, 0) + meta_w * share / msum
+        return dict(sorted(p.items(), key=lambda kv: -kv[1])[:6])
+
+    def best(slots):
+        """slots: Liste von (Name, {Agent: p}) bzw. (Name, fester Agent). Liefert beste Zuordnung."""
+        cand = [[(a, p) for a, p in (opts.items() if isinstance(opts, dict) else [(opts, 1.0)])] or [(None, 1e-6)]
+                for _, opts in slots]
+        top, best_combo = -1e18, None
+        for combo in itertools.product(*cand):
+            ags = [a for a, _ in combo if a]
+            if len(set(ags)) != len(ags):
+                continue
+            cnt = {}
+            for a in ags:
+                r = roles.get(a, "?")
+                cnt[r] = cnt.get(r, 0) + 1
+            if any(cnt.get(r, 0) > lim for r, lim in ROLE_LIMITS.items()):
+                continue
+            score = sum(math.log(max(p, 1e-6)) for _, p in combo)
+            if len(ags) >= 4 and not cnt.get("Controller"):
+                score -= 4.0                      # ohne Smokes praktisch nie
+            if template and len(ags) == 5:
+                score -= 0.6 * sum(abs(cnt.get(r, 0) - template.get(r, 0)) for r in ROLE_LIMITS)
+            if score > top:
+                top, best_combo = score, combo
+        return best_combo
+
+    # Gespielte Comp: zuletzt gespielte Besetzung dieser Map (Spieler → Agent)
+    by_match = {}
+    for agg in plist:
+        for h in agg.get("history", []):
+            if h["map"] == mp and h.get("agent"):
+                by_match.setdefault(h["m"], {})[agg["name"]] = h["agent"]
+    played_on_map = [mid for mid in by_match if len(by_match[mid]) == 5]
+    # noch aktiv = in einem der letzten 3 Matches gespielt (Teams rotieren oft 6–7 Spieler)
+    active = {a["name"] for a in plist if any(h["m"] in recent for h in a.get("history", []))}
+    if played_on_map:
+        last = min(played_on_map, key=lambda mid: order.get(mid, 99))
+        assign = by_match[last]
+        keep = {n: a for n, a in assign.items() if n in active}
+        free = [a for a in lineup if a["name"] not in keep][:5 - len(keep)]
+        slots = [(n, a) for n, a in keep.items()] + [(a["name"], probs(a)) for a in free]
+        combo = best(slots)
+        if combo:
+            picks = [{"player": n, "agent": a, "p": None if n in keep else round(p, 2), "new": n not in keep}
+                     for (n, _), (a, p) in zip(slots, combo) if a]
+            n_same = sum(v[0] for k, v in map_comps.items() if list(k) == sorted(assign.values()))
+            return {"agents": [x["agent"] for x in picks], "players": picks, "src": "played",
+                    "n": n_same or 1, "of": sum(v[0] for v in map_comps.values()) or len(played_on_map),
+                    "changed": [x["player"] for x in picks if x["new"]]}
+
+    # Prognose
+    slots = [(a["name"], probs(a)) for a in lineup]
+    while len(slots) < 5:   # zu wenige Spieler mit Daten → mit Liga-Meta auffüllen
+        slots.append((None, probs({"history": []}) or {a: 0.1 for a, _ in sorted(tagents.items(), key=lambda kv: -kv[1])[:6]}))
+    combo = best(slots)
+    if not combo:
         return None
-    return {"agents": [p["agent"] for p in picks], "players": picks, "src": "predicted"}
+    picks = [{"player": n, "agent": a, "p": round(p, 2)} for (n, _), (a, p) in zip(slots, combo) if a]
+    return {"agents": [x["agent"] for x in picks], "players": picks, "src": "predicted"}
 
 
 def team_opl(tid, matches, meta=None):
@@ -283,7 +391,7 @@ def team_opl(tid, matches, meta=None):
         agg["agents"] = [[a, c, round(100 * c / n)] for a, c in sorted(agg["agents"].items(), key=lambda kv: -kv[1])]
     # Wahrscheinlichste Comp pro Map
     for mp, st in maps.items():
-        st["comp"] = likely_comp(mp, comps.get(mp, {}), players, tagents, meta)
+        st["comp"] = likely_comp(mp, comps.get(mp, {}), players, tagents, meta, mlist)
     for agg in players.values():
         agg.pop("map_agents", None)
     total = sum(1 for m in mlist for _ in m["maps"])

@@ -130,6 +130,7 @@
   .comp{display:flex;align-items:center;gap:3px}
   .comp img{width:24px;height:24px;border-radius:50%;background:var(--panel2)}
   .comp.predicted img{opacity:.75;outline:1px dashed var(--line)}
+  .comp img.newslot{outline:2px dashed var(--warn);outline-offset:1px}
   .ctag{font-size:10px;padding:1px 5px;border-radius:4px;margin-left:5px;white-space:nowrap}
   .ctag.played{background:rgba(62,207,142,.15);color:var(--good)}
   .ctag.pred{background:rgba(255,198,107,.13);color:var(--warn);border:1px dashed rgba(255,198,107,.5)}
@@ -866,14 +867,17 @@ function mapPoolHtml(o){
 }
 function compHtml(c){
   if(!c || !c.agents?.length) return '<span class="sub">–</span>';
-  const who = c.players ? Object.fromEntries(c.players.filter(p => p.player).map(p => [p.agent, p.player])) : {};
+  const slot = Object.fromEntries((c.players || []).map(p => [p.agent, p]));
+  const changed = new Set(c.changed || []);
   const icons = c.agents.map(a => {
-    const ic = AGENT_ICONS[a.toLowerCase()], tip = who[a] ? `${a} – ${who[a]}` : a;
-    return ic ? `<img src="${esc(ic)}" alt="${esc(a)}" title="${esc(tip)}">` : `<span class="sub" title="${esc(tip)}">${esc(a)}</span>`;
+    const p = slot[a] || {}, ic = AGENT_ICONS[a.toLowerCase()];
+    const isNew = p.player && changed.has(p.player);
+    const tip = `${a}${p.player ? ` – ${p.player}` : ""}${p.p != null ? ` (${Math.round(p.p * 100)} %)` : ""}${isNew ? " · neu besetzt: Spieler der gespielten Comp ist nicht mehr aktiv" : ""}`;
+    return ic ? `<img src="${esc(ic)}" alt="${esc(a)}" title="${esc(tip)}"${isNew ? ' class="newslot"' : ""}>` : `<span class="sub" title="${esc(tip)}">${esc(a)}</span>`;
   }).join("");
   const tag = c.src === "played"
-    ? `<span class="ctag played" title="Diese Comp wurde ${c.n} von ${c.of} Mal auf der Map gespielt">${c.n}/${c.of}×</span>`
-    : `<span class="ctag pred" title="Map in dieser Saison nie gespielt – Prognose aus den Agent-Pools der aktiven Spieler + Liga-Meta der Map">⚠ Prognose · nie gespielt</span>`;
+    ? `<span class="ctag played" title="Zuletzt gespielte Comp auf dieser Map (${c.n} von ${c.of} Mal genau so)${changed.size ? ` · ${changed.size} Slot(s) neu besetzt, weil der Spieler nicht mehr aktiv ist` : ""}">${c.n}/${c.of}×${changed.size ? ` · ${changed.size} neu` : ""}</span>`
+    : `<span class="ctag pred" title="Map in dieser Saison nie gespielt – Prognose: Spieler der letzten Matches, ihre Agents (auf dieser Map > eigener Pool > Liga-Meta, neuere Maps zählen mehr), beste Gesamtzuordnung mit Rollenregeln (mind. 1 Controller, übliche Rollenverteilung der Map)">⚠ Prognose · nie gespielt</span>`;
   return `<div class="comp ${c.src}">${icons}${tag}</div>`;
 }
 // Top 2 eigene Picks und Bans neben dem Teamnamen
