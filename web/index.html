@@ -541,8 +541,17 @@ async function loadMeta(){
   meta = await getJSON("data/meta.json?t=" + Date.now());
   const next = new Date(); next.setMinutes(meta.schedule_minute ?? 17, 0, 0);
   if(next <= new Date()) next.setHours(next.getHours() + 1);
-  $("#datastate").innerHTML = `Ränge: stündlich, nächstes ~${next.toLocaleTimeString("de-DE",{hour:"2-digit",minute:"2-digit"})} Uhr`
-    + `<br>OPL (Tabelle, Kader, Matches): täglich ${esc(meta.opl_daily || "23:00")} Uhr${meta.opl_updated ? `, Stand ${fmtTime(meta.opl_updated)}` : ""}`;
+  // Zeitangabe immer mit Datum (beide Zeilen gleich)
+  const when = t => new Date(t * 1000).toLocaleString("de-DE", {day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit"}) + " Uhr";
+  // beide Zeilen gleich aufgebaut: Bereich: Rhythmus · nächstes … · Stand …
+  const clock = d => d.toLocaleTimeString("de-DE", {hour: "2-digit", minute: "2-digit"}) + " Uhr";
+  const [oh, om] = String(meta.opl_daily || "23:00").split(":").map(Number);
+  const nextOpl = new Date(); nextOpl.setHours(oh, om || 0, 0, 0);
+  if(nextOpl <= new Date()) nextOpl.setDate(nextOpl.getDate() + 1);
+  const stand = (t, tip = "") => t ? ` · Stand <b title="${esc(tip)}">${when(t)}</b>` : "";
+  $("#datastate").innerHTML =
+    `Ränge: stündlich · nächstes ~${clock(next)}${stand(meta.ranks_updated, meta.ranks_oldest ? `Neuestes Spieler-Update ${fmtTime(meta.ranks_updated)} · ältestes ${fmtTime(meta.ranks_oldest)} (jeder Lauf erneuert die ältesten zuerst)` : "")}`
+    + `<br>OPL (Tabelle, Kader, Matches): täglich · nächstes ${nextOpl.toDateString() === new Date().toDateString() ? "" : "morgen "}${clock(nextOpl)}${stand(meta.opl_updated, meta.opl_updated ? fmtTime(meta.opl_updated) : "")}`;
   $("#leagues").innerHTML = meta.leagues.map(l => `<button data-id="${esc(l.id)}" title="${esc(l.title)}">${esc(l.name)}</button>`).join("");
   document.querySelectorAll("#leagues button").forEach(b => b.onclick = () => openLeague(b.dataset.id));
 }

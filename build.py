@@ -733,6 +733,7 @@ def export(out, leagues, region, repo, ref, base_cfg):
         team_ids.update(t["id"] for t in st["teams"])
 
 
+    rank_times = []
     for tid in team_ids:
         team = core.cache.peek(f"team:{tid}")
         if not team:
@@ -743,6 +744,8 @@ def export(out, leagues, region, repo, ref, base_cfg):
                 s = core.cache.peek(stats_key(region, m["riot_id"]))
                 if s:
                     stats[m["riot_id"].lower()] = s
+                    if s.get("updated") and s.get("current"):
+                        rank_times.append(s["updated"])
         opl = opl_by_team.get(tid) or {"maps": {}, "players": {}, "matches": [], "agents": [], "maps_played": 0}
         (data / f"team-{tid}.json").write_text(json.dumps(
             {**team, "stats": stats, "opl": opl}, ensure_ascii=False, separators=(",", ":")))
@@ -753,6 +756,9 @@ def export(out, leagues, region, repo, ref, base_cfg):
         "workflow": "update.yml",
         "schedule_minute": base_cfg.get("schedule_minute", 17),
         "opl_daily": base_cfg.get("opl_daily", "23:00"),
+        # Rang-Updates: neuestes und ältestes Spieler-Update (stündlich werden die ältesten zuerst erneuert)
+        "ranks_updated": max(rank_times) if rank_times else None,
+        "ranks_oldest": min(rank_times) if rank_times else None,
         "opl_updated": max([core.cache.peek("standing:" + lg["url"]) and
                             time.time() - (core.cache.age("standing:" + lg["url"]) or 0) or 0 for lg in leagues] or [0]),
         "leagues": meta_leagues,
