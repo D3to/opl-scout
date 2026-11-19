@@ -99,9 +99,12 @@
   #players tr.nonplayer .pname,#players tr.nonplayer .rank{opacity:.75}
   #players tr.sep td{background:var(--panel2);color:var(--np);font-size:11px;text-transform:uppercase;letter-spacing:.05em;padding:5px 8px}
   .avgs{display:flex;gap:12px;flex-wrap:wrap;margin:0 0 16px}
+  .avgs .avg{flex:0 0 250px;min-width:0}   /* kompakt, aber alle gleich breit (auch beim Peak-Wechsel) */
   .avg{display:flex;align-items:center;gap:10px;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:8px 14px;min-width:220px}
   .avg img{width:40px;height:40px}
   .avg .big{font-size:16px;font-weight:600}
+  #avgs{cursor:pointer} #avgs .avg{transition:border-color .15s} #avgs:hover .avg{border-color:var(--mut)}
+  #avgs.peak .avg{border-color:var(--warn)}
   .avg.np{border-color:var(--npborder)}
   a{color:var(--link);text-decoration:none} a:hover{text-decoration:underline}
   .err{color:var(--bad);font-size:12px}
@@ -677,7 +680,7 @@ function renderTeam(team, mt){
   const act = m => byOpl ? !!oplPlayer(team, m) : isCore(m);
   const members = [...team.members].sort((a, b) => act(b) - act(a));
   const times = [team.updated];
-  const elos = [];
+  const elos = [], peaks = [];
   const items = members.map((m, idx) => {
     const head = `<td class="c6"><div><span class="pname plink" data-key="${esc(memberKey(team, m))}" title="Spielerprofil öffnen">${esc(m.opl_name)}</span> <span class="pos ${esc(m.position)} ${act(m)?"":"np"}">${esc(m.position||"–")}</span>${roleChip(oplPlayer(team, m))}</div>
       <div class="sub">${m.riot_id ? esc(m.riot_id) : "keine Riot-ID hinterlegt"}</div></td>`;
@@ -695,6 +698,7 @@ function renderTeam(team, mt){
         if(p.updated) times.push(p.updated);
         const c = p.current || {};
         if(c.elo) elos.push({elo: c.elo, core: act(m)});
+        if(p.peak?.tier > 2) peaks.push({elo: (p.peak.tier - 3) * 100 + 50, core: act(m)});   // Peak als Stufen-Mitte
         const rr = c.rr != null && c.tier > 2 ? ` <span class="sub">${c.rr} RR</span>` : "";
         const lc = c.last_change ? ` <span class="${c.last_change>0?"pos-up":"pos-dn"} sub">${c.last_change>0?"+":""}${c.last_change}</span>` : "";
         const peakSeason = p.peak?.season ? ` <span class="sub">(${esc(p.peak.season)})</span>` : "";
@@ -750,10 +754,11 @@ function renderTeam(team, mt){
     <div class="th"><img src="${esc(mt?.logo||"")}" alt=""><div><h2>${esc(team.name||mt?.name)}</h2>
       <a href="${esc(mt?.url||"")}" target="_blank" rel="noopener">OPLeague-Profil ↗</a></div>${topMapsHtml(team.opl)}</div>
     <p class="summary">${mt?.group ? `Gruppe ${esc(mt.group)} · ` : ""}Platz ${esc(mt?.rank)}${mt && moveOf(mt) ? ` <span class="sub">(${moveOf(mt).d > 0 ? `<span class="pos-up">▲ ${moveOf(mt).d}</span>` : moveOf(mt).d < 0 ? `<span class="pos-dn">▼ ${-moveOf(mt).d}</span>` : "–"} seit Spieltag ${moveOf(mt).md})</span>` : ""}${mt && zoneOf(mt) ? `<span class="zchip zn-${esc(zoneOf(mt).key)}">${esc(zoneOf(mt).label)}</span>` : ""} · ${esc(s.wins)}S / ${esc(s.losses)}N · Rundendiff. ${esc(s["round dif"])}</p>
-    <div class="avgs">
-      ${avgBox("Top 5 aktive", byOpl ? "(5 beste mit Ligaspiel)" : "(5 beste Player + Captain)", elos.filter(e=>e.core).map(e=>e.elo).sort((a,b)=>b-a).slice(0,5))}
-      ${avgBox("aktive Spieler", byOpl ? "(mind. 1 Ligaspiel diese Saison)" : "(Player + Captain – noch keine Ligaspiele)", elos.filter(e=>e.core).map(e=>e.elo))}
-      ${avgBox("alle Mitglieder", "(ganzer Kader)", elos.map(e=>e.elo), "np")}
+    <div class="avgs${avgPeak ? " peak" : ""}" id="avgs" title="Klicken: zwischen aktuellem Rang und Peak umschalten">
+      ${(() => { const L = avgPeak ? peaks : elos, pk = avgPeak ? "Peak · " : "";
+        return avgBox(pk + "Top 5 aktive", byOpl ? "(5 beste mit Ligaspiel)" : "(5 beste Player + Captain)", L.filter(e=>e.core).map(e=>e.elo).sort((a,b)=>b-a).slice(0,5), "", avgPeak)
+          + avgBox(pk + "aktive Spieler", byOpl ? "(mind. 1 Ligaspiel diese Saison)" : "(Player + Captain – noch keine Ligaspiele)", L.filter(e=>e.core).map(e=>e.elo), "", avgPeak)
+          + avgBox(pk + "alle Mitglieder", "(ganzer Kader)", L.map(e=>e.elo), "np", avgPeak); })()}
     </div>
     <div class="sechead"><h3>Spieler</h3>
       <label>Stats <select id="statsrc">
@@ -787,6 +792,7 @@ function renderTeam(team, mt){
   });
   const sr = $("#sortreset"); if(sr) sr.onclick = () => { playerSort = {k: null, dir: 1}; renderTeam(team, mt); };
   document.querySelectorAll("#detail .plink[data-key]").forEach(el => el.onclick = () => openPlayer(team, mt, el.dataset.key));
+  $("#avgs").onclick = () => { avgPeak = !avgPeak; const y = $("#detail").scrollTop, w = window.scrollY; renderTeam(team, mt); $("#detail").scrollTop = y; if(isMobile()) window.scrollTo(0, w); };
   document.querySelectorAll(".prepbtn").forEach(btn => btn.onclick = () =>
     openPrep(team, mt, btn.dataset.opp, (team.opl?.matches || []).find(m => m.id === btn.dataset.mid)));
   const pa = $("#prepany");
@@ -1673,7 +1679,8 @@ function renderPrep(A, mtA, B, mtB, entry){
   const bo = entry?.format ? (+(/BO(\d)/i.exec(entry.format) || [0, 0])[1] || bestOf(A.opl)) : bestOf(A.opl);
   const fixed = homeAlwaysFirst(A, B);
   const homeA = entry ? entry.home : true;
-  const firstIsA = prepFirst ? prepFirst === "A" : homeA;
+  const opl1st = entry?.first ? entry.first === "self" : null;   // laut OPL-Matchseite (Veto-Slots stehen vor dem Match fest)
+  const firstIsA = prepFirst ? prepFirst === "A" : opl1st ?? homeA;
   const steps = pool.length ? simulateVeto(pA, pB, pool, seq, firstIsA) : [];
   const rec = prepRecs(pA, pB, pool);
   const nameA = A.name || mtA?.name, nameB = B.name || mtB?.name;
@@ -1732,7 +1739,8 @@ function renderPrep(A, mtA, B, mtB, entry){
 
     <div class="sechead"><h3>Wahrscheinliches Veto <span class="sub">(BO${bo} · ${seq.map(a => a[0].toUpperCase()).join("")}, aus dem bisherigen Verhalten beider Teams)</span></h3>
       <label>Beginnt <select id="prepfirst"><option value="A"${firstIsA ? " selected" : ""}>${esc(nameA)}</option><option value="B"${!firstIsA ? " selected" : ""}>${esc(nameB)}</option></select></label></div>
-    ${fixed ? "" : `<p class="sub">In dieser Liga beginnt mal das Heim-, mal das Auswärtsteam – Startrecht ggf. umstellen.</p>`}
+    ${opl1st != null ? `<p class="sub">Laut OPL bannt <b>${esc(opl1st ? nameA : nameB)}</b> zuerst${prepFirst && (prepFirst === "A") !== opl1st ? " – oben manuell umgestellt" : ""}.</p>`
+      : fixed ? "" : `<p class="sub">In dieser Liga beginnt mal das Heim-, mal das Auswärtsteam – Startrecht ggf. umstellen.</p>`}
     <div class="vsteps">${stepHtml || '<span class="sub">Zu wenig Daten.</span>'}</div>
     ${compRows ? `<div class="sechead"><h3>Comps auf den erwarteten Maps</h3></div><div class="pcomps">${compRows}</div>` : ""}
 
@@ -1768,11 +1776,13 @@ function rankCell(r, extra=""){
   const img = r.tier > 2 ? `<img src="${RANK_ICON(r.tier)}" alt="" onerror="this.remove()">` : "";
   return `<div class="rank">${img}<div>${esc(r.name)}${extra}</div></div>`;
 }
-function avgBox(label, hint, list, cls=""){
-  if(!list.length) return `<div class="avg ${cls}"><div class="sub">Ø ${label}<br>${hint}</div><span class="sub">keine Daten</span></div>`;
+let avgPeak = false;   // Teamseite: Ø aktueller Rang ↔ Ø Peak (per Klick)
+function avgBox(label, hint, list, cls="", peak=false){
+  const tip = `${hint}${peak ? " · Peak je Spieler als Mitte seiner Rangstufe gerechnet" : ""} · Klicken: ${peak ? "aktueller Rang" : "Peak-Rang"} anzeigen`;
+  if(!list.length) return `<div class="avg ${cls}" title="${esc(tip)}"><div class="sub">Ø ${label}<br>${hint}</div><span class="sub">keine Daten</span></div>`;
   const avg = Math.round(list.reduce((a,b)=>a+b,0)/list.length), tier = tierFromElo(avg);
-  return `<div class="avg ${cls}" title="${esc(hint)}"><img src="${RANK_ICON(tier)}" alt="" onerror="this.remove()">
-    <div><div class="big">${esc(TIERS[tier])}</div><div class="sub">${label}<span class="x"><span class="dot"> · </span>Ø-Elo ${avg}</span><span class="x"><span class="dot"> · </span>${list.length} ${list.length===1?"Person":"Personen"}</span></div></div></div>`;
+  return `<div class="avg ${cls}" title="${esc(tip)}"><img src="${RANK_ICON(tier)}" alt="" onerror="this.remove()">
+    <div><div class="big">${esc(TIERS[tier])}</div><div class="sub">${label}<span class="x"><span class="dot"> · </span>${peak ? "Ø ≈ Elo " : "Ø-Elo "}${avg}</span><span class="x"><span class="dot"> · </span>${list.length} ${list.length===1?"Person":"Personen"}</span></div></div></div>`;
 }
 
 // ------------------------------------------------------------------ Handy: Menü + Liste/Team-Ansicht

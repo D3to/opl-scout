@@ -507,12 +507,14 @@ def parse_match(page, mid):
         t[k] = html.unescape(mm.group(1)) if mm else ""
     names = {t["Team1Name"]: 1, t["Team2Name"]: 2}
 
-    veto = []
+    veto, plan = [], []
     for cls, body, name in re.findall(r'<div class="mapban-v2__map( --pick)?\s*">(.*?)<div class="mapban-v2__map-name">([^<]*)</div>', page, re.S):
-        if name.strip().upper() == "TBD":
-            continue
         action = (re.search(r'map-indicator">([^<]*)', body) or [None, ""])[1].strip()
         by = names.get(html.unescape((re.search(r'mapban-v2__team-image"\s*title="([^"]*)"', body) or [None, ""])[1]))
+        # Veto-Reihenfolge steht schon vor dem Match fest (Slots mit Team-Logo, Map „TBD“)
+        plan.append({"action": action, "by": by})
+        if name.strip().upper() == "TBD":
+            continue
         side = re.search(r'side-indicator[^"]*"\s*title="([^"]*)"', body)
         side_team, side_name = None, None
         if side:
@@ -561,18 +563,21 @@ def parse_match(page, mid):
         "format": info.get("format", ""), "start": int(start.group(1)) if start else None,
         "t1": {"id": t["Team1ID"], "name": t["Team1Name"]}, "t2": {"id": t["Team2ID"], "name": t["Team2Name"]},
         "defwin": '"is_defwin_team_in_match":true' in page,
-        "veto": veto, "maps": maps, "fetched": time.time(),
+        "veto": veto, "plan": plan, "first": next((x["by"] for x in plan if x["by"]), None),
+        "maps": maps, "fetched": time.time(),
     }
 
 
-MATCH_PARSER_VERSION = 2   # erhöhen, wenn parse_match neue Felder liefert → alle Matches einmal neu laden
+MATCH_PARSER_VERSION = 3   # 3: Veto-Plan/Startteam; erhöhen, wenn parse_match neue Felder liefert → alle Matches einmal neu laden
 
 
 def opl_match(mid, refresh=False):
     """Fertige Matches werden nie neu geladen; offene je nach Startzeit."""
     key = f"match:{mid}"
     old = cache.peek(key)
-    if old and not refresh and old.get("v") == MATCH_PARSER_VERSION:
+    # Fertige Matches mit älterer Parser-Version behalten (neue Felder betreffen nur offene Matches)
+    current = old and (old.get("v") == MATCH_PARSER_VERSION or (old.get("state") == "closed" and old.get("v", 0) >= 2))
+    if old and not refresh and current:
         age = cache.age(key) or 0
         if old.get("state") == "closed":
             if old.get("maps") or age < 6 * 3600:   # ohne Ergebnis-Details: alle 6 h erneut prüfen
