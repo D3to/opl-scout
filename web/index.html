@@ -63,7 +63,10 @@
   tr.team[class*="zn-"] td{background:color-mix(in srgb, var(--zc) 7%, transparent)}
   tr.team.zn-po{--zc:var(--zpo)} tr.team.zn-safe{--zc:var(--zsafe)} tr.team.zn-rel{--zc:var(--zrel)} tr.team.zn-down{--zc:var(--zdown)}
   tr.team.zn-po td:first-child{color:var(--zpo)} tr.team.zn-down td:first-child{color:var(--zdown)} tr.team.zn-rel td:first-child{color:var(--zrel)}
-  tr.team.grpend td{border-bottom:2px solid var(--line)}
+  #teamlist td.sun{white-space:nowrap;font-variant-numeric:tabular-nums}
+  #teamlist th.num,#teamlist td.num{text-align:center;padding-left:5px;padding-right:5px}
+  tr.grphead td{padding:14px 8px 5px;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--mut);border-bottom:2px solid var(--line);background:transparent}
+  tbody tr.grphead:first-child td{padding-top:4px}
   .vod{display:inline-flex;align-items:center;gap:3px;font-size:12px;padding:1px 7px;border-radius:4px;border:1px solid var(--line);color:var(--txt);white-space:nowrap}
   .vod:hover{text-decoration:none;border-color:var(--acc)}
   .vod.off{background:color-mix(in srgb, var(--acc) 14%, transparent);border-color:color-mix(in srgb, var(--acc) 45%, transparent)}
@@ -149,7 +152,7 @@
   #players tr.nonplayer td:first-child{box-shadow:inset 3px 0 var(--npline)}
   #players tr.nonplayer .pname,#players tr.nonplayer .rank{opacity:.75}
   #players tr.sep td{background:var(--panel2);color:var(--np);font-size:11px;text-transform:uppercase;letter-spacing:.05em;padding:5px 8px}
-  .avgs{display:flex;gap:12px;flex-wrap:wrap;margin:0 0 16px}
+  .avgs{display:flex;gap:12px;flex-wrap:wrap;margin:0}
   .avgs .avg{flex:0 0 190px;min-width:0}   /* kompakt, aber alle gleich breit (auch beim Peak-Wechsel) */
   .avg{display:flex;align-items:center;gap:10px;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:8px 14px;min-width:220px}
   .avg img{width:40px;height:40px}
@@ -260,6 +263,25 @@
   .vstep .vw{display:block;font-size:11px;padding:3px 6px;color:var(--mut);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .vstep.pick .vw,.vstep.decider .vw{color:var(--txt)}
   .vstep.A .vw{color:var(--acc)} .vstep.B .vw{color:var(--link)} .vstep.decider .vw{color:var(--warn)}
+  .vstep.todo{border-style:dashed;background:transparent;min-height:82px}
+  .vstep.todo .vw{position:absolute;bottom:0}
+  .vstep.todo.now{border-color:var(--txt)}
+  .simbar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:10px 0 8px}
+  .simbar .who{font-weight:600} .simbar .who.A{color:var(--acc)} .simbar .who.B{color:var(--link)}
+  .simbar .sp{flex:1}
+  .simgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px}
+  .simt{position:relative;border:2px solid var(--line);border-radius:8px;overflow:hidden;background:var(--panel);cursor:pointer;text-align:left;padding:0;color:var(--txt);font:inherit}
+  .simt:hover{border-color:var(--mut)}
+  .simt img{display:block;width:100%;height:54px;object-fit:cover}
+  .simt .sn{position:absolute;top:28px;left:7px;font-weight:700;color:#fff;text-shadow:0 1px 4px #000}
+  .simt .sd{display:flex;align-items:center;gap:6px;font-size:11px;padding:4px 7px;color:var(--mut)}
+  .simt .rk{position:absolute;top:4px;right:5px;font-size:10px;font-weight:700;padding:1px 5px;border-radius:4px;background:rgba(0,0,0,.65);color:#fff}
+  .simt.top.A{border-color:var(--good)} .simt.top.A .rk{background:var(--good);color:#000}
+  .simt.top.B{border-color:var(--link);border-style:dashed} .simt.top.B .rk{background:var(--link);color:#000}
+  .simres{display:flex;flex-direction:column;gap:6px;margin-top:4px}
+  .simres .sr{display:grid;grid-template-columns:150px minmax(60px,1fr) 190px;gap:10px;align-items:center;background:var(--panel);border-radius:8px;padding:6px 10px}
+  .simres .sr img{width:56px;height:28px;object-fit:cover;border-radius:4px;vertical-align:middle;margin-right:6px}
+  .simres .bar{height:8px;border-radius:4px;background:var(--link);overflow:hidden} .simres .bar i{display:block;height:100%;background:var(--acc)}
   .pcomps{display:flex;flex-direction:column;gap:8px}
   .pcomp{display:grid;grid-template-columns:140px 1fr 1fr;gap:10px;align-items:center;background:var(--panel);border-radius:10px;padding:8px 12px}
   .pcm{display:flex;align-items:center;gap:8px} .pcm img{width:56px;height:28px;object-fit:cover;border-radius:4px}
@@ -669,8 +691,7 @@
     .th h2{font-size:19px}
     .topmaps{margin-left:0;padding-left:0;border-left:0;flex-basis:100%}
     .avgs{gap:8px}
-    .avgs{display:grid;grid-template-columns:repeat(3,1fr)}
-    .avg{min-width:0;flex-direction:column;text-align:center;gap:4px;padding:8px 6px}
+    .avg{min-width:0;gap:8px;padding:6px 10px}
     .avg img{width:34px;height:34px}
     .avg .big{font-size:14px}
     .avg .sub{font-size:11px;line-height:1.3}
@@ -798,7 +819,6 @@
       <button id="toolsbtn" class="sidegear" title="Anzeige und Sortierung der Tabelle" aria-label="Anzeige und Sortierung" aria-expanded="false" aria-controls="sidetools"><i class="ic ic-gear"></i></button>
     </div>
     <div class="sidetools" id="sidetools">
-      <label>Ø <select id="metric" title="Welcher Durchschnitt in der Leiste angezeigt wird"></select></label>
       <label><span class="lbl">Sortieren</span> <select id="sort" aria-label="Sortieren"></select></label>
       <button id="sortdir" class="ghost" title="Richtung umkehren">⇅</button>
       <button id="leaguerefresh" style="display:none" title="Startet die GitHub Action für diese Liga (Kader + Stats aller Teams)">⟳ Liga aktualisieren</button>
@@ -870,11 +890,11 @@ const METRICS = {
   all:  {short:"Alle", label:"Ø-Rang alle", tip:"Ø aller Kadermitglieder"},
 };
 const OPT_COLS = new Set(["played","draws","lives","tiebreaker"]);   // am Handy ausgeblendet
-const SHORT = {played:"Sp",wins:"S",draws:"U",losses:"N",points:"Pkt",lives:"Leben",tiebreaker:"TB","round dif":"RD"};
-const LONG = {played:"Spiele",wins:"Siege",draws:"Unentschieden",losses:"Niederlagen",points:"Punkte",lives:"Leben",tiebreaker:"Tiebreaker","round dif":"Rundendifferenz"};
+const SHORT = {sun:"S-U-N",played:"Sp",wins:"S",draws:"U",losses:"N",points:"Pkt",lives:"Leben",tiebreaker:"TB","round dif":"RD"};
+const LONG = {sun:"Siege-Unentschieden-Niederlagen",played:"Spiele",wins:"Siege",draws:"Unentschieden",losses:"Niederlagen",points:"Punkte",lives:"Leben",tiebreaker:"Tiebreaker","round dif":"Rundendifferenz"};
 
 let meta = null, league = null, curTeam = null, current = 0;
-let metric = METRICS[store.get("metric")] ? store.get("metric") : "top5";
+const metric = "top5";   // Seitenleiste zeigt nur noch den Ø der Top 5
 let sortKey = "rank", sortDir = 1;
 let auth = store.get("auth");
 let statSrc = store.get("statsrc") === "ranked" ? "ranked" : "opl";   // Standard: OPL-Liga   // {mode:"admin", token} | {mode:"key", key}
@@ -926,7 +946,7 @@ async function openLeague(id, keepTeam=false){
     league = await getJSON(`data/league-${lg.id}.json?t=${meta.generated}`);
   }catch(e){ $("#teamlist").innerHTML = `<div class="empty err">${esc(e.message)}</div>`; return; }
   $("#title").textContent = league.title;
-  $("#sort").innerHTML = [["rank","Platz"],["avg", METRICS[metric].label],["name","Teamname"],...league.columns.map(c=>[c, LONG[c]||c])]
+  $("#sort").innerHTML = [["rank","Platz"],["avg", METRICS[metric].label],["name","Teamname"],...dispCols().map(c=>[c, LONG[c]||c])]
     .map(([k,l]) => `<option value="${esc(k)}">${esc(l)}</option>`).join("");
   if(![...$("#sort").options].some(o => o.value === sortKey)) sortKey = "rank";
   $("#sort").value = sortKey;
@@ -938,11 +958,16 @@ async function openLeague(id, keepTeam=false){
 }
 
 // ------------------------------------------------------------------ Seitenleiste
+const SUN = ["wins", "draws", "losses"];
+// Siege/Unentschieden/Niederlagen als eine Spalte „S-U-N“
+const dispCols = () => { const c = league.columns, i = c.findIndex(x => SUN.includes(x)); return i < 0 ? c : [...c.slice(0, i).filter(x => !SUN.includes(x)), "sun", ...c.slice(i).filter(x => !SUN.includes(x))]; };
+const sunTxt = t => SUN.filter(k => league.columns.includes(k)).map(k => t.stats[k] ?? "–").join("-");
 const placeKey = t => (t.group ? t.group.charCodeAt(0) * 1000 : 0) + (num(t.rank) ?? 999);
 function sortVal(t){
   if(sortKey === "rank") return placeKey(t);
   if(sortKey === "name") return t.name.toLowerCase();
   if(sortKey === "avg") return league.summaries[t.id]?.[metric]?.elo ?? null;
+  if(sortKey === "sun") return (num(t.stats.wins) ?? 0) * 1e4 + (num(t.stats.draws) ?? 0) * 100 - (num(t.stats.losses) ?? 0);
   return num(t.stats[sortKey]);
 }
 // Platzierungsänderung seit dem Ende des vorigen Spieltags
@@ -1116,8 +1141,10 @@ function renderTeams(){
 }
 
 function renderTable(){
-  const cols = league.columns;
+  const cols = dispCols();
+  const grouped = league.teams.some(t => t.group);
   const teams = [...league.teams].sort((a,b) => {
+    if(grouped && a.group !== b.group) return String(a.group || "~").localeCompare(String(b.group || "~"));   // Gruppen bleiben beim Sortieren getrennt
     const va = sortVal(a), vb = sortVal(b);
     if(va === null && vb === null) return placeKey(a) - placeKey(b);
     if(va === null) return 1;
@@ -1129,10 +1156,10 @@ function renderTable(){
   const th = (k, label, cls="", title="") => `<th class="sortable ${cls}" data-k="${esc(k)}" title="${esc(title || "Sortieren")}">${label}${arrow(k)}</th>`;
   $("#teamlist").innerHTML = `<table><thead><tr>${th("rank","#")}${th("avg","Ø","c", METRICS[metric].tip)}${th("name","Team")}${
     cols.map(c => th(c, esc(SHORT[c]||c), "num" + (OPT_COLS.has(c) ? " opt" : ""), LONG[c]||c)).join("")}</tr></thead><tbody>${
-    teams.map((t, i) => `<tr class="team${zoneOf(t) ? " zn-" + zoneOf(t).key : ""}${sortKey === "rank" && teams[i + 1] && teams[i + 1].group !== t.group ? " grpend" : ""}${t.id===curTeam?" sel":""}" title="${esc(zoneOf(t)?.label || "")}" data-id="${esc(t.id)}"><td>${t.group ? `<span class="grp" title="Gruppe ${esc(t.group)}">${esc(t.group)}</span>` : ""}${esc(t.rank)}${moveHtml(t)}</td>
+    teams.map((t, i) => `${grouped && (i === 0 || teams[i - 1].group !== t.group) ? `<tr class="grphead"><td colspan="${3 + cols.length}">${t.group ? `Gruppe ${esc(t.group)}` : "Ohne Gruppe"}</td></tr>` : ""}<tr class="team${zoneOf(t) ? " zn-" + zoneOf(t).key : ""}${t.id===curTeam?" sel":""}" title="${esc(zoneOf(t)?.label || "")}" data-id="${esc(t.id)}"><td>${esc(t.rank)}${moveHtml(t)}</td>
       <td class="c">${avgIcon(league.summaries[t.id])}</td>
       <td><div class="tn"><img src="${esc(t.logo)}" alt="">${esc(t.name)}${gsDone() && zoneOf(t) ? `<span class="zsym" title="${esc(zoneOf(t).label)}">${ZONE_SYM[zoneOf(t).key] || ""}</span>` : ""}</div></td>
-      ${cols.map(c=>`<td class="num${OPT_COLS.has(c) ? " opt" : ""}">${esc(t.stats[c])}</td>`).join("")}</tr>`).join("")}</tbody></table>${zoneLegend()}`;
+      ${cols.map(c=>`<td class="num${OPT_COLS.has(c) ? " opt" : ""}${c === "sun" ? " sun" : ""}">${esc(c === "sun" ? sunTxt(t) : t.stats[c])}</td>`).join("")}</tr>`).join("")}</tbody></table>${zoneLegend()}`;
   document.querySelectorAll("#teamlist th.sortable").forEach(h => h.onclick = () => setSort(h.dataset.k, true));
   bindTeamRows();
 }
@@ -1258,14 +1285,12 @@ function renderTeam(team, mt){
   $("#detail").innerHTML = `
     ${crumbs([{label: team.name || mt?.name}], `${refreshButton(`Ranked-Stand: ${fmtTime(oldest)}${newest - oldest > 300 ? `, teils neuer (bis ${fmtTime(newest)})` : ""}`)}<span id="teamstatus" class="sub"></span>`)}
     <div class="th"><img src="${esc(mt?.logo||"")}" alt=""><div><h2>${esc(team.name||mt?.name)}</h2>
-      <a href="${esc(mt?.url||"")}" target="_blank" rel="noopener">OPL ↗</a></div>${topMapsHtml(team.opl)}</div>
+      <a href="${esc(mt?.url||"")}" target="_blank" rel="noopener">OPL ↗</a></div>
+      <div class="avgs${avgPeak ? " peak" : ""}" id="avgs" title="Klicken: zwischen aktuellem Rang und Peak umschalten">
+      ${(() => { const L = avgPeak ? peaks : elos;
+        return avgBox((avgPeak ? "Peak · " : "") + "Ø Top 5", byOpl ? "Ø der 5 besten Spieler mit Ligaspiel" : "Ø der 5 besten Player + Captain", L.filter(e=>e.core).map(e=>e.elo).sort((a,b)=>b-a).slice(0,5), "", avgPeak); })()}
+      </div>${topMapsHtml(team.opl)}</div>
     ${statChips(mt, s, full.brackets)}
-    <div class="avgs${avgPeak ? " peak" : ""}" id="avgs" title="Klicken: zwischen aktuellem Rang und Peak umschalten">
-      ${(() => { const L = avgPeak ? peaks : elos, pk = avgPeak ? "Peak · " : "";
-        return avgBox(pk + "Top 5", byOpl ? "Ø der 5 besten Spieler mit Ligaspiel" : "Ø der 5 besten Player + Captain", L.filter(e=>e.core).map(e=>e.elo).sort((a,b)=>b-a).slice(0,5), "", avgPeak)
-          + avgBox(pk + "Aktive", byOpl ? "Ø aller Spieler mit mind. 1 Ligaspiel diese Saison" : "Ø aller Player + Captain (noch keine Ligaspiele)", L.filter(e=>e.core).map(e=>e.elo), "", avgPeak)
-          + avgBox(pk + "Kader", "Ø aller Kadermitglieder", L.map(e=>e.elo), "np", avgPeak); })()}
-    </div>
     <div class="sechead"><h3>Spieler ${tip(statSrc === "opl"
       ? `Stats aus allen gespielten Ligamaps auf OPLeague (${(team.opl?.matches||[]).filter(x=>x.maps.length).length} Matches). Rang und Peak aus Ranked (HenrikDev-API).${team.opl?.hd ? " ADR, KAST und Badges aus den Riot-Matchdaten. Gelber Spike = Haupt-Planter, rote Pfeile = Entry-Fragger (meiste Erst-Duelle pro Runde), blaues Fadenkreuz = Operator-Spieler." : ""}`
       : "Stats aus den letzten bis zu 20 Competitive-Matches (HenrikDev-API).")}</h3><div class="shtools">
@@ -2449,6 +2474,61 @@ function simulateVeto(pA, pB, pool, seq, firstIsA){
     steps.push({act: "decider", map: left[0], actor: null});
   return steps;
 }
+// Veto-Simulator: Nutzer wählt für beide Teams; Vorschlag für A = Empfehlung, für B = erwartetes Verhalten
+let prepSim = {key: "", picks: []};
+let simAuto = store.get("simAuto") !== false;   // Gegner-Schritte automatisch (Standard an)
+function simScore(pA, pB, mp, act, actorA){
+  if(!actorA){ const x = pB.get(mp), y = pA.get(mp);   // Gegner: Gewohnheit wie in simulateVeto
+    return act === "ban" ? 2 * x.ban + 0.8 * (y.str - x.str) + 0.4 * y.pick - 1.0 * x.pick : 2 * x.pick + (x.str - y.str) - 1.5 * x.ban; }
+  const a = pA.get(mp), b = pB.get(mp), d = a.str - b.str;   // eigenes Team: was uns nützt
+  return act === "ban" ? -2 * d + 0.8 * b.pick - 0.5 * a.pick : 2 * d + 0.5 * a.pick - (a.played ? 0 : 0.3);
+}
+const winChance = (a, b) => { const x = a.str * (1 - b.str), y = b.str * (1 - a.str); return x + y ? x / (x + y) : 0.5; };   // log5
+function simRun(pool, seq, firstIsA, picks){
+  const left = [...pool], steps = [];
+  for(let i = 0; i < seq.length && left.length; i++){
+    const act = seq[i], actorA = (i % 2 === 0) === firstIsA;
+    if(act === "pick" && left.length === 1){ steps.push({act: "decider", map: left[0], actor: null}); left.length = 0; break; }
+    if(i >= picks.length) return {steps, left, next: {i, act, actorA}};
+    steps.push({act, map: picks[i], actor: actorA ? "A" : "B"}); left.splice(left.indexOf(picks[i]), 1);
+  }
+  if(left.length === 1 && seq[seq.length - 1] !== "ban") steps.push({act: "decider", map: left.pop(), actor: null});
+  return {steps, left, next: null};
+}
+function simHtml(pA, pB, pool, seq, firstIsA, nameA, nameB){
+  const {steps, left, next} = simRun(pool, seq, firstIsA, prepSim.picks);
+  const total = steps.length + (next ? seq.length - next.i : 0);
+  const slots = Array.from({length: total}, (_, i) => {
+    const s = steps[i];
+    if(s) return `<div class="vstep ${s.act} ${s.actor || "dec"}"><span class="vn">${i + 1}</span><img src="${MAP_IMG(s.map)}" alt="" onerror="this.remove()"><span class="vm">${esc(cap(s.map))}</span>
+      <span class="vw" title="${s.act === "decider" ? "Decider" : `${s.act === "ban" ? "Ban" : "Pick"} ${esc(s.actor === "A" ? nameA : nameB)}`}">${s.act === "decider" ? "Decider" : s.act === "ban" ? "Ban" : "Pick"}</span></div>`;
+    const act = seq[i], aA = (i % 2 === 0) === firstIsA;
+    return `<div class="vstep todo ${aA ? "A" : "B"}${next && i === next.i ? " now" : ""}"><span class="vn">${i + 1}</span><span class="vw" title="${act === "ban" ? "Ban" : "Pick"} ${esc(aA ? nameA : nameB)}">${act === "ban" ? "Ban" : "Pick"}</span></div>`;
+  }).join("");
+  let body = "";
+  if(next){
+    const ranked = [...left].sort((x, y) => simScore(pA, pB, y, next.act, next.actorA) - simScore(pA, pB, x, next.act, next.actorA));
+    const who = next.actorA ? "A" : "B";
+    body = `<div class="simbar"><span>Schritt ${next.i + 1}:</span><span class="who ${who}">${esc(next.actorA ? nameA : nameB)}</span><span>${next.act === "ban" ? "bannt" : "pickt"} …</span>
+      <span class="sub">${next.actorA ? "grün = Empfehlung" : "gestrichelt = erwartete Wahl"}</span></div>
+      <div class="simgrid">${ranked.map((mp, k) => { const a = pA.get(mp), b = pB.get(mp), wc = winChance(a, b), amp = wc > 0.57 ? "g" : wc < 0.43 ? "r" : "y";
+        return `<button class="simt ${who}${k === 0 ? " top" : ""}" data-mp="${esc(mp)}" title="${next.act === "ban" ? "Bannen" : "Picken"}: ${esc(cap(mp))}"><img src="${MAP_IMG(mp)}" alt="" onerror="this.remove()"><span class="sn">${esc(cap(mp))}</span>
+          ${k === 0 ? `<span class="rk">${next.actorA ? "Empfehlung" : "Erwartet"}</span>` : ""}
+          <span class="sd"><span class="ampel ${amp}"></span>${Math.round(100 * wc)} %<span>·</span>${a.played ? `${a.won}–${a.played - a.won}` : "–"} / ${b.played ? `${b.won}–${b.played - b.won}` : "–"}</span></button>`; }).join("")}</div>`;
+  } else {
+    const played = steps.filter(s => s.act !== "ban");
+    body = `<div class="simres">${played.map(s => { const wc = winChance(pA.get(s.map), pB.get(s.map));
+      return `<div class="sr"><span><img src="${MAP_IMG(s.map)}" alt="" onerror="this.remove()"><b>${esc(cap(s.map))}</b></span>
+        <div class="bar" title="Geschätzte Siegchance ${esc(nameA)} ${Math.round(100 * wc)} % · ${esc(nameB)} ${100 - Math.round(100 * wc)} %"><i style="width:${Math.round(100 * wc)}%"></i></div>
+        <span><b class="${wc > 0.5 ? "pos-up" : wc < 0.5 ? "pos-dn" : ""}">${Math.round(100 * wc)} %</b> <span class="sub">${s.act === "decider" ? "Decider" : "Pick " + esc(s.actor === "A" ? nameA : nameB)}</span></span></div>`; }).join("")}</div>`;
+  }
+  return `<div class="vlegend"><span><i class="A"></i>${esc(nameA)}</span><span><i class="B"></i>${esc(nameB)}</span><span><i class="dec"></i>Decider</span></div>
+    <div class="vsteps">${slots}</div>
+    <div class="simbar"><label class="kotoggle" title="Die Schritte von ${esc(nameB)} werden mit der erwarteten Wahl gefüllt"><input type="checkbox" id="simautoopp"${simAuto ? " checked" : ""}> Gegner automatisch</label>
+      <button class="ghost tiny" id="simundo"${prepSim.picks.length ? "" : " disabled"}>↶ Zurück</button>
+      ${next ? `<button class="ghost tiny" id="simauto" title="Restliche Schritte mit den Vorschlägen füllen">Rest automatisch</button>` : ""}
+      <button class="ghost tiny" id="simreset"${prepSim.picks.length ? "" : " disabled"}>Neu</button></div>${body}`;
+}
 function prepRecs(pA, pB, pool){
   const rows = pool.map(mp => {
     const a = pA.get(mp), b = pB.get(mp);
@@ -2616,6 +2696,8 @@ function renderPrep(A, mtA, B, mtB, entry){
       : fixed ? "" : `<p class="sub">In dieser Liga beginnt mal das Heim-, mal das Auswärtsteam – Startrecht ggf. umstellen.</p>`}
     ${stepHtml ? `<div class="vlegend"><span><i class="A"></i>${esc(nameA)}</span><span><i class="B"></i>${esc(nameB)}</span><span><i class="dec"></i>Decider</span></div>` : ""}
     <div class="vsteps">${stepHtml || '<span class="sub">Zu wenig Daten.</span>'}</div>
+    <div class="sechead"><h3>Veto-Simulator ${tip(`Spiele das Veto selbst durch: Klicke für jeden Schritt eine Map – für ${nameA} und ${nameB}. Grün = Empfehlung für ${nameA}, gestrichelt = erwartete Wahl von ${nameB} (aus deren Pick-/Ban-Verhalten). Prozent = geschätzte Siegchance von ${nameA} auf der Map (aus beiden Map-Bilanzen), dahinter W–L beider Teams.`)}</h3></div>
+    <div id="vsim"></div>
     ${compRows ? `<div class="sechead"><h3>Comps auf den erwarteten Maps</h3></div><div class="pcomps">${compRows}</div>` : ""}
     ${tendHtml(B, nameB, played.map(s => s.map), pool)}
 
@@ -2635,6 +2717,26 @@ function renderPrep(A, mtA, B, mtB, entry){
     ${vodSection(B, nameB)}`;
 
   document.querySelectorAll(".duel .pp.plink").forEach(el => el.onclick = () => openPlayerById(el.dataset.team, el.dataset.key));
+  const simKey = [A.id, B.id, firstIsA, pool.join()].join("|");
+  if(prepSim.key !== simKey) prepSim = {key: simKey, picks: []};
+  const drawSim = () => {
+    const box = $("#vsim"); if(!box) return;
+    if(!pool.length){ box.innerHTML = '<span class="sub">Zu wenig Daten.</span>'; return; }
+    if(simAuto){ let r; while((r = simRun(pool, seq, firstIsA, prepSim.picks)).next && !r.next.actorA) fillNext(r); }
+    box.innerHTML = simHtml(pA, pB, pool, seq, firstIsA, nameA, nameB);
+    box.querySelectorAll(".simt").forEach(b => b.onclick = () => { prepSim.picks.push(b.dataset.mp); drawSim(); });
+    box.querySelector("#simautoopp").onchange = e => { simAuto = e.target.checked; store.set("simAuto", simAuto); drawSim(); };
+    box.querySelector("#simundo").onclick = () => {
+      if(simAuto){   // bis einschließlich zur letzten eigenen Wahl zurück (Gegner-Schritte folgen ja automatisch)
+        while(prepSim.picks.length){ const i = prepSim.picks.length - 1; prepSim.picks.pop(); if((i % 2 === 0) === firstIsA) break; }
+      } else prepSim.picks.pop();
+      drawSim(); };
+    box.querySelector("#simreset").onclick = () => { prepSim.picks = []; drawSim(); };
+    const au = box.querySelector("#simauto");
+    if(au) au.onclick = () => { let r; while((r = simRun(pool, seq, firstIsA, prepSim.picks)).next) fillNext(r); drawSim(); };
+  };
+  const fillNext = r => { const {act, actorA} = r.next; prepSim.picks.push([...r.left].sort((x, y) => simScore(pA, pB, y, act, actorA) - simScore(pA, pB, x, act, actorA))[0]); };
+  drawSim();
   $("#back").onclick = () => showDetail(false);
   $("#prepfirst").onchange = e => { prepFirst = e.target.value; const y = window.scrollY; renderPrep(A, mtA, B, mtB, entry); window.scrollTo(0, y); };
   document.querySelectorAll("#detail .match.h2hm").forEach(el => el.onclick = e => { if(!e.target.closest("a, button")) openMatchById(String(A.id), el.dataset.mid); });
@@ -3480,13 +3582,6 @@ async function openUrl(){
 
 // ------------------------------------------------------------------ Start
 (async () => {
-  $("#metric").innerHTML = Object.entries(METRICS).map(([k,v]) => `<option value="${k}">${esc(v.short)}</option>`).join("");
-  $("#metric").value = metric;
-  $("#metric").onchange = e => {
-    metric = e.target.value; store.set("metric", metric);
-    const o = [...$("#sort").options].find(o => o.value === "avg"); if(o) o.textContent = METRICS[metric].label;
-    renderTeams();
-  };
   $("#sort").onchange = e => setSort(e.target.value, false);
   $("#sortdir").onclick = () => { sortDir = -sortDir; renderTeams(); };
   $("#open").onclick = openUrl;
