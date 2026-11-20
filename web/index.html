@@ -480,6 +480,18 @@
   .pcell{display:flex;align-items:center;gap:6px;min-width:0;white-space:nowrap}
   .pcell .pname{overflow:hidden;text-overflow:ellipsis;min-width:40px;flex:0 1 auto}
   .pbadges{display:flex;flex-wrap:nowrap;gap:3px;flex:none}
+  #players .psub{display:flex;align-items:center;gap:6px;white-space:nowrap}
+  #players .pbadges{display:inline-flex} #players .pbadge{line-height:13px;font-size:9.5px}
+
+  .buyc{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:600}
+  .buyc .reco{min-width:22px;height:16px}
+  .pstyle td{vertical-align:middle} .pstyle .mcell .sub{display:block;font-size:10px;margin-left:2px}
+  .ric{display:inline-block;width:14px;height:14px;margin-left:5px;vertical-align:-2px;background:var(--c);flex:none;cursor:help;-webkit-mask:var(--m) center/contain no-repeat;mask:var(--m) center/contain no-repeat}
+  .ric-plant{--c:var(--warn);--m:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='black' d='M12 2l5 9-5 11-5-11z'/%3E%3Cpath fill='white' d='M12 7l2 4-2 5-2-5z' opacity='.35'/%3E%3C/svg%3E")} .ric-entry{--c:var(--acc);--m:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='none' stroke='black' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round' d='M4 6l7 6-7 6M12 6l7 6-7 6'/%3E%3C/svg%3E")}
+  .pbadge.cs{color:var(--np);background:var(--npbg);display:inline-flex;align-items:center;gap:2px} .pbadge.cs .ri{width:10px;height:10px}
+  .rolechips{display:inline-flex;align-items:center;font-size:12px;color:var(--mut);margin-left:8px}
+  .pbadgerow{margin-top:8px;display:flex;align-items:center;flex-wrap:wrap} .pbadgerow .pbadges{flex-wrap:wrap} .pbadgerow .pbadge{font-size:12px;line-height:20px;padding:0 8px}
+  tr.hrow{cursor:pointer} tr.hrow:hover td{background:var(--panel2)}
   .pbadge{font-size:10px;font-weight:700;padding:0 5px;border-radius:3px;line-height:15px;white-space:nowrap}
   .pbadge.cl{color:var(--info);background:var(--infobg)} .pbadge.mk{color:var(--warn);background:var(--warnbg)}
   .pbadge.ace{color:#fff;background:var(--acc)}
@@ -508,6 +520,9 @@
   .rleg .reco{display:inline-flex;min-width:26px;height:15px}
   .rlegsep{margin-left:10px;color:var(--txt)}
   .rcol:hover .rcell{filter:brightness(1.3)}
+  .rcell{position:relative}
+  .thrb{position:absolute;z-index:5;top:-5px;right:-4px;width:12px;height:12px;border-radius:50%;background:var(--warn);color:#2a1c00;font-size:9px;font-weight:800;line-height:12px;text-align:center;box-shadow:0 0 0 1.5px var(--panel)}
+  .thrb.static{position:static;display:inline-block;margin-right:2px}
   .ri{display:inline-block;width:14px;height:14px;background:currentColor;-webkit-mask:var(--m) center/contain no-repeat;mask:var(--m) center/contain no-repeat}
   .ri-E{--m:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='black' fill-rule='evenodd' d='M12 2C6.5 2 3 5.8 3 10.5c0 2.6 1.1 4.4 3 5.6V19a1 1 0 0 0 1 1h1.5v-2h2v2h3v-2h2v2H17a1 1 0 0 0 1-1v-2.9c1.9-1.2 3-3 3-5.6C21 5.8 17.5 2 12 2zM8.5 9a2 2 0 1 1 0 4 2 2 0 0 1 0-4zm7 0a2 2 0 1 1 0 4 2 2 0 0 1 0-4zM12 13.2l1.3 2.3h-2.6z'/%3E%3C/svg%3E")} .ri-D{--m:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='black' d='M12 6l4 6-4 6-4-6z'/%3E%3Cpath stroke='black' stroke-width='2' stroke-linecap='round' d='M12 1v2.5M12 20.5V23M1 12h2.5M20.5 12H23M4.2 4.2l1.8 1.8M18 18l1.8 1.8M4.2 19.8L6 18M18 6l1.8-1.8'/%3E%3C/svg%3E")} .ri-F{--m:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='none' stroke='black' stroke-width='2.2' stroke-linejoin='round' d='M12 2.5l6.5 9.5-6.5 9.5-6.5-9.5z'/%3E%3Cpath fill='none' stroke='black' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round' d='M8.8 12.2l2.2 2.2 4.2-4.6'/%3E%3C/svg%3E")} .ri-T{--m:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='black' d='M6 2h12v2h-1v3.2c0 1.5-.8 2.9-2.1 3.7L13.4 12l1.5 1.1c1.3.8 2.1 2.2 2.1 3.7V20h1v2H6v-2h1v-3.2c0-1.5.8-2.9 2.1-3.7l1.5-1.1-1.5-1.1C7.8 10.1 7 8.7 7 7.2V4H6zm3 2v3.2c0 .8.4 1.5 1.1 2L12 10.6l1.9-1.4c.7-.5 1.1-1.2 1.1-2V4zm3 9.4l-1.9 1.4c-.7.5-1.1 1.2-1.1 2V20h6v-3.2c0-.8-.4-1.5-1.1-2z'/%3E%3C/svg%3E")}
   .rcell.on.a{color:var(--acc)} .rcell.on.b{color:var(--link)}
@@ -516,10 +531,16 @@
   .tfacts{margin-bottom:8px;background:var(--panel);border:1px solid var(--line);border-radius:10px;overflow:auto}
   .sites{display:inline-flex;align-items:center;gap:4px;flex-wrap:wrap;justify-content:center}
   .site{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:600;padding:1px 7px 1px 1px;border-radius:999px;background:var(--panel2);color:var(--txt);font-variant-numeric:tabular-nums}
-  .site b{display:inline-flex;align-items:center;justify-content:center;width:17px;height:17px;border-radius:50%;background:var(--line);font-size:10px}
+  .site b{display:inline-block;width:17px;height:17px;line-height:17px;text-align:center;border-radius:50%;background:var(--line);font-size:10px;font-weight:800;padding:0;flex:none}
   .site.g{background:color-mix(in srgb, var(--good) 15%, transparent)} .site.g b{background:var(--good);color:#06120c}
   .site.r{background:color-mix(in srgb, var(--bad) 15%, transparent)} .site.r b{background:var(--bad);color:#fff}
   .sq{font-size:12px;font-weight:700;margin-left:4px}
+  .site.top{box-shadow:0 0 0 1.5px var(--txt)}
+  .sgrp{display:inline-flex;align-items:center;gap:4px}
+  .sgrp + .sgrp{margin-left:6px;padding-left:8px;border-left:1px solid var(--line)}
+  .smap{font-size:10px;color:var(--mut);text-transform:uppercase;letter-spacing:.04em}
+  .tfacts td,.pstyle td{vertical-align:middle} .tfacts td.num{text-align:center} .tfacts .sites,.pstyle .sites{justify-content:center;vertical-align:middle}
+  .tfacts td:has(.sites){line-height:1}
   .tfacts .sbt{table-layout:auto;min-width:0} .tfacts .sbt th:first-child{width:auto} .tfacts td:first-child{color:var(--mut)}
   @media (max-width:900px){ .mhero{grid-template-columns:1fr;text-align:center} .mht,.mht.r{justify-content:center;flex-direction:row} }
   .mhead{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
@@ -1092,10 +1113,12 @@ function renderTeam(team, mt){
   const members = [...team.members].sort((a, b) => act(b) - act(a));
   const times = [team.updated];
   const elos = [], peaks = [];
+  const hasHd = !!team.opl?.hd;
+  const roles = hasHd ? keyRoles(Object.values(team.opl.hd.players)) : null;
   const items = members.map((m, idx) => {
-    const head = `<td class="c6"><div><span class="pname plink" data-key="${esc(memberKey(team, m))}" title="Spielerprofil öffnen">${esc(m.opl_name)}</span> ${m.position && m.position !== "Player" ? `<span class="pos ${esc(m.position)} ${act(m)?"":"np"}">${esc(m.position)}</span>` : ""}${roleChip(oplPlayer(team, m))}</div>
-      <div class="sub">${m.riot_id ? esc(m.riot_id) : "keine Riot-ID hinterlegt"}</div></td>`;
-    const NC = statSrc === "opl" ? 7 : 6;          // Anzahl Stat-Spalten je Quelle
+    const head = `<td class="c6"><div><span class="pname plink" data-key="${esc(memberKey(team, m))}" title="Spielerprofil öffnen">${esc(m.opl_name)}</span> ${m.position && m.position !== "Player" ? `<span class="pos ${esc(m.position)} ${act(m)?"":"np"}">${esc(m.position)}</span>` : ""}${roleChip(oplPlayer(team, m))}${hasHd ? roleIcons(oplPlayer(team, m)?.name, roles) : ""}</div>
+      <div class="sub psub">${m.riot_id ? esc(m.riot_id) : "keine Riot-ID hinterlegt"}${statSrc === "opl" && hasHd ? (h => h ? badgeHtml(h.cl, h.mk, h.cs) : "")(hdPlayer(team, oplPlayer(team, m)?.name)) : ""}</div></td>`;
+    const NC = statSrc === "opl" ? (hasHd ? 9 : 7) : 6;          // Anzahl Stat-Spalten je Quelle
     let body = `<td colspan="${NC + 3}" class="nomob"></td>`;
     if(m.riot_id){
       const p = statsFor(team, m);
@@ -1128,6 +1151,7 @@ function renderTeam(team, mt){
             <td class="num c2" data-l="Econ">${o.econ}</td>
             <td class="num c2" data-l="First Bl." title="First Bloods gesamt · Plants ${o.plants} · Defuses ${o.defuses}">${o.fb}</td>
             <td class="num c2" data-l="Map-Winrate">${o.winrate}%</td>
+            ${hasHd ? (h => `<td class="num c2" data-l="ADR" title="${h ? `aus ${h.n} Maps mit Rundendaten` : "keine Rundendaten"}">${h ? h.adr : dash}</td><td class="num c2" data-l="KAST">${h ? h.kast + "%" : dash}</td>`)(hdPlayer(team, o.name)) : ""}
             <td class="c6" data-l="Agents (Liga, % der Maps)">${agentIcons(o.agents, true)}</td>`;
         }
       }else{
@@ -1154,7 +1178,7 @@ function renderTeam(team, mt){
     }
     return a.idx - b.idx;
   });
-  const sepRow = `<tr class="sep"><td colspan="${statSrc === "opl" ? 11 : 10}">${byOpl ? "Nicht aktiv – kein Ligaspiel in dieser Saison" : "Kein aktiver Spieler (Stand-In, Manager, Coach …)"}</td></tr>`;
+  const sepRow = `<tr class="sep"><td colspan="${statSrc === "opl" ? (hasHd ? 13 : 11) : 10}">${byOpl ? "Nicht aktiv – kein Ligaspiel in dieser Saison" : "Kein aktiver Spieler (Stand-In, Manager, Coach …)"}</td></tr>`;
   const rows = items.map((it, i) => (!it.active && (i === 0 || items[i-1].active) ? sepRow : "") + it.html).join("");
 
   const oldest = Math.min(...times.filter(Boolean)), newest = Math.max(...times.filter(Boolean));
@@ -1170,7 +1194,7 @@ function renderTeam(team, mt){
           + avgBox(pk + "Kader", "Ø aller Kadermitglieder", L.map(e=>e.elo), "np", avgPeak); })()}
     </div>
     <div class="sechead"><h3>Spieler ${tip(statSrc === "opl"
-      ? `Stats aus allen gespielten Ligamaps auf OPLeague (${(team.opl?.matches||[]).filter(x=>x.maps.length).length} Matches). Rang und Peak aus Ranked (HenrikDev-API).`
+      ? `Stats aus allen gespielten Ligamaps auf OPLeague (${(team.opl?.matches||[]).filter(x=>x.maps.length).length} Matches). Rang und Peak aus Ranked (HenrikDev-API).${team.opl?.hd ? " ADR, KAST und Badges aus den Riot-Matchdaten. Gelber Spike = Haupt-Planter, rote Pfeile = Entry-Fragger (meiste Erst-Duelle pro Runde)." : ""}`
       : "Stats aus den letzten bis zu 20 Competitive-Matches (HenrikDev-API).")}</h3><div class="shtools">
       ${full.opl_wc ? `<label class="kotoggle" title="Matches aus dem Wildcardturnier (vor der Saison) in Spieler-Stats, Map-Pool, Agents und Rollen einrechnen (${full.opl_wc.maps_played - full.opl.maps_played} Maps aus ${esc([...new Set(full.opl.matches.filter(m => m.wildcard).map(m => m.bracket))].join(", "))}). Playoffs und Relegation zählen immer.">
         <input type="checkbox" id="wcincl"${wcIncl ? " checked" : ""}> inkl. Wildcard</label>` : ""}
@@ -1180,10 +1204,11 @@ function renderTeam(team, mt){
       </select></label></div></div>
     <div id="players"><table><thead><tr>
       ${pth("name","Spieler")}${pth("rank","Aktueller Rang")}${pth("peak","Peak")}${statSrc === "opl"
-        ? `${pth("maps","Maps","num")}${pth("acs","ACS","num")}${pth("kd","K/D","num")}${pth("econ","Econ","num","Econ-Rating")}${pth("fb","FB","num","First Bloods")}${pth("wr","WR","num","Anteil gewonnener Maps")}<th>Agents ${tip("Prozent: Anteil der Maps, auf denen der Spieler den Agent gespielt hat")}</th>`
+        ? `${pth("maps","Maps","num")}${pth("acs","ACS","num")}${pth("kd","K/D","num")}${pth("econ","Econ","num","Econ-Rating")}${pth("fb","FB","num","First Bloods")}${pth("wr","WR","num","Anteil gewonnener Maps")}${hasHd ? `${pth("adr","ADR","num","Schaden pro Runde (Rundendaten)")}${pth("kast","KAST","num","Runden mit Kill, Assist, überlebt oder getradet (Rundendaten)")}` : ""}<th>Agents ${tip("Prozent: Anteil der Maps, auf denen der Spieler den Agent gespielt hat")}</th>`
         : `${pth("kd","K/D","num")}${pth("hs","HS%","num")}${pth("adr","ADR","num")}${pth("acs","ACS","num")}${pth("wr","Winrate","num")}<th>Agents</th>`}<th class="resetsort">${playerSort.k ? `<button class="ghost tiny" id="sortreset" title="Zurück zur Standard-Sortierung nach Rollen-Tag">↺ Tag</button>` : ""}</th>
     </tr></thead><tbody>${rows}</tbody></table></div>
     ${mapPoolHtml(team.opl)}
+    ${playstyleHtml(team.opl)}
     ${teamAgentsHtml(team.opl)}
     ${rolesHtml(team)}
     ${bracketPathHtml(full)}
@@ -1240,8 +1265,9 @@ function sortValues(team, m){
              peak: p?.peak?.tier ?? null};
   if(statSrc === "opl"){
     const o = m.riot_id ? oplPlayer(team, m) : null;
+    const h = o ? hdPlayer(team, o.name) : null;
     Object.assign(v, {maps: o?.maps ?? null, acs: o?.acs ?? null, kd: o?.kd ?? null, econ: o?.econ ?? null,
-                      fb: o?.fb ?? null, wr: o?.winrate ?? null});
+                      fb: o?.fb ?? null, wr: o?.winrate ?? null, adr: h?.adr ?? null, kast: h?.kast ?? null});
   }else{
     const r = p?.recent?.matches ? p.recent : null;
     Object.assign(v, {kd: r?.kd ?? null, hs: r?.hs ?? null, adr: r?.adr ?? null, acs: r?.acs ?? null, wr: r?.winrate ?? null});
@@ -1272,10 +1298,13 @@ function mapSortVal([mp, v], k){
   if(k === "wl") return v.played ? v.won / v.played : null;
   if(k === "rounds") return v.played ? v.rw - v.rl : null;
   if(k === "atk") return v.atk || v.def ? v.atk : null;
+  if(k === "hatk") return v._hd?.atk[1] ? v._hd.atk[0] / v._hd.atk[1] : null;
+  if(k === "hdef") return v._hd?.def[1] ? v._hd.def[0] / v._hd.def[1] : null;
   return v[k] ?? null;
 }
 function mapPoolHtml(o){
-  const maps = Object.entries(o?.maps || {});
+  const H = o?.hd?.maps || {};
+  const maps = Object.entries(o?.maps || {}).map(([mp, v]) => [mp, {...v, _hd: H[mp]}]);
   if(!maps.length) return `<div class="sechead"><h3>Map-Pool</h3></div><p class="sub">Noch keine gespielten Ligaspiele mit Veto in dieser Saison.</p>`;
   // Standard: meistgespielt, dann meistgepickt, dann am wenigsten gebannt
   const dflt = (a, b) => b[1].played - a[1].played || b[1].pick - a[1].pick || a[1].ban - b[1].ban;
@@ -1291,7 +1320,8 @@ function mapPoolHtml(o){
   const z = v => v ? v : '<span class="sub">0</span>';
   const bo = bestOf(o), dec = bo !== 2;   // BO2: kein Decider
   const sortOpts = [["", "Standard"], ["played", "Gespielt"], ["wl", "Winrate"], ["rounds", "Rundendifferenz"], ["pick", "Eigene Picks"],
-    ["ban", "Eigene Bans"], ["opp_pick", "Gegner-Picks"], ["opp_ban", "Gegner-Bans"], ...(dec ? [["decider", "Decider"]] : []), ["map", "Map A–Z"]];
+    ["ban", "Eigene Bans"], ["opp_pick", "Gegner-Picks"], ["opp_ban", "Gegner-Bans"], ...(dec ? [["decider", "Decider"]] : []),
+    ...(o?.hd ? [["hatk", "Angriff"], ["hdef", "Verteidigung"]] : []), ["map", "Map A–Z"]];
   return `<div class="sechead"><h3>Map-Pool ${tip(`Picks, Bans und Ergebnisse aus allen Ligaspielen dieser Saison (BO${bo}). Die Comp ist eine Prognose aus den letzten Matches.`)}</h3>
     <label class="mobile-sort">Sortieren <select id="mapsortsel">${sortOpts.map(([k, l]) =>
       `<option value="${k}"${(mapSort.k || "") === k ? " selected" : ""}>${l}</option>`).join("")}</select></label></div>
@@ -1300,6 +1330,7 @@ function mapPoolHtml(o){
     ${mth("pick","Pick","num own","Von diesem Team gepickt")}${mth("ban","Ban","num own","Von diesem Team gebannt")}
     ${mth("opp_pick","Gegner-Pick","num","Vom Gegner gepickt")}${mth("opp_ban","Gegner-Ban","num","Vom Gegner gebannt")}
     ${dec ? mth("decider","Decider","num","Übrig gebliebene Decider-Map") : ""}${mth("atk","Start Atk/Def","num","Startseite dieses Teams auf gespielten Maps (sortiert nach Angriffs-Starts)")}
+    ${o?.hd ? `${mth("hatk","Angriff","num","Gewonnene Runden auf Angriff (Rundendaten)")}${mth("hdef","Verteidigung","num","Gewonnene Runden auf Verteidigung (Rundendaten)")}` : ""}
     <th title="Häufigste gespielte Comp auf dieser Map – oder Prognose aus den Agent-Pools der aktiven Spieler und der Liga-Meta der Map">Wahrscheinlichste Comp</th>
   </tr></thead><tbody>${maps.map(([mp, v]) => {
     const wl = v.played ? `<span class="${v.won*2 > v.played ? "pos-up" : v.won*2 < v.played ? "pos-dn" : ""}">${v.won}–${v.played - v.won}</span>` : '<span class="sub">–</span>';
@@ -1309,6 +1340,7 @@ function mapPoolHtml(o){
       <td class="num own m-pick" data-l="Pick">${z(v.pick)}</td><td class="num own ban m-ban" data-l="Ban">${z(v.ban)}</td>
       <td class="num m-opick" data-l="Gegner-Pick">${z(v.opp_pick)}</td><td class="num m-oban" data-l="Gegner-Ban">${z(v.opp_ban)}</td>${dec ? `<td class="num m-dec" data-l="Decider">${z(v.decider)}</td>` : ""}
       <td class="num m-side" data-l="Start Atk/Def">${v.atk || v.def ? `${v.atk}/${v.def}` : '<span class="sub">–</span>'}</td>
+      ${o?.hd ? `<td class="num" data-l="Angriff">${rateCell(v._hd?.atk)}</td><td class="num" data-l="Verteidigung">${rateCell(v._hd?.def)}</td>` : ""}
       <td class="m-comp" data-l="Wahrscheinlichste Comp">${compHtml(v.comp)}</td></tr>`;
   }).join("")}</tbody></table></div>`;
 }
@@ -1561,6 +1593,13 @@ function leagueRank(name, tid, k){
   const pl = league.overview?.players || [];
   const me = pl.find(p => p.team === String(tid) && p.name.toLowerCase() === name.toLowerCase());
   if(!me) return null;
+  if(["adr", "kast", "hs", "cl", "esr"].includes(k)){
+    if(me[k] == null) return null;
+    const hp = pl.filter(p => p.hd_n && p[k] != null), mx = Math.max(0, ...hp.map(p => p.hd_n)), mn = Math.min(LB_MIN, Math.max(1, mx));
+    if(me.hd_n < mn) return {short: true, maps: me.hd_n, min: mn};
+    const pool = hp.filter(p => p.hd_n >= mn);
+    return {rank: 1 + pool.filter(p => p[k] > me[k]).length, of: pool.length, min: mn};
+  }
   const maxMaps = Math.max(0, ...pl.map(p => p.maps));
   const min = Math.min(LB_MIN, Math.max(1, maxMaps));
   if(me.maps < min) return {short: true, maps: me.maps, min};
@@ -1590,28 +1629,44 @@ function renderPlayer(team, mt, key){
   const name = m?.opl_name || agg?.name || key;
   const st = m?.riot_id ? statsFor(team, m) : null;
   const c = st?.current || {}, rec = st?.recent;
-  const hist = [...(agg?.history || [])].sort((a, b) => (a.start || 0) - (b.start || 0));
+  const hp = hdPlayer(team, agg?.name || name);
+  const hist = [...(agg?.history || [])].sort((a, b) => (a.start || 0) - (b.start || 0)).map(h => ({...h}));
+  if(hp){   // Rundendaten je Map (ADR, KAST, HS%) an die passenden Verlaufseinträge hängen
+    const per = hp.per.map(x => [...x]);
+    for(const h of hist){ const i = per.findIndex(x => x[0] === String(h.m) && x[1] === h.map); if(i >= 0){ [, , h.adr, h.kast, h.hsp] = per[i]; per.splice(i, 1); } }
+  }
   const kd = (k, d) => d ? (k / d).toFixed(2) : String(k);
   const wr = (w, n) => n ? `<span class="${w * 2 > n ? "pos-up" : w * 2 < n ? "pos-dn" : ""}">${Math.round(100 * w / n)}%</span>` : "–";
   const agIcon = a => { const ic = AGENT_ICONS[(a || "").toLowerCase()]; return ic ? `<img class="agic" src="${esc(ic)}" alt="${esc(a)}" title="${esc(a)}">` : `<span class="sub">${esc(a || "–")}</span>`; };
-  const kpi = (v, l, rk, tip = "") => `<div class="kpi" title="${esc(tip)}"><div class="v">${v}</div><div class="l">${l}</div>${rk ? (rk.short ? `<div class="rk" title="In der Bestenliste zählen nur Spieler mit mind. ${rk.min} Maps">kein Rang (${rk.maps}/${rk.min} Maps)</div>`
-    : `<div class="rk${rk.rank <= 3 ? " top" : ""}" title="Platz in der Bestenliste unter ${rk.of} Spielern mit mind. ${rk.min} Maps">#${rk.rank} von ${rk.of}</div>`) : ""}</div>`;
+  // vs = [eigener Wert, Kennzahl] → farbig gegenüber dem Liga-Ø (± 3 % gelten als Durchschnitt)
+  const kpi = (v, l, rk, tip = "", vs = null) => { const av = vs ? leagueStatAvg(vs[1]) : null, d = av ? (vs[0] - av) / av : 0;
+    const cls = av == null || vs[0] == null || Math.abs(d) < 0.03 ? "" : d > 0 ? "pos-up" : "pos-dn";
+    const t2 = av != null ? `${tip ? tip + "\n" : ""}Liga-Ø: ${LEAGUE_FMT[vs[1]] ? LEAGUE_FMT[vs[1]](av) : Math.round(av)}` : tip;
+    return `<div class="kpi" title="${esc(t2)}"><div class="v ${cls}">${v}</div><div class="l">${l}</div>${rk ? (rk.short ? `<div class="rk" title="In der Bestenliste zählen nur Spieler mit mind. ${rk.min} Maps">kein Rang (${rk.maps}/${rk.min} Maps)</div>`
+    : `<div class="rk${rk.rank <= 3 ? " top" : ""}" title="Platz in der Bestenliste unter ${rk.of} Spielern mit mind. ${rk.min} Maps">#${rk.rank} von ${rk.of}</div>`) : ""}</div>`; };
   // Bestenliste zählt ohne Wildcard – mit eingerechneten Wildcard-Maps wäre der Platz nicht vergleichbar
   const lr = k => agg && !wcOn ? leagueRank(agg.name, team.id, k) : null;
 
   // OPL-Kennzahlen
   const n = agg?.maps || 0;
   const oplKpis = agg ? `<div class="kpis">
-    ${kpi(n, "Maps")}${kpi(agg.acs, "ACS", lr("acs"))}${kpi(Number(agg.kd).toFixed(2), "K/D", lr("kd"), `K/D/A: ${agg.k}/${agg.d}/${agg.a}`)}
-    ${kpi((agg.fb / (n || 1)).toFixed(2), "FB pro Map", lr("fbpm"), `${agg.fb} First Bloods`)}
-    ${kpi(agg.econ, "Econ", lr("econ"))}${kpi(wr(agg.won, n), "Map-Winrate", null, `${agg.won} von ${n} Maps gewonnen`)}
+    ${kpi(n, "Maps")}${kpi(agg.acs, "ACS", lr("acs"), "", [agg.acs, "acs"])}${kpi(Number(agg.kd).toFixed(2), "K/D", lr("kd"), `K/D/A: ${agg.k}/${agg.d}/${agg.a}`, [Number(agg.kd), "kd"])}
+    ${kpi((agg.fb / (n || 1)).toFixed(2), "FB pro Map", lr("fbpm"), `${agg.fb} First Bloods`, [agg.fb / (n || 1), "fbpm"])}
+    ${kpi(agg.econ, "Econ", lr("econ"), "", [agg.econ, "econ"])}${kpi(wr(agg.won, n).replace(/class="[^"]*"/, ""), "Map-Winrate", null, `${agg.won} von ${n} Maps gewonnen`, [n ? 100 * agg.won / n : null, "winrate"])}
     ${kpi(`${agg.plants}/${agg.defuses}`, "Plants/Defuses")}</div>` : '<p class="sub">Keine Ligaspiele in dieser Saison.</p>';
+  // Runden-Stats aus den Riot-Matchdaten (nur Maps mit Rundendaten)
+  const hdKpis = hp ? `<div class="sechead"><h3>Runden-Stats ${tip(`Aus den Riot-Matchdaten (HenrikDev) von ${hp.n} ${hp.n === 1 ? "Map" : "Maps"}${n > hp.n ? ` (von ${n} gespielten)` : ""}. KAST = Runden mit Kill, Assist, überlebt oder getradet. Badges: gewonnene Clutches und Multikills ab 3 Kills in einer Runde.`)}</h3></div>
+    <div class="kpis">${kpi(hp.adr, "ADR", lr("adr"), "Schaden pro Runde", [hp.adr, "adr"])}${kpi(hp.kast + "%", "KAST", lr("kast"), "", [hp.kast, "kast"])}${kpi(hp.hs + "%", "HS%", lr("hs"), "Anteil Kopftreffer", [hp.hs, "hs"])}
+      ${(d => kpi(d ? Math.round(100 * hp.fk / d) + "%" : "–", "ESR", lr("esr"), `Entry Success Rate: gewonnene Erst-Duelle der Runde (${hp.fk} First Kills, ${hp.fd} First Deaths)`, d ? [100 * hp.fk / d, "esr"] : null))(hp.fk + hp.fd)}
+      ${kpi(`${hp.fk}/${hp.fd}`, "FK/FD", null, "First Kills / First Deaths")}${kpi(hp.cl.reduce((a, b) => a + b, 0), "Clutches", lr("cl"), hp.cl.map((v, j) => `1v${j + 1}: ${v}`).join(" · ") + ((hp.cs || []).some(Boolean) ? `\nDazu ${hp.cs.reduce((a, b) => a + b, 0)}× Spike-Clutch (gestorben, Spike explodiert)` : ""), [hp.cl.reduce((a, b) => a + b, 0) / hp.n, "clpm"])}
+      ${kpi(hp.mk.slice(1).reduce((a, b) => a + b, 0), "3K+", null, `3K: ${hp.mk[1]} · 4K: ${hp.mk[2]} · ACE: ${hp.mk[3]}`)}</div>
+    ${badgeHtml(hp.cl, hp.mk, hp.cs) ? `<div class="pbadgerow">${badgeHtml(hp.cl, hp.mk, hp.cs)}${(r => roleIcons(hp.name, r) ? `<span class="rolechips">${roleIcons(hp.name, r)}${r.planter === hp.name.toLowerCase() ? " Haupt-Planter" : ""}${r.entry === hp.name.toLowerCase() ? `${r.planter === hp.name.toLowerCase() ? " ·" : ""} Entry` : ""}</span>` : "")(keyRoles(Object.values(team.opl.hd.players)))}</div>` : ""}` : "";
 
   // Form: Diagramm wird nach dem Rendern gezeichnet (braucht die Breite)
   formHist = hist;
   const date = t => t ? new Date(t * 1000).toLocaleDateString("de-DE", {day: "2-digit", month: "2-digit"}) : "";
   const form = hist.length ? `<div class="sechead"><h3>Form ${tip(`Ein Punkt pro gespielter Ligamap, älteste links. Grün = gewonnen, rot = verloren.`)}</h3>
-    <div class="fmetric">${Object.entries(FORM_METRICS).map(([k, x]) => `<button class="ghost tiny${k === formMetric ? " on" : ""}" data-fm="${k}">${x.l}</button>`).join("")}</div></div>
+    <div class="fmetric">${Object.entries(FORM_METRICS).filter(([, x]) => !x.hd || hist.some(h => x.v(h) != null)).map(([k, x]) => `<button class="ghost tiny${k === formMetric ? " on" : ""}" data-fm="${k}">${x.l}</button>`).join("")}</div></div>
     <div class="formbox"><div id="formsum" class="formsum"></div><div id="formchart"></div>
     <div class="formleg"><span><i class="dot w"></i>gewonnen</span><span><i class="dot l"></i>verloren</span><span><i class="ln trend"></i>Trend (Ø 3 Maps)</span><span><i class="ln own"></i>Saison-Ø</span><span><i class="ln lg"></i>Liga-Ø</span></div></div>` : "";
 
@@ -1625,10 +1680,10 @@ function renderPlayer(team, mt, key){
     <td class="opt">${Object.entries(x.agents).sort((a, b) => b[1] - a[1]).map(([a]) => agIcon(a)).join(" ")}</td></tr>`).join("");
 
   // Verlauf (neueste zuerst)
-  const histRows = [...hist].reverse().map(h => `<tr><td class="sub">${esc(date(h.start))}</td>
+  const histRows = [...hist].reverse().map(h => `<tr class="hrow" data-mid="${esc(h.m)}" title="Match-Übersicht öffnen"><td class="sub">${esc(date(h.start))}</td>
     <td>${h.opp_id ? `<span class="tlink" data-team="${esc(h.opp_id)}">${esc(h.opp)}</span>` : esc(h.opp)}${wcIds.has(String(h.m)) ? ' <span class="stage" title="Wildcardturnier">WC</span>' : ""}</td><td>${esc(cap(h.map))}</td><td>${agIcon(h.agent)}</td>
     <td class="num"><span class="${h.us > h.them ? "pos-up" : "pos-dn"}">${h.us}:${h.them}</span></td><td class="num">${h.k}/${h.d}/${h.a}</td>
-    <td class="num">${h.acs}</td><td class="num opt">${h.fb}</td><td class="num opt">${h.econ}</td></tr>`).join("");
+    <td class="num">${h.acs}</td>${hp ? `<td class="num">${h.adr ?? '<span class="sub">–</span>'}</td><td class="num opt">${h.kast != null ? h.kast + "%" : '<span class="sub">–</span>'}</td>` : ""}<td class="num opt">${h.fb}</td><td class="num opt">${h.econ}</td></tr>`).join("");
 
   const rr = c.rr != null && c.tier > 2 ? ` <span class="sub">${c.rr} RR</span>` : "";
   const teamName = team.name || mt?.name || "";
@@ -1651,11 +1706,12 @@ function renderPlayer(team, mt, key){
       ${wcMaps ? `<div class="shtools"><label class="kotoggle" title="${wcMaps} Maps aus dem Wildcardturnier (vor der Saison) in Stats, Form, Agents, Maps und Verlauf einrechnen. Gilt auch für die Teamseite.">
         <input type="checkbox" id="wcincl"${wcOn ? " checked" : ""}> inkl. Wildcard</label></div>` : ""}</div>
     ${oplKpis}
+    ${hdKpis}
     ${form}
     ${hist.length ? `<div class="sechead"><h3>Agents</h3></div>${grpTable(agRows, "Agent", "")}
     <div class="sechead"><h3>Maps</h3></div>${grpTable(mapRows, "Map", "Agents")}
     <div class="sechead"><h3>Verlauf ${tip(`Jede gespielte Ligamap, neueste oben.`)}</h3></div>
-    <div class="lbwrap"><table class="lbtable hist"><thead><tr><th>Datum</th><th>Gegner</th><th>Map</th><th>Agent</th><th class="num">Score</th><th class="num">K/D/A</th><th class="num">ACS</th><th class="num opt">FB</th><th class="num opt">Econ</th></tr></thead>
+    <div class="lbwrap"><table class="lbtable hist"><thead><tr><th>Datum</th><th>Gegner</th><th>Map</th><th>Agent</th><th class="num">Score</th><th class="num">K/D/A</th><th class="num">ACS</th>${hp ? '<th class="num" title="Schaden pro Runde">ADR</th><th class="num opt">KAST</th>' : ""}<th class="num opt">FB</th><th class="num opt">Econ</th></tr></thead>
       <tbody>${histRows}</tbody></table></div>` : ""}`;
   $("#back").onclick = () => showDetail(false);
   if($("#wcincl")) $("#wcincl").onchange = e => { wcIncl = e.target.checked; store.set("wcIncl", wcIncl); const y = $("#detail").scrollTop; renderPlayer(full, mt, key); $("#detail").scrollTop = y; };
@@ -1665,6 +1721,7 @@ function renderPlayer(team, mt, key){
     drawForm();
   });
   requestAnimationFrame(drawForm);   // erst zeichnen, wenn die Ansicht sichtbar ist (Breite)
+  document.querySelectorAll("#detail tr.hrow").forEach(tr => tr.onclick = e => { if(!e.target.closest(".tlink, a, img")) openMatchById(String(team.id), tr.dataset.mid); });
   document.querySelectorAll("#detail .tlink[data-team]").forEach(el => el.onclick = () => openTeamFromMeta(el.dataset.team));
 }
 
@@ -1674,6 +1731,8 @@ const FORM_METRICS = {
   kd:  {l: "K/D", v: h => h.d ? h.k / h.d : h.k, f: v => v.toFixed(2)},
   k:   {l: "Kills", v: h => h.k, f: v => v.toFixed(1)},
   fb:  {l: "First Bloods", v: h => h.fb, f: v => v.toFixed(1)},
+  adr: {l: "ADR", v: h => h.adr, f: v => Math.round(v), hd: true},
+  kast:{l: "KAST", v: h => h.kast, f: v => Math.round(v) + "%", hd: true},
 };
 let formMetric = FORM_METRICS[store.get("formMetric")] ? store.get("formMetric") : "acs", formHist = [];
 function avgOf(rows, k){
@@ -1682,6 +1741,21 @@ function avgOf(rows, k){
   if(k === "kd"){ const d = sum("d"); return d ? sum("k") / d : null; }
   return sum(k) / rows.length;
 }
+// Liga-Ø einer Kennzahl aus der Bestenliste (OPL-Werte nach Maps gewichtet, Rundendaten nach Maps mit Rundendaten)
+const LEAGUE_FMT = {kd: v => v.toFixed(2), fbpm: v => v.toFixed(2), winrate: v => Math.round(v) + " %", kast: v => Math.round(v) + " %", hs: v => Math.round(v) + " %",
+  esr: v => Math.round(v) + " %", clpm: v => v.toFixed(2) + " pro Map"};
+function leagueStatAvg(k){
+  const pl = league?.overview?.players || [];
+  const sum = (f, ps = pl) => ps.reduce((a, p) => a + (p[f] || 0), 0);
+  if(k === "kd"){ const d = sum("d"); return d ? sum("k") / d : null; }
+  if(["acs", "econ", "fbpm", "winrate"].includes(k)){ const m = sum("maps"); return m ? pl.reduce((a, p) => a + (p[k] || 0) * p.maps, 0) / m : null; }
+  const hp = pl.filter(p => p.hd_n);
+  if(!hp.length) return null;
+  if(k === "esr"){ const fk = sum("fk", hp), fd = sum("fd", hp); return fk + fd ? 100 * fk / (fk + fd) : null; }
+  if(k === "clpm"){ const n = sum("hd_n", hp); return n ? sum("cl", hp) / n : null; }
+  const n = hp.reduce((a, p) => a + (p[k] != null ? p.hd_n : 0), 0);
+  return n ? hp.reduce((a, p) => a + (p[k] ?? 0) * p.hd_n, 0) / n : null;
+}
 function leagueAvgOf(k){
   const pl = league?.overview?.players || [];
   const maps = pl.reduce((a, p) => a + p.maps, 0);
@@ -1689,12 +1763,16 @@ function leagueAvgOf(k){
   const sum = f => pl.reduce((a, p) => a + p[f], 0);
   if(k === "acs") return pl.reduce((a, p) => a + p.acs * p.maps, 0) / maps;
   if(k === "kd") return sum("d") ? sum("k") / sum("d") : null;
+  if(k === "adr" || k === "kast"){ const hp = pl.filter(p => p.hd_n && p[k] != null), n = hp.reduce((a, p) => a + p.hd_n, 0); return n ? hp.reduce((a, p) => a + p[k] * p.hd_n, 0) / n : null; }
   return sum(k) / maps;   // k, fb: pro Map
 }
 function drawForm(){
   const box = $("#formchart");
   if(!box || !formHist.length) return;
-  const M = FORM_METRICS[formMetric], H = formHist, n = H.length;
+  let M = FORM_METRICS[formMetric];
+  if(M.hd && !formHist.some(h => M.v(h) != null)){ formMetric = "acs"; M = FORM_METRICS.acs; }
+  const H = formHist.filter(h => M.v(h) != null), n = H.length;   // ADR/KAST: nur Maps mit Rundendaten
+  if(!n) return;
   const vals = H.map(M.v);
   const own = avgOf(H, formMetric), lg = leagueAvgOf(formMetric);
   const roll = vals.map((_, i) => { const w = vals.slice(Math.max(0, i - 2), i + 1); return w.reduce((a, b) => a + b, 0) / w.length; });
@@ -2516,8 +2594,70 @@ function teamLogo(id){
   const t = league.teams.find(x => x.id === String(id));
   return t?.logo || "";
 }
+// Badges wie bei tracker.gg: gewonnene Clutches (1vX) und Multikills ab 3K (cl = [1v1..1v5], mk = [2K,3K,4K,5K])
+function badgeHtml(cl = [], mk = [], cs = []){
+  const b = [];
+  cl.forEach((v, j) => { if(v) b.push(`<span class="pbadge cl" title="${v}× Clutch 1 gegen ${j + 1} gewonnen">1v${j + 1}${v > 1 ? ` ×${v}` : ""}</span>`); });
+  (cs || []).forEach((v, j) => { if(v) b.push(`<span class="pbadge cs" title="${v}× Clutch-Situation 1 gegen ${j + 1}: Spike gelegt, selbst gestorben, Runde durch die Explosion gewonnen"><i class="ri ri-D"></i>1v${j + 1}${v > 1 ? ` ×${v}` : ""}</span>`); });
+  mk.forEach((v, j) => { if(v && j >= 1) b.push(`<span class="pbadge mk${j === 3 ? " ace" : ""}" title="${v}× ${j + 2} Kills in einer Runde">${j === 3 ? "ACE" : `${j + 2}K`}${v > 1 ? ` ×${v}` : ""}</span>`); });
+  return b.length ? `<div class="pbadges">${b.join("")}</div>` : "";
+}
+// Quote aus [gewonnen, gesamt]: farbig (über/unter 50 %), bei < 5 Fällen blass
+function rateCell(x, showN = true){
+  if(!x || !x[1]) return '<span class="sub">–</span>';
+  const q = Math.round(100 * x[0] / x[1]);
+  return `<span class="${x[1] < 5 ? "" : q > 50 ? "pos-up" : q < 50 ? "pos-dn" : ""}" title="${x[0]} von ${x[1]}${x[1] < 5 ? " – wenig Daten, darum ohne Farbe" : ""}">${q}%</span>${showN ? ` <span class="sub">(${x[0]}/${x[1]})</span>` : ""}`;
+}
+// Site-Chips aus {Site: [gewonnen, gesamt]}
+function siteChips(o, kind){
+  const es = Object.entries(o || {}).sort((a, b) => a[0].localeCompare(b[0]));
+  if(!es.length) return '<span class="sub">–</span>';
+  // Plants: Site mit den meisten Plants umranden (bevorzugte Site); bei Gleichstand alle
+  const tot = es.reduce((a, [, x]) => a + x[1], 0), mx = Math.max(...es.map(([, x]) => x[1]));
+  return `<span class="sites">${es.map(([st, [w, n]]) => { const q = w / n, top = kind === "p" && es.length > 1 && n === mx;
+    return `<span class="site ${n < 3 ? "" : q > .5 ? "g" : q < .5 ? "r" : ""}${top ? " top" : ""}" title="${kind === "p" ? `Site ${st}: ${n}× geplantet (${Math.round(100 * n / tot)} % der Plants), danach ${w}× gewonnen${top ? " – bevorzugte Site" : ""}` : `Site ${st}: Gegner ${n}× geplantet, ${w}× zurückerobert`}"><b>${esc(st)}</b>${w}/${n}</span>`; }).join("")}</span>`;
+}
+// Spielweise je Map aus den Rundendaten (Teamseite)
+function playstyleHtml(o){
+  const H = o?.hd;
+  if(!H) return "";
+  const rows = Object.entries(H.maps).sort((a, b) => b[1].n - a[1].n);
+  const buys = ["Eco", "Semi-Eco", "Semi-Buy", "Full Buy"];
+  return `<div class="sechead"><h3>Spielweise ${tip(`Aus den Riot-Matchdaten von ${H.n} ${H.n === 1 ? "Map" : "Maps"}${o.maps_played > H.n ? ` (von ${o.maps_played} gespielten)` : ""}. Plants: Runden nach eigenem Plant gewonnen / Plants. Retakes: Runden nach gegnerischem Plant noch gewonnen. Kaufarten: Siegquote nach eigenem Loadout. Ohne Farbe = zu wenig Daten (unter 5 Runden bzw. 3 Plants).`)}</h3></div>
+  <div class="scrollx"><table class="maptable pstyle"><thead><tr><th>Map</th><th class="num">Runden</th><th class="num">Pistol</th><th class="num" title="Anteil der Runden mit dem ersten Kill">First Kills</th>
+    <th class="num" title="Runden mit höchstens 45 % des gegnerischen Loadouts: davon gewonnen (Thrifty)">Thrifty</th>
+    <th class="c">Plants (Angriff)</th><th class="c">Retakes (Verteidigung)</th><th class="c" title="Siegquote nach eigener Kaufart">Kaufarten</th></tr></thead><tbody>${
+    rows.map(([mp, x]) => `<tr><td class="mcell"><div class="mapname maplink" data-map="${esc(mp)}"><img src="${MAP_IMG(mp)}" alt="" loading="lazy" onerror="this.remove()"><span>${esc(cap(mp))}</span></div><span class="sub">${x.n} ${x.n === 1 ? "Map" : "Maps"}</span></td>
+      <td class="num">${x.rounds}</td><td class="num">${rateCell(x.pistol)}</td><td class="num">${rateCell(x.fk, false)}</td><td class="num">${x.thrifty ? rateCell(x.thrifty) : '<span class="sub">–</span>'}</td>
+      <td class="c">${siteChips(x.plant, "p")}</td><td class="c">${siteChips(x.retake, "r")}</td>
+      <td class="c"><span class="sites">${buys.filter(b => x.buy[b]).map(b => `<span class="buyc ${BUY_CLS[b]}" title="${b}: ${x.buy[b][0]} von ${x.buy[b][1]} Runden gewonnen"><b class="reco ${BUY_CLS[b]}">${{Eco: "E", "Semi-Eco": "SE", "Semi-Buy": "SB", "Full Buy": "FB"}[b]}</b>${Math.round(100 * x.buy[b][0] / x.buy[b][1])}%</span>`).join("")}</span></td></tr>`).join("")}</tbody></table></div>`;
+}
+// Haupt-Planter (meiste Plants) und Entry (meiste Erst-Duelle pro Runde: First Kills + First Deaths) eines Teams
+// players: [{name, pl, fk, fd, r}] – nur eindeutig: mind. 25 % der Plants bzw. 3 Erst-Duelle
+function keyRoles(players){
+  const all = players.filter(p => p && p.r), maxR = Math.max(0, ...all.map(p => p.r));
+  const ps = all.filter(p => p.r >= 0.5 * maxR);   // nur Stammspieler (sonst gewinnt z. B. ein Ersatz mit 2 Maps die Quote)
+  const plSum = all.reduce((a, p) => a + (p.pl || 0), 0);
+  const pl = [...ps].sort((a, b) => (b.pl || 0) - (a.pl || 0))[0];
+  const en = [...ps].sort((a, b) => (b.fk + b.fd) / b.r - (a.fk + a.fd) / a.r)[0];
+  return {
+    planter: pl && pl.pl && pl.pl >= 0.25 * plSum ? pl.name.toLowerCase() : null,
+    entry: en && en.fk + en.fd >= 3 ? en.name.toLowerCase() : null,
+    tip: {planter: pl ? `Haupt-Planter: ${pl.pl} von ${plSum} Plants des Teams` : "", entry: en ? `Entry-Fragger: an ${Math.round(100 * (en.fk + en.fd) / en.r)} % der Runden im ersten Duell (${en.fk} First Kills, ${en.fd} First Deaths)` : ""},
+  };
+}
+function roleIcons(name, roles){
+  if(!roles || !name) return "";
+  const k = String(name).toLowerCase();
+  return (roles.planter === k ? `<i class="ric ric-plant" title="${esc(roles.tip.planter)}"></i>` : "")
+    + (roles.entry === k ? `<i class="ric ric-entry" title="${esc(roles.tip.entry)}"></i>` : "");
+}
+// Rundendaten-Werte eines Spielers (Team-Zusammenfassung opl.hd)
+const hdPlayer = (T, name) => T?.opl?.hd?.players?.[String(name || "").toLowerCase()] || null;
 // Kaufart aus dem Loadout-Wert eines Teams (Summe der 5 Spieler)
 const buyType = (v, pistol) => pistol ? "Pistol" : v < 5000 ? "Eco" : v < 10000 ? "Semi-Eco" : v < 20000 ? "Semi-Buy" : "Full Buy";
+// Thrifty: Runde mit höchstens 45 % des gegnerischen Loadouts gewonnen (ohne Pistol-Runden)
+const isThrifty = (r, i) => i !== 0 && i !== 12 && r.w && r.eco[2 - r.w] > 0 && r.eco[r.w - 1] <= 0.45 * r.eco[2 - r.w];
 const BUY_CLS = {"Pistol": "bp", "Eco": "be", "Semi-Eco": "bse", "Semi-Buy": "bsb", "Full Buy": "bf"};
 const RES_IC = {E: ["☠", "Elimination"], D: ["💥", "Spike gezündet"], F: ["✂", "Spike entschärft"], T: ["⏱", "Zeit abgelaufen"]};
 function renderMatch(A, mtA, B, m, H = null){
@@ -2544,26 +2684,21 @@ function renderMatch(A, mtA, B, m, H = null){
     const g = {};
     for(const r of rows){
       const x = g[r.name.toLowerCase()] ??= {name: r.name, team: r.team, n: 0, nr: 0, acs: 0, k: 0, d: 0, a: 0, fb: 0, econ: 0, plants: 0, defuses: 0, agents: [],
-        adr: 0, hs: 0, kast: 0, fk: 0, fd: 0, mk: [0, 0, 0, 0], cl: [0, 0, 0, 0, 0], pl: 0, df: 0, hd: true};
+        adr: 0, hs: 0, kast: 0, fk: 0, fd: 0, mk: [0, 0, 0, 0], cl: [0, 0, 0, 0, 0], cs: [0, 0, 0, 0, 0], pl: 0, df: 0, hd: true};
       const w = r.nr || 1;
       x.n++; x.nr += w; x.k += r.k; x.d += r.d; x.a += r.a; x.agents.push(r.agent);
       if(r.nr){ x.acs += r.acs * w; x.adr += r.adr * w; x.hs += r.hs * w; x.kast += r.kast * w; x.fk += r.fk; x.fd += r.fd; x.pl += r.pl; x.df += r.df;
-        r.mk.forEach((v, j) => x.mk[j] += v); r.cl.forEach((v, j) => x.cl[j] += v); }
+        r.mk.forEach((v, j) => x.mk[j] += v); r.cl.forEach((v, j) => x.cl[j] += v); (r.cs || []).forEach((v, j) => x.cs[j] += v); }
       else { x.hd = false; x.acs += r.acs * w; x.fb += r.fb; x.econ += r.econ; x.plants += r.plants; x.defuses += r.defuses; }
     }
     return Object.values(g).map(x => ({...x, acs: Math.round(x.acs / x.nr), adr: Math.round(x.adr / x.nr), hs: Math.round(x.hs / x.nr), kast: Math.round(x.kast / x.nr),
       econ: Math.round(x.econ / x.n), nr: x.hd ? x.nr : 0})).sort((x, y) => y.acs - x.acs);
   };
   // Badges wie bei tracker.gg: Clutches (1v1 …) und Multikills ab 3K
-  const badges = r => {
-    if(!r.nr) return "";
-    const b = [];
-    r.cl.forEach((v, j) => { if(v) b.push(`<span class="pbadge cl" title="${v}× Clutch 1 gegen ${j + 1} gewonnen">1v${j + 1}${v > 1 ? ` ×${v}` : ""}</span>`); });
-    r.mk.forEach((v, j) => { if(v && j >= 1) b.push(`<span class="pbadge mk${j === 3 ? " ace" : ""}" title="${v}× ${j + 2} Kills in einer Runde">${j === 3 ? "ACE" : `${j + 2}K`}${v > 1 ? ` ×${v}` : ""}</span>`); });
-    return b.length ? `<div class="pbadges">${b.join("")}</div>` : "";
-  };
+  const badges = r => r.nr ? badgeHtml(r.cl, r.mk, r.cs) : "";
   const board = (rows, name, logo, won, mvp) => {
     const hd = rows.length && rows.every(r => r.nr);
+    const roles = hd ? keyRoles(rows.map(r => ({name: r.name, pl: r.pl, fk: r.fk, fd: r.fd, r: r.nr}))) : null;
     const head = hd
       ? `<th class="num">ACS</th><th class="num">K</th><th class="num">D</th><th class="num">A</th><th class="num">+/-</th><th class="num" title="Schaden pro Runde">ADR</th><th class="num opt" title="Anteil Kopftreffer">HS%</th><th class="num opt" title="Runden mit Kill, Assist, überlebt oder getradet">KAST</th><th class="num opt" title="First Kills / First Deaths">FK/FD</th>`
       : `<th class="num">ACS</th><th class="num">K</th><th class="num">D</th><th class="num">A</th><th class="num">+/-</th><th class="num opt">K/D</th><th class="num opt">FB</th><th class="num opt">Econ</th><th class="num opt" title="Plants/Defuses">P/D</th>`;
@@ -2573,7 +2708,7 @@ function renderMatch(A, mtA, B, m, H = null){
         const cells = hd
           ? `<td class="num">${r.adr}</td><td class="num opt">${r.hs}%</td><td class="num opt">${r.kast}%</td><td class="num opt">${r.fk}/${r.fd}</td>`
           : `<td class="num opt">${r.d ? (r.k / r.d).toFixed(2) : r.k}</td><td class="num opt">${r.fb}</td><td class="num opt">${r.econ}</td><td class="num opt">${r.plants}/${r.defuses}</td>`;
-        return `<tr${r.name === mvp ? ' class="mvp"' : ""}><td><div class="pcell"><span class="pname plink" data-team="${esc(r.team)}" data-key="${esc(r.name.toLowerCase())}" title="${esc(r.name)}">${esc(r.name)}</span>${r.name === mvp ? '<span class="star" title="Höchster ACS im Match">MVP</span>' : ""}${badges(r)}</div></td>
+        return `<tr${r.name === mvp ? ' class="mvp"' : ""}><td><div class="pcell"><span class="pname plink" data-team="${esc(r.team)}" data-key="${esc(r.name.toLowerCase())}" title="${esc(r.name)}">${esc(r.name)}</span>${roleIcons(r.name, roles)}${r.name === mvp ? '<span class="star" title="Höchster ACS im Match">MVP</span>' : ""}${badges(r)}</div></td>
         <td class="c">${[...new Set(r.agents || [r.agent])].map(agIc).join("")}</td><td class="num"><b>${r.acs}</b></td><td class="num">${r.k}</td><td class="num">${r.d}</td><td class="num">${r.a}</td>
         <td class="num ${pm > 0 ? "pos-up" : pm < 0 ? "pos-dn" : ""}">${pm > 0 ? "+" : ""}${pm}</td>${cells}</tr>`; }).join("")}</tbody></table>`
       : '<p class="sub">Keine Spielerdaten.</p>'}</div>`;
@@ -2583,8 +2718,8 @@ function renderMatch(A, mtA, B, m, H = null){
   const timeline = gs => {
     const half = 12;
     const cell = (r, i, side) => {
-      const mine = r.w === side, [ic, txt] = RES_IC[r.r] || RES_IC.T;
-      return `<div class="rcell${mine ? " on " + (side === ta ? "a" : "b") : ""}">${mine ? `<i class="ri ri-${r.r || "T"}"></i>` : ""}</div>`;
+      const mine = r.w === side, thr = mine && isThrifty(r, i);
+      return `<div class="rcell${mine ? " on " + (side === ta ? "a" : "b") : ""}${thr ? " thr" : ""}">${mine ? `<i class="ri ri-${r.r || "T"}"></i>` : ""}${thr ? '<b class="thrb">$</b>' : ""}</div>`;
     };
     const col = (r, i, gi, g) => {
       const atkA = r.a1 == null ? null : (ta === 1 ? r.a1 : !r.a1);
@@ -2592,48 +2727,52 @@ function renderMatch(A, mtA, B, m, H = null){
       const ecoA = r.eco[ta - 1], ecoB = r.eco[tb - 1];
       const t = [`Runde ${i + 1}: ${r.w === ta ? nameA : nameB} (${(r.w === ta) === atkA ? "Angriff" : "Verteidigung"}) · ${(RES_IC[r.r] || RES_IC.T)[1]}`,
         r.fb ? `First Blood: ${r.fb[0]} → ${r.fb[1]}` : "", r.pl ? `Plant ${r.pl.s} durch ${r.pl.by} (${Math.floor(r.pl.t / 60)}:${String(r.pl.t % 60).padStart(2, "0")})` : "",
-        r.df ? `Defuse durch ${r.df.by}` : "", `${nameA}: ${ecoA.toLocaleString("de-DE")} (${buyType(ecoA, pistol)}) · ${nameB}: ${ecoB.toLocaleString("de-DE")} (${buyType(ecoB, pistol)})`].filter(Boolean).join("\n");
+        r.df ? `Defuse durch ${r.df.by}` : "", isThrifty(r, i) ? "Thrifty: mit höchstens 45 % des gegnerischen Loadouts gewonnen" : "", `${nameA}: ${ecoA.toLocaleString("de-DE")} (${buyType(ecoA, pistol)}) · ${nameB}: ${ecoB.toLocaleString("de-DE")} (${buyType(ecoB, pistol)})`].filter(Boolean).join("\n");
       const msep = gi > 0 && i === 0;
       return `<div class="rcol${msep ? " msep" : i === half || (i >= 24 && i % 2 === 0) ? " sep" : ""}" title="${esc((gs.length > 1 ? cap(g.map) + " · " : "") + t)}"><div class="rn">${i === 0 && gs.length > 1 ? `<b>${esc(cap(g.map).slice(0, 3))}</b>` : i + 1}</div>${cell(r, i, ta)}${cell(r, i, tb)}
         ${[ecoA, ecoB].map(v => `<div class="reco ${BUY_CLS[buyType(v, pistol)]}">${(v / 1000).toFixed(v < 9950 ? 1 : 0).replace(".", ",")}</div>`).join("")}</div>`;
     };
     return `<div class="rtl${gs.length > 1 ? " multi" : ""}"><div class="rtlh"><span></span><span class="a">${esc(nameA)}</span><span class="b">${esc(nameB)}</span><span class="la" title="Loadout ${esc(nameA)} in Tsd. Credits">Loadout</span><span class="lb" title="Loadout ${esc(nameB)} in Tsd. Credits">Loadout</span></div><div class="rtlr">${gs.map((g, gi) => g.rounds.map((r, i) => col(r, i, gi, g)).join("")).join("")}</div></div>
-      <div class="rleg"><span><i class="ri ri-E"></i>Elimination</span><span><i class="ri ri-D"></i>Spike gezündet</span><span><i class="ri ri-F"></i>Entschärft</span><span><i class="ri ri-T"></i>Zeit abgelaufen</span>
+      <div class="rleg"><span><i class="ri ri-E"></i>Elimination</span><span><i class="ri ri-D"></i>Spike gezündet</span><span><i class="ri ri-F"></i>Entschärft</span><span><i class="ri ri-T"></i>Zeit abgelaufen</span><span><b class="thrb static">$</b>Thrifty</span>
         <span class="rlegsep">Loadout (Tsd. Credits):</span>${["Pistol", "Eco", "Semi-Eco", "Semi-Buy", "Full Buy"].map(b => `<span><b class="reco ${BUY_CLS[b]}">${{Pistol: "P", Eco: "<5", "Semi-Eco": "5–10", "Semi-Buy": "10–20", "Full Buy": "20+"}[b]}</b>${b}</span>`).join("")}</div>`;
   };
   // Kennzahlen aus den Rundendaten (pro Team): Pistol, Angriff/Verteidigung, Plant-Sites, First Kills
   const teamFacts = games => {
     const f = side => {
-      let pw = 0, pn = 0, aw = 0, an = 0, dw = 0, dn = 0, fk = 0, n = 0;
+      let pw = 0, pn = 0, aw = 0, an = 0, dw = 0, dn = 0, fk = 0, n = 0, tw = 0, tn = 0;
       const plant = {}, retake = {};   // je Site: {n, w} – Plants als Angreifer (danach gewonnen) / Plants des Gegners (Retake gewonnen)
       for(const g of games) g.rounds.forEach((r, i) => {
         n++;
         const atk = r.a1 == null ? null : ((side === 1) === r.a1);
         if(i === 0 || i === 12){ pn++; if(r.w === side) pw++; }
+        const own = r.eco[side - 1], opp = r.eco[2 - side];
+        if(i !== 0 && i !== 12 && opp && own <= 0.45 * opp){ tn++; if(r.w === side) tw++; }
         if(atk === true){ an++; if(r.w === side) aw++;
-          if(r.pl){ const x = plant[r.pl.s] ??= {n: 0, w: 0}; x.n++; if(r.w === side) x.w++; } }
+          if(r.pl){ const x = (plant[g.map] ??= {})[r.pl.s] ??= {n: 0, w: 0}; x.n++; if(r.w === side) x.w++; } }
         if(atk === false){ dn++; if(r.w === side) dw++;
-          if(r.pl){ const x = retake[r.pl.s] ??= {n: 0, w: 0}; x.n++; if(r.w === side) x.w++; } }
+          if(r.pl){ const x = (retake[g.map] ??= {})[r.pl.s] ??= {n: 0, w: 0}; x.n++; if(r.w === side) x.w++; } }
         if(r.fb){ const p = g.players.find(x => x.n === r.fb[0]); if(p?.t === side) fk++; }
       });
       const pct = (a, b) => b ? Math.round(100 * a / b) + "%" : "–";
       const r = (a, b) => b ? a / b : null;   // Rohwerte für den Farbvergleich
-      const sum = o => Object.values(o).reduce((s, x) => [s[0] + x.w, s[1] + x.n], [0, 0]);
+      const sum = o => Object.values(o).flatMap(Object.values).reduce((s, x) => [s[0] + x.w, s[1] + x.n], [0, 0]);
       const [pW, pN] = sum(plant), [rW, rN] = sum(retake);
-      return {pistol: `${pw}/${pn}`, atk: `${pct(aw, an)} (${aw}/${an})`, def: `${pct(dw, dn)} (${dw}/${dn})`, fk: pct(fk, n),
+      return {thrifty: tn ? `${pct(tw, tn)} (${tw}/${tn})` : "–", pistol: `${pw}/${pn}`, atk: `${pct(aw, an)} (${aw}/${an})`, def: `${pct(dw, dn)} (${dw}/${dn})`, fk: pct(fk, n),
         plant, retake, pW, pN, rW, rN,
-        v: {pistol: r(pw, pn), atk: r(aw, an), def: r(dw, dn), fk: r(fk, n), post: r(pW, pN), ret: r(rW, rN)}};
+        v: {thrifty: r(tw, tn), pistol: r(pw, pn), atk: r(aw, an), def: r(dw, dn), fk: r(fk, n), post: r(pW, pN), ret: r(rW, rN)}};
     };
     const a = f(ta), b = f(tb);
     // besserer Wert grün, schlechterer rot (gleich oder ohne Vergleich: neutral)
     const cmp = (k, x, y) => x.v?.[k] == null || y.v?.[k] == null || x.v[k] === y.v[k] ? "" : x.v[k] > y.v[k] ? "pos-up" : "pos-dn";
     const row = (l, k, t) => `<tr><td title="${esc(t || "")}">${l}</td><td class="num ${cmp(k, a, b)}">${a[k]}</td><td class="num ${cmp(k, b, a)}">${b[k]}</td></tr>`;
     // Site-Chips: Buchstabe + gewonnen/gesamt, Farbe nach Quote; dahinter die Gesamtquote (farbig im Teamvergleich)
+    // je Map eine Gruppe (Sites gleichen Namens sind auf verschiedenen Maps verschiedene Orte); bei einer Map ohne Map-Etikett
     const chips = (o, kind) => {
-      const es = Object.entries(o).sort((x, y) => x[0].localeCompare(y[0]));
-      if(!es.length) return '<span class="sub">–</span>';
-      return es.map(([st, x]) => { const q = x.w / x.n;
-        return `<span class="site ${q > .5 ? "g" : q < .5 ? "r" : ""}" title="${kind === "p" ? `Site ${st}: ${x.n}× geplantet, danach ${x.w}× gewonnen` : `Site ${st}: Gegner ${x.n}× geplantet, ${x.w}× zurückerobert`}"><b>${esc(st)}</b>${x.w}/${x.n}</span>`; }).join("");
+      const ms = games.map(g => g.map).filter((mp, i, arr) => arr.indexOf(mp) === i && o[mp]);
+      if(!ms.length) return '<span class="sub">–</span>';
+      return ms.map(mp => `<span class="sgrp">${games.length > 1 ? `<span class="smap">${esc(cap(mp))}</span>` : ""}${
+        Object.entries(o[mp]).sort((x, y) => x[0].localeCompare(y[0])).map(([st, x]) => { const q = x.w / x.n;
+          return `<span class="site ${q > .5 ? "g" : q < .5 ? "r" : ""}" title="${esc(cap(mp))} · ${kind === "p" ? `Site ${st}: ${x.n}× geplantet, danach ${x.w}× gewonnen` : `Site ${st}: Gegner ${x.n}× geplantet, ${x.w}× zurückerobert`}"><b>${esc(st)}</b>${x.w}/${x.n}</span>`; }).join("")}</span>`).join("");
     };
     const siteRow = (l, kind, k, t) => {
       const cell = (x, y) => { const [w, n] = kind === "p" ? [x.pW, x.pN] : [x.rW, x.rN];
@@ -2641,7 +2780,7 @@ function renderMatch(A, mtA, B, m, H = null){
       return `<tr><td title="${esc(t)}">${l}</td>${cell(a, b)}${cell(b, a)}</tr>`;
     };
     return `<div class="tfacts"><table class="sbt"><thead><tr><th></th><th class="num">${esc(nameA)}</th><th class="num">${esc(nameB)}</th></tr></thead><tbody>
-      ${row("Pistol-Runden", "pistol")}${row("Angriff gewonnen", "atk")}${row("Verteidigung gewonnen", "def")}${row("First Kills", "fk", "Anteil der Runden, in denen das Team den ersten Kill hatte")}
+      ${row("Pistol-Runden", "pistol")}${row("Angriff gewonnen", "atk")}${row("Verteidigung gewonnen", "def")}${row("First Kills", "fk", "Anteil der Runden, in denen das Team den ersten Kill hatte")}${row("Thrifties", "thrifty", "Runden mit höchstens 45 % des gegnerischen Loadouts: davon gewonnen / gespielt")}
       ${siteRow("Plants (Angriff)", "p", "post", "Je Site: Runden nach eigenem Plant gewonnen / Plants. Dahinter die Quote über alle Sites.")}
       ${siteRow("Retakes (Verteidigung)", "r", "ret", "Je Site: Runden nach gegnerischem Plant noch gewonnen (Retake oder Defuse) / Plants des Gegners. Dahinter die Quote über alle Sites.")}</tbody></table></div>`;
   };
@@ -2671,7 +2810,7 @@ function renderMatch(A, mtA, B, m, H = null){
     </div>
     ${veto ? `<div class="sechead"><h3>Veto ${tip(`Rot = ${nameA}, blau = ${nameB}, gestrichelt = Decider.`)}</h3></div><div class="vsteps">${veto}</div>` : ""}
     ${panes.length ? `<div class="sechead"><h3>Scoreboard ${tip(games.length
-        ? "Aus den Riot-Matchdaten (HenrikDev), sortiert nach ACS. „Gesamt“ = Summe bzw. Ø über alle Maps. Badges: gewonnene Clutches (1vX) und Multikills ab 3 Kills in einer Runde. Rundenverlauf: Symbol = Ausgang, Balken = Loadout-Wert; Details beim Hovern."
+        ? "Aus den Riot-Matchdaten (HenrikDev), sortiert nach ACS. „Gesamt“ = Summe bzw. Ø über alle Maps. Badges: gewonnene Clutches (1vX, lila mit Spike-Symbol = gestorben, aber Spike explodiert) und Multikills ab 3 Kills in einer Runde. Gelber Spike = Haupt-Planter, rote Pfeile = Entry-Fragger. Rundenverlauf: Symbol = Ausgang, Balken = Loadout-Wert; Details beim Hovern."
         : "Pro Map aus den OPL-Stats beider Teams, sortiert nach ACS. „Gesamt“ = Summe bzw. Ø über alle Maps. MVP = höchster ACS. Für dieses Match gibt es (noch) keine Rundendaten.")}</h3>
       <div class="seg sbtabs">${tabs.map((t, i) => `<button class="${i ? "" : "on"}" data-sb="${i}">${esc(t)}</button>`).join("")}</div></div>
     ${panes.map((p, i) => `<div class="sbpane" data-sb="${i}"${i ? " hidden" : ""}>

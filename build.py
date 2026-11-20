@@ -562,6 +562,17 @@ def team_opl(tid, matches, meta=None):
             "record": record}
 
 
+def _hd_player_fields(opl, name):
+    """Rundendaten-Werte eines Spielers für die Bestenliste (hd_n = Maps mit Rundendaten)."""
+    x = (((opl or {}).get("hd") or {}).get("players") or {}).get(name.lower())
+    if not x:
+        return {}
+    duels = x["fk"] + x["fd"]
+    return {"hd_n": x["n"], "adr": x["adr"], "kast": x["kast"], "hs": x["hs"], "fk": x["fk"], "fd": x["fd"],
+            "esr": round(100 * x["fk"] / duels) if duels else None,   # Entry Success Rate: gewonnene Erst-Duelle
+            "cl": sum(x["cl"]), "mk": x["mk"]}
+
+
 def league_overview(matches, opl_by_team, teams):
     """Liga-weite Auswertung: Map-Raten, Startseite, Agents, Comps, Spieler-Bestenliste."""
     maps, agents, comps = {}, {}, {}
@@ -639,7 +650,8 @@ def league_overview(matches, opl_by_team, teams):
             players.append({"name": agg["name"], "team": tid, "team_name": names[tid], "maps": agg["maps"],
                             "acs": agg["acs"], "kd": agg["kd"], "k": agg["k"], "d": agg["d"], "a": agg["a"],
                             "econ": agg["econ"], "fb": agg["fb"], "fbpm": round(agg["fb"] / agg["maps"], 2) if agg["maps"] else 0,
-                            "winrate": agg["winrate"], "agents": agg["agents"][:3]})
+                            "winrate": agg["winrate"], "agents": agg["agents"][:3],
+                            **_hd_player_fields(opl_by_team.get(tid), agg["name"])})
     # Pro Map: Bilanz jedes Teams und Stats jedes Spielers
     map_teams, map_players = {}, {}
     for tid in names:
@@ -953,7 +965,7 @@ def hd_condense(g, side1, side2):
     by_round = {}
     for k in kills:
         by_round.setdefault(k.get("round", 0), []).append(k)
-    ps = {pu: {"k": 0, "fk": 0, "fd": 0, "kast": 0, "mk": [0, 0, 0, 0], "cl": [0, 0, 0, 0, 0], "pl": 0, "df": 0} for pu in players}
+    ps = {pu: {"k": 0, "fk": 0, "fd": 0, "kast": 0, "mk": [0, 0, 0, 0], "cl": [0, 0, 0, 0, 0], "cs": [0, 0, 0, 0, 0], "pl": 0, "df": 0} for pu in players}
     rounds = []
     for rd in rounds_raw:
         i = rd.get("id", len(rounds))
@@ -979,9 +991,16 @@ def hd_condense(g, side1, side2):
             fk, fd = f.get("killer", {}).get("puuid"), f.get("victim", {}).get("puuid")
             if fk in ps: ps[fk]["fk"] += 1
             if fd in ps: ps[fd]["fd"] += 1
+        # Rundenende: Defuse-Zeitpunkt bzw. Plant + 45 s (Detonation); Kills danach (Post-Round) zählen nicht für Clutches
+        end = None
+        if rd.get("defuse") and rd["defuse"].get("round_time_in_ms"):
+            end = rd["defuse"]["round_time_in_ms"]
+        elif rd.get("result") == "Detonate" and rd.get("plant"):
+            end = (rd["plant"].get("round_time_in_ms") or 0) + 45000
+        ks_live = [k for k in ks if end is None or k.get("time_in_round_in_ms", 0) <= end]
         alive = {1: {pu for pu, t in team_of.items() if t == 1}, 2: {pu for pu, t in team_of.items() if t == 2}}
         clutch = {}
-        for k in ks:
+        for k in ks_live:
             vi = k.get("victim", {}).get("puuid")
             for t in (1, 2):
                 alive[t].discard(vi)
@@ -990,7 +1009,9 @@ def hd_condense(g, side1, side2):
                     clutch[t] = (next(iter(alive[t])), len(alive[o]))
         if w in clutch:
             pu, n = clutch[w]
-            if pu in ps and 1 <= n <= 5: ps[pu]["cl"][n - 1] += 1
+            # überlebt → gewonnener 1vX; gestorben, Runde trotzdem gewonnen (Spike explodiert) → eigene Zählung „Spike-Clutch“
+            if pu in ps and 1 <= n <= 5:
+                ps[pu]["cl" if pu in alive[w] else "cs"][n - 1] += 1
         for pu in players:
             if rk.get(pu, 0) or pu in assisted or pu not in died or pu in traded:
                 ps[pu]["kast"] += 1
@@ -1020,7 +1041,7 @@ def hd_condense(g, side1, side2):
             "n": p.get("name"), "tag": p.get("tag"), "t": team_of.get(pu), "ag": (p.get("agent") or {}).get("name"),
             "acs": round((s.get("score") or 0) / nr), "k": s.get("kills", 0), "d": s.get("deaths", 0), "a": s.get("assists", 0),
             "adr": round(((s.get("damage") or {}).get("dealt") or 0) / nr), "hs": round(100 * (s.get("headshots") or 0) / shots) if shots else 0,
-            "kast": round(100 * x["kast"] / nr), "fk": x["fk"], "fd": x["fd"], "mk": x["mk"], "cl": x["cl"], "pl": x["pl"], "df": x["df"],
+            "kast": round(100 * x["kast"] / nr), "fk": x["fk"], "fd": x["fd"], "mk": x["mk"], "cl": x["cl"], "cs": x["cs"], "pl": x["pl"], "df": x["df"],
         })
     md = g.get("metadata") or {}
     return {"rid": md.get("match_id"), "map": (md.get("map", {}).get("name") or "").lower(), "start": md.get("started_at"),
@@ -1125,6 +1146,76 @@ def fetch_round_data(leagues, region, budget_n):
     log(f"Rundendaten: {done} von {n0} offenen Matches gefunden ({budget_n - budget[0]} Anfragen)")
 
 
+THRIFTY = 0.45   # Runde mit höchstens 45 % des gegnerischen Loadouts gewonnen = Thrifty (passt zu Riots Zeremonie)
+
+
+def _buy(v, pistol):
+    return "Pistol" if pistol else "Eco" if v < 5000 else "Semi-Eco" if v < 10000 else "Semi-Buy" if v < 20000 else "Full Buy"
+
+
+def hd_team_agg(tid, match_ids):
+    """Rundendaten aller Matches eines Teams zusammenfassen: je Map (Seiten, Pistol, Plants/Retakes je Site,
+    Kaufarten, First Kills) und je Spieler (ADR, KAST, HS%, FK/FD, Multikills, Clutches, Werte je Map für das Form-Diagramm)."""
+    maps, players, n_games = {}, {}, 0
+    for mid in dict.fromkeys(match_ids):
+        hd = core.cache.peek(f"hdm:{mid}") or {}
+        m = core.cache.peek(f"match:{mid}") or {}
+        if not any(hd.get("games") or []):
+            continue
+        side = 1 if str((m.get("t1") or {}).get("id")) == str(tid) else 2 if str((m.get("t2") or {}).get("id")) == str(tid) else None
+        if not side:
+            continue
+        for g in hd["games"]:
+            if not g:
+                continue
+            n_games += 1
+            mp = maps.setdefault(g["map"], {"n": 0, "rounds": 0, "atk": [0, 0], "def": [0, 0], "pistol": [0, 0], "fk": [0, 0], "thrifty": [0, 0],
+                                            "plant": {}, "retake": {}, "buy": {}})
+            mp["n"] += 1
+            first_team = {p["n"]: p["t"] for p in g["players"]}
+            for i, r in enumerate(g["rounds"]):
+                won = r["w"] == side
+                mp["rounds"] += 1
+                atk = None if r.get("a1") is None else ((side == 1) == r["a1"])
+                if i in (0, 12):
+                    mp["pistol"][1] += 1; mp["pistol"][0] += won
+                if atk is True:
+                    mp["atk"][1] += 1; mp["atk"][0] += won
+                    if r.get("pl"):
+                        x = mp["plant"].setdefault(r["pl"]["s"], [0, 0]); x[1] += 1; x[0] += won
+                elif atk is False:
+                    mp["def"][1] += 1; mp["def"][0] += won
+                    if r.get("pl"):
+                        x = mp["retake"].setdefault(r["pl"]["s"], [0, 0]); x[1] += 1; x[0] += won
+                if r.get("fb"):
+                    mp["fk"][1] += 1; mp["fk"][0] += first_team.get(r["fb"][0]) == side
+                # Thrifty-Chance: eigenes Loadout höchstens 45 % des gegnerischen (wie Riots „Thrifty“), ohne Pistol-Runden
+                own, opp = r["eco"][side - 1], r["eco"][2 - side]
+                if i not in (0, 12) and opp and own <= THRIFTY * opp:
+                    mp["thrifty"][1] += 1; mp["thrifty"][0] += won
+                bt = _buy(r["eco"][side - 1], i in (0, 12))
+                x = mp["buy"].setdefault(bt, [0, 0]); x[1] += 1; x[0] += won
+            nr = len(g["rounds"]) or 1
+            for p in g["players"]:
+                if p["t"] != side or not p.get("n"):
+                    continue
+                x = players.setdefault(p["n"].lower(), {"name": p["n"], "n": 0, "r": 0, "k": 0, "d": 0, "a": 0, "dmg": 0, "hs_w": 0, "kast_r": 0,
+                                                        "fk": 0, "fd": 0, "mk": [0, 0, 0, 0], "cl": [0, 0, 0, 0, 0], "cs": [0, 0, 0, 0, 0], "pl": 0, "df": 0, "per": []})
+                x["n"] += 1; x["r"] += nr; x["k"] += p["k"]; x["d"] += p["d"]; x["a"] += p["a"]
+                x["dmg"] += p["adr"] * nr; x["hs_w"] += p["hs"] * nr; x["kast_r"] += p["kast"] * nr / 100
+                x["fk"] += p["fk"]; x["fd"] += p["fd"]
+                x["mk"] = [a + b for a, b in zip(x["mk"], p["mk"])]; x["cl"] = [a + b for a, b in zip(x["cl"], p["cl"])]
+                x["cs"] = [a + b for a, b in zip(x["cs"], p.get("cs") or [0] * 5)]; x["pl"] += p.get("pl", 0); x["df"] += p.get("df", 0)
+                x["per"].append([str(mid), g["map"], p["adr"], p["kast"], p["hs"]])   # Form-Diagramm/Verlauf je Map
+    out_players = {}
+    for k, x in players.items():
+        r = x["r"] or 1
+        out_players[k] = {"name": x["name"], "n": x["n"], "r": x["r"], "adr": round(x["dmg"] / r), "kast": round(100 * x["kast_r"] / r),
+                          "hs": round(x["hs_w"] / r), "fk": x["fk"], "fd": x["fd"], "mk": x["mk"], "cl": x["cl"], "cs": x["cs"],
+                          "pl": x["pl"], "df": x["df"], "per": x["per"]}
+    return {"n": n_games, "maps": maps, "players": out_players} if n_games else None
+
+
 def export(out, leagues, region, repo, ref, base_cfg):
     data = out / "data"
     data.mkdir(parents=True, exist_ok=True)
@@ -1186,10 +1277,16 @@ def export(out, leagues, region, repo, ref, base_cfg):
             wc = [m for m in bm if bmeta[m["id"]]["wildcard"]]
             opl = opl_by_team[t["id"]] = team_opl(t["id"], league_matches[lg["id"]] + ko, metas[lg["id"]])
             gs_by_team[t["id"]] = team_opl(t["id"], league_matches[lg["id"]], metas[lg["id"]]) if ko else opl
+            hd = hd_team_agg(t["id"], [m["id"] for m in league_matches[lg["id"]] + ko])
+            if hd:
+                opl["hd"] = hd
             if wc:
                 full = team_opl(t["id"], league_matches[lg["id"]] + ko + wc, metas[lg["id"]])
                 opl["matches"] = full["matches"]          # Match-Liste immer komplett
                 opl_all_by_team[t["id"]] = full
+                hdw = hd_team_agg(t["id"], [m["id"] for m in league_matches[lg["id"]] + ko + wc])
+                if hdw:
+                    full["hd"] = hdw
             for e in opl["matches"]:
                 if e["id"] in bmeta:
                     e.update({k: v for k, v in bmeta[e["id"]].items() if k != "league"})
@@ -1279,6 +1376,7 @@ def export(out, leagues, region, repo, ref, base_cfg):
         extra = {}
         if full:   # Teamseite: Umschalter „inkl. Wildcardturnier“ (Standard aus)
             extra["opl_wc"] = {k: full[k] for k in ("maps", "players", "agents", "maps_played", "record")}
+            extra["opl_wc"]["hd"] = full.get("hd")
         if paths_by_team.get(tid):
             extra["brackets"] = paths_by_team[tid]
         (data / f"team-{tid}.json").write_text(json.dumps(
