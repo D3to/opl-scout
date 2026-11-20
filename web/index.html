@@ -219,6 +219,13 @@
   .ri2{display:flex;align-items:center;gap:10px}
   .ri2 img{width:64px;height:32px;object-fit:cover;border-radius:5px}
   .ri2.alt{opacity:.75}
+  .tcards{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:10px}
+  .tcard{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:8px 10px;display:flex;flex-direction:column;gap:6px}
+  .tcard .sbmap{margin:-2px -4px 2px;min-width:0}
+  .tend{display:flex;align-items:center;gap:6px;flex-wrap:wrap;font-size:13px}
+  .tend .tl2{color:var(--mut);font-size:12px;min-width:140px}
+  .tend .reco{display:inline-flex;height:17px;padding:0 6px;font-size:10.5px}
+  .duel .pp .pbadges{display:inline-flex;margin-left:4px}
   .wbs{display:flex;flex-wrap:wrap;gap:4px;margin-top:3px}
   .wb{font-size:11px;padding:1px 7px;border-radius:999px;background:var(--panel2);color:var(--mut);white-space:nowrap}
   .wb.g{color:var(--good);background:color-mix(in srgb, var(--good) 13%, transparent)}
@@ -294,7 +301,7 @@
   .formleg .ln.trend{border-color:var(--acc);border-top-width:3px} .formleg .ln.own{border-color:var(--warn);border-top-style:dashed} .formleg .ln.lg{border-color:var(--mut);border-top-style:dotted}
   .agic{width:22px;height:22px;border-radius:50%;vertical-align:middle;background:var(--panel2)}
   .sidetabs{display:flex;border-bottom:1px solid var(--line);background:var(--panel)}
-  .sidetabs button{flex:1;background:none;border:0;border-bottom:2px solid transparent;border-radius:0;color:var(--mut);padding:9px 6px;font-weight:600}
+  .sidetabs button{flex:1;background:none;border:0;border-bottom:2px solid transparent;border-radius:0;color:var(--mut);padding:9px 4px;font-weight:600;font-size:13px;white-space:nowrap;min-width:0}
   .sidetabs button:hover{color:var(--txt)}
   .sidetabs button.on{color:var(--txt);border-bottom-color:var(--acc)}
   .sidetabs button:disabled{opacity:.4;cursor:default}
@@ -322,7 +329,7 @@
   /* Filter/Sortierung nur bei offenem ⚙ (Admin-Hinweise bleiben sichtbar) */
   body:not(.tools-open) .sidetools{display:none !important}
   .ic-gear{width:16px;height:16px;--m:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='3'/%3E%3Cpath d='M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z'/%3E%3C/svg%3E")}
-  .kost{margin-left:6px;font-size:10px;font-weight:600;padding:1px 6px;border-radius:9px;vertical-align:1px}
+  .kost{margin-left:4px;font-size:9px;font-weight:600;padding:1px 5px;border-radius:9px;vertical-align:1px}
   .kost:empty{display:none}
   .kost.pre{background:color-mix(in srgb, var(--warn) 18%, transparent);color:var(--warn)}
   .kost.live{background:color-mix(in srgb, var(--bad) 20%, transparent);color:var(--bad)}
@@ -444,6 +451,24 @@
   .mapname img{width:56px;height:28px;object-fit:cover;border-radius:4px}
   .matches{display:flex;flex-direction:column;gap:8px}
   .match{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:9px 12px}
+  /* Verlauf */
+  .hsearch{display:flex;align-items:center;gap:10px;margin:6px 0 10px}
+  .hsearch input{flex:1;max-width:460px;background:var(--panel);border:1px solid var(--line);border-radius:8px;color:var(--txt);padding:8px 12px;font:inherit}
+  .hsearch input:focus{outline:none;border-color:var(--mut)}
+  .hday{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--mut);margin:14px 0 6px}
+  .hrow2{display:grid;grid-template-columns:44px minmax(0,1fr) 64px minmax(0,1fr);grid-template-areas:"c a s b" ". m m m";align-items:center;gap:4px 10px;
+    background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:8px 12px;margin-bottom:6px;cursor:pointer}
+  .hrow2:hover{border-color:var(--mut)}
+  .hrow2{position:relative}
+  .hrow2 .hhd{position:absolute;right:12px;top:50%;transform:translateY(-50%)}
+  .hclock{grid-area:c} .hrow2 .ht{grid-area:a;display:flex;align-items:center;justify-content:flex-end;gap:8px;font-weight:600;min-width:0;text-align:right}
+  .hrow2 .ht.r{grid-area:b;justify-content:flex-start;text-align:left}
+  .hrow2 .ht img,.hlogo{width:24px;height:24px;border-radius:4px;flex:none}
+  .hscore{grid-area:s;display:flex;justify-content:center;gap:4px;font-size:16px}
+  .hmaps{grid-area:m;display:flex;flex-wrap:wrap;gap:6px;align-items:center;justify-content:center}
+  .hmap{font-size:11px;padding:2px 8px;border-radius:5px;color:#fff;text-shadow:0 1px 2px #000;background:linear-gradient(90deg, rgba(0,0,0,.65), rgba(0,0,0,.35)), var(--bg) center/cover}
+  .hhd{display:inline-block;width:12px;height:12px;background:var(--mut);opacity:.8;-webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect x='3' y='13' width='4' height='8' rx='1'/%3E%3Crect x='10' y='8' width='4' height='13' rx='1'/%3E%3Crect x='17' y='3' width='4' height='18' rx='1'/%3E%3C/svg%3E") center/contain no-repeat;mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect x='3' y='13' width='4' height='8' rx='1'/%3E%3Crect x='10' y='8' width='4' height='13' rx='1'/%3E%3Crect x='17' y='3' width='4' height='18' rx='1'/%3E%3C/svg%3E") center/contain no-repeat}
+  .match.h2hm{cursor:pointer} .match.h2hm:hover{border-color:var(--mut)}
   .match.mclick{cursor:pointer;transition:border-color .15s} .match.mclick:hover{border-color:var(--mut)}
   /* Match-Übersicht */
   .mhero{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:12px;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px;margin-bottom:10px}
@@ -488,7 +513,7 @@
   .pstyle td{vertical-align:middle} .pstyle .mcell .sub{display:block;font-size:10px;margin-left:2px}
   .ric{display:inline-block;width:14px;height:14px;margin-left:5px;vertical-align:-2px;background:var(--c);flex:none;cursor:help;-webkit-mask:var(--m) center/contain no-repeat;mask:var(--m) center/contain no-repeat}
   .ric-plant{--c:var(--warn);--m:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='black' d='M12 2l5 9-5 11-5-11z'/%3E%3Cpath fill='white' d='M12 7l2 4-2 5-2-5z' opacity='.35'/%3E%3C/svg%3E")} .ric-entry{--c:var(--acc);--m:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='none' stroke='black' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round' d='M4 6l7 6-7 6M12 6l7 6-7 6'/%3E%3C/svg%3E")}
-  .pbadge.cs{color:var(--np);background:var(--npbg);display:inline-flex;align-items:center;gap:2px} .pbadge.cs .ri{width:10px;height:10px}
+  .pbadge.cs{color:var(--np);background:var(--npbg);display:inline-flex;align-items:center;gap:2px} .pbadge.cs .rico{width:10px;height:10px}
   .rolechips{display:inline-flex;align-items:center;font-size:12px;color:var(--mut);margin-left:8px}
   .pbadgerow{margin-top:8px;display:flex;align-items:center;flex-wrap:wrap} .pbadgerow .pbadges{flex-wrap:wrap} .pbadgerow .pbadge{font-size:12px;line-height:20px;padding:0 8px}
   tr.hrow{cursor:pointer} tr.hrow:hover td{background:var(--panel2)}
@@ -523,8 +548,8 @@
   .rcell{position:relative}
   .thrb{position:absolute;z-index:5;top:-5px;right:-4px;width:12px;height:12px;border-radius:50%;background:var(--warn);color:#2a1c00;font-size:9px;font-weight:800;line-height:12px;text-align:center;box-shadow:0 0 0 1.5px var(--panel)}
   .thrb.static{position:static;display:inline-block;margin-right:2px}
-  .ri{display:inline-block;width:14px;height:14px;background:currentColor;-webkit-mask:var(--m) center/contain no-repeat;mask:var(--m) center/contain no-repeat}
-  .ri-E{--m:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='black' fill-rule='evenodd' d='M12 2C6.5 2 3 5.8 3 10.5c0 2.6 1.1 4.4 3 5.6V19a1 1 0 0 0 1 1h1.5v-2h2v2h3v-2h2v2H17a1 1 0 0 0 1-1v-2.9c1.9-1.2 3-3 3-5.6C21 5.8 17.5 2 12 2zM8.5 9a2 2 0 1 1 0 4 2 2 0 0 1 0-4zm7 0a2 2 0 1 1 0 4 2 2 0 0 1 0-4zM12 13.2l1.3 2.3h-2.6z'/%3E%3C/svg%3E")} .ri-D{--m:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='black' d='M12 6l4 6-4 6-4-6z'/%3E%3Cpath stroke='black' stroke-width='2' stroke-linecap='round' d='M12 1v2.5M12 20.5V23M1 12h2.5M20.5 12H23M4.2 4.2l1.8 1.8M18 18l1.8 1.8M4.2 19.8L6 18M18 6l1.8-1.8'/%3E%3C/svg%3E")} .ri-F{--m:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='none' stroke='black' stroke-width='2.2' stroke-linejoin='round' d='M12 2.5l6.5 9.5-6.5 9.5-6.5-9.5z'/%3E%3Cpath fill='none' stroke='black' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round' d='M8.8 12.2l2.2 2.2 4.2-4.6'/%3E%3C/svg%3E")} .ri-T{--m:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='black' d='M6 2h12v2h-1v3.2c0 1.5-.8 2.9-2.1 3.7L13.4 12l1.5 1.1c1.3.8 2.1 2.2 2.1 3.7V20h1v2H6v-2h1v-3.2c0-1.5.8-2.9 2.1-3.7l1.5-1.1-1.5-1.1C7.8 10.1 7 8.7 7 7.2V4H6zm3 2v3.2c0 .8.4 1.5 1.1 2L12 10.6l1.9-1.4c.7-.5 1.1-1.2 1.1-2V4zm3 9.4l-1.9 1.4c-.7.5-1.1 1.2-1.1 2V20h6v-3.2c0-.8-.4-1.5-1.1-2z'/%3E%3C/svg%3E")}
+  .rico{display:inline-block;width:14px;height:14px;background:currentColor;-webkit-mask:var(--m) center/contain no-repeat;mask:var(--m) center/contain no-repeat}
+  .rico-E{--m:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='black' fill-rule='evenodd' d='M12 2C6.5 2 3 5.8 3 10.5c0 2.6 1.1 4.4 3 5.6V19a1 1 0 0 0 1 1h1.5v-2h2v2h3v-2h2v2H17a1 1 0 0 0 1-1v-2.9c1.9-1.2 3-3 3-5.6C21 5.8 17.5 2 12 2zM8.5 9a2 2 0 1 1 0 4 2 2 0 0 1 0-4zm7 0a2 2 0 1 1 0 4 2 2 0 0 1 0-4zM12 13.2l1.3 2.3h-2.6z'/%3E%3C/svg%3E")} .rico-D{--m:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='black' d='M12 6l4 6-4 6-4-6z'/%3E%3Cpath stroke='black' stroke-width='2' stroke-linecap='round' d='M12 1v2.5M12 20.5V23M1 12h2.5M20.5 12H23M4.2 4.2l1.8 1.8M18 18l1.8 1.8M4.2 19.8L6 18M18 6l1.8-1.8'/%3E%3C/svg%3E")} .rico-F{--m:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='none' stroke='black' stroke-width='2.2' stroke-linejoin='round' d='M12 2.5l6.5 9.5-6.5 9.5-6.5-9.5z'/%3E%3Cpath fill='none' stroke='black' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round' d='M8.8 12.2l2.2 2.2 4.2-4.6'/%3E%3C/svg%3E")} .rico-T{--m:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='black' d='M6 2h12v2h-1v3.2c0 1.5-.8 2.9-2.1 3.7L13.4 12l1.5 1.1c1.3.8 2.1 2.2 2.1 3.7V20h1v2H6v-2h1v-3.2c0-1.5.8-2.9 2.1-3.7l1.5-1.1-1.5-1.1C7.8 10.1 7 8.7 7 7.2V4H6zm3 2v3.2c0 .8.4 1.5 1.1 2L12 10.6l1.9-1.4c.7-.5 1.1-1.2 1.1-2V4zm3 9.4l-1.9 1.4c-.7.5-1.1 1.2-1.1 2V20h6v-3.2c0-.8-.4-1.5-1.1-2z'/%3E%3C/svg%3E")}
   .rcell.on.a{color:var(--acc)} .rcell.on.b{color:var(--link)}
   .rleg{display:flex;gap:14px;flex-wrap:wrap;font-size:11px;color:var(--mut);margin:-2px 0 8px 2px}
   .rleg span{display:inline-flex;align-items:center;gap:4px}
@@ -724,6 +749,7 @@
       <button data-v="table" role="tab" title="Tabelle und Teams">Tabelle</button>
       <button data-v="meta" role="tab" title="Liga-weite Auswertung: Maps, Agents, Comps, Bestenliste">Meta</button>
       <button data-v="ko" role="tab" title="K.-o.-Runden: Wildcard, Playoffs, Relegation">K.-o.<span class="kost" id="kost"></span></button>
+      <button data-v="hist" role="tab" title="Alle gespielten Matches der Liga, neueste zuerst, mit Suche">Verlauf</button>
       <button id="toolsbtn" class="sidegear" title="Anzeige und Sortierung der Tabelle" aria-label="Anzeige und Sortierung" aria-expanded="false" aria-controls="sidetools"><i class="ic ic-gear"></i></button>
     </div>
     <div class="sidetools" id="sidetools">
@@ -1082,7 +1108,7 @@ function avgIcon(sm){
 // ------------------------------------------------------------------ Teamansicht
 async function loadTeam(id, silent=false){
   const my = ++current;
-  curTeam = id; lastTeam = id; mapShown = null; brShown = null; agShown = null; setSideTab("table");
+  curTeam = id; lastTeam = id; mapShown = null; brShown = null; agShown = null; histShown = false; setSideTab("table");
   if(!silent) setUrl({l: league.id, t: id});
   const meta_t = league.teams.find(t => t.id === id);
   if(!silent) $("#detail").innerHTML = `<div class="empty"><span class="spin"></span> Lade ${esc(meta_t?.name || "")}…</div>`;
@@ -1482,12 +1508,12 @@ function rolesCompact(T){
 let routing = false;   // während eine URL angewendet wird, keine neuen History-Einträge
 function parseRoute(){
   const q = new URLSearchParams(location.hash.slice(1));
-  return {l: q.get("l"), t: q.get("t"), vs: q.get("vs"), m: q.get("m"), p: q.get("p"), map: q.get("map"), br: q.get("br"), ag: q.get("ag"), mt: q.get("mt"), meta: q.has("meta")};
+  return {l: q.get("l"), t: q.get("t"), vs: q.get("vs"), m: q.get("m"), p: q.get("p"), map: q.get("map"), br: q.get("br"), ag: q.get("ag"), mt: q.get("mt"), hist: q.has("hist"), meta: q.has("meta")};
 }
 function hashOf(r){
   if(!r.l) return "";
   return "#l=" + encodeURIComponent(r.l) + (r.t ? "&t=" + encodeURIComponent(r.t) : "") + (r.vs ? "&vs=" + encodeURIComponent(r.vs) : "")
-    + (r.vs && r.m ? "&m=" + encodeURIComponent(r.m) : "") + (r.t && r.p && !r.vs ? "&p=" + encodeURIComponent(r.p) : "") + (r.t && r.mt && !r.p && !r.vs ? "&mt=" + encodeURIComponent(r.mt) : "") + (r.br && !r.t ? "&br=" + encodeURIComponent(r.br) : r.map && !r.t ? "&map=" + encodeURIComponent(r.map) : r.ag && !r.t ? "&ag=" + encodeURIComponent(r.ag) : r.meta && !r.t ? "&meta" : "");
+    + (r.vs && r.m ? "&m=" + encodeURIComponent(r.m) : "") + (r.t && r.p && !r.vs ? "&p=" + encodeURIComponent(r.p) : "") + (r.t && r.mt && !r.p && !r.vs ? "&mt=" + encodeURIComponent(r.mt) : "") + (r.br && !r.t ? "&br=" + encodeURIComponent(r.br) : r.map && !r.t ? "&map=" + encodeURIComponent(r.map) : r.ag && !r.t ? "&ag=" + encodeURIComponent(r.ag) : r.hist && !r.t ? "&hist" : r.meta && !r.t ? "&meta" : "");
 }
 function setUrl(r, push = true){
   if(routing) return;
@@ -1523,6 +1549,9 @@ async function applyRoute(r){
     }else if(r.br && (league.brackets || []).some(b => b.event === r.br)){
       showBracket(r.br, false);
       showDetail(true, true);
+    }else if(r.hist){
+      showHistory(false);
+      showDetail(true, true);
     }else if(r.ag){
       showAgent(r.ag, false);
       showDetail(true, true);
@@ -1539,7 +1568,7 @@ async function applyRoute(r){
   }finally{ routing = false; }
   // ungültige Teile der URL (z. B. Team nicht in der Liga) bereinigen
   const want = hashOf({l: league?.id, t: curTeam, vs: r.t === curTeam ? r.vs : null, m: r.m, p: r.t === curTeam ? r.p : null, mt: r.t === curTeam ? r.mt : null, meta: metaShown && r.meta,
-                       map: !curTeam && mapShown ? mapShown : null, br: !curTeam && brShown ? brShown : null, ag: !curTeam && agShown ? agShown : null});
+                       map: !curTeam && mapShown ? mapShown : null, br: !curTeam && brShown ? brShown : null, ag: !curTeam && agShown ? agShown : null, hist: !curTeam && histShown});
   if(location.hash && want !== location.hash && !(r.t && r.t === curTeam)) history.replaceState(null, "", want || location.pathname);
 }
 const shareBtn = () => `<button class="ghost tiny sharebtn" title="Link zu dieser Ansicht kopieren – z. B. für Discord" aria-label="Link kopieren"><i class="ic ic-link"></i></button>`;
@@ -1826,7 +1855,7 @@ document.addEventListener("click", e => {
   if(el && league?.overview?.maps?.[el.dataset.map]){ e.preventDefault(); showMap(el.dataset.map, true); }
 });
 function showMap(mp, push = true){
-  ++current; curTeam = null; metaShown = false; mapShown = mp; mapPlMin = null; brShown = null; agShown = null;
+  ++current; curTeam = null; metaShown = false; mapShown = mp; mapPlMin = null; brShown = null; agShown = null; histShown = false;
   document.querySelectorAll("tr.team.sel").forEach(x => x.classList.remove("sel"));
   setSideTab("meta");
   if(push) setUrl({l: league.id, map: mp});
@@ -1961,7 +1990,7 @@ let brShown = null;
 function showBracket(ev, push = true){
   const b = (league.brackets || []).find(x => x.event === ev) || league.brackets?.[0];
   if(!b) return;
-  ++current; curTeam = null; metaShown = false; mapShown = null; brShown = b.event; agShown = null;
+  ++current; curTeam = null; metaShown = false; mapShown = null; brShown = b.event; agShown = null; histShown = false;
   document.querySelectorAll("tr.team.sel").forEach(x => x.classList.remove("sel"));
   setSideTab("ko");
   if(push) setUrl({l: league.id, br: b.event});
@@ -2014,6 +2043,7 @@ function bracketCard(x){
   const maps = (x.maps || []).map(m => `${esc(cap(m.map))} ${m.s1}:${m.s2}`).join(" · ");
   return `<div class="bcard${done ? "" : " open"}" data-mid="${esc(x.id)}">${rows}
     <div class="bfoot"><span class="sub">${esc(date)}${x.format ? ` · ${esc((/BO\d/i.exec(x.format) || [""])[0])}` : ""}</span>
+      ${done && (x.maps || []).length && x.teams.some(t => inLeague(t.id) || meta.team_league?.[t.id]) ? (t => `<button class="ghost tiny mdetail" data-tid="${esc(t.id)}" data-mid="${esc(x.id)}" data-lg="${esc(inLeague(t.id) ? league.id : meta.team_league[t.id])}" title="Match-Übersicht mit Scoreboard und Rundenverlauf">Details</button>`)(x.teams.find(t => inLeague(t.id)) || x.teams.find(t => meta.team_league?.[t.id])) : ""}
       ${vodLinks(x)}${!done && both ? `<button class="tiny prepbtn2" data-a="${esc(x.teams[0].id)}" data-b="${esc(x.teams[1].id)}" data-mid="${esc(x.id)}">Vorbereiten</button>` : ""}
       <a class="sub" href="https://www.opleague.pro/match/${esc(x.id)}" target="_blank" rel="noopener">OPL ↗</a></div>
     ${maps ? `<div class="bmaps sub">${maps}</div>` : ""}</div>`;
@@ -2053,6 +2083,10 @@ function renderBracket(b){
   }));
   $("#back").onclick = () => showDetail(false);
   document.querySelectorAll(".btabs button").forEach(x => x.onclick = () => showBracket(x.dataset.br, true));
+  document.querySelectorAll("#detail .mdetail").forEach(b => b.onclick = () => {
+    if(b.dataset.lg === league.id) openMatchById(b.dataset.tid, b.dataset.mid);
+    else location.hash = hashOf({l: b.dataset.lg, t: b.dataset.tid, mt: b.dataset.mid});   // Team einer anderen Liga
+  });
   document.querySelectorAll("#detail .tlink[data-team]").forEach(el => el.onclick = () => openTeamFromMeta(el.dataset.team));
   document.querySelectorAll(".bt[data-tid]").forEach(el => {
     const id = el.dataset.tid; if(!id) return;
@@ -2092,6 +2126,7 @@ function setSideTab(v){
 }
 function tabClick(v){
   if(v === "meta") return showMeta(true);
+  if(v === "hist") return showHistory(true);
   if(v === "ko"){
     const b = league?.brackets?.find(x => !x.empty) || league?.brackets?.[0];
     if(b) showBracket(b.event, true);
@@ -2150,7 +2185,7 @@ function sth(st, attr, k, label, cls = "", title = ""){
 }
 function showMeta(push = true){
   if(!league) return;
-  ++current; curTeam = null; metaShown = true; mapShown = null; brShown = null; agShown = null;
+  ++current; curTeam = null; metaShown = true; mapShown = null; brShown = null; agShown = null; histShown = false;
   document.querySelectorAll("tr.team.sel").forEach(x => x.classList.remove("sel"));
   setSideTab(push || !isMobile() ? "meta" : "table");
   if(push) setUrl({l: league.id, meta: 1});
@@ -2367,6 +2402,31 @@ function vodSection(T, name){
       ${m.maps.length ? `<div class="mmaps">${m.maps.map(x => `${esc(cap(x.map))} ${x.us}:${x.them}`).join(" · ")}</div>` : ""}</div>`).join("")}</div>`
       : '<p class="sub">Keine VODs gefunden (offizieller Kanal Uniliga VODS und bekannte POV-Kanäle).</p>'}`;
 }
+// Tendenzen eines Teams je Map aus den Rundendaten (Vorbereitung): bevorzugte Site, schwacher Retake, Pistol, nach verlorener Pistol, Thrifty
+function tendHtml(T, name, expected, pool){
+  const H = T.opl?.hd?.maps;
+  if(!H) return "";
+  const maps = [...new Set([...expected, ...pool.filter(mp => H[mp])])].filter(mp => H[mp]);
+  if(!maps.length) return "";
+  const pct = x => x && x[1] ? Math.round(100 * x[0] / x[1]) : null;
+  const card = mp => {
+    const x = H[mp], items = [];
+    const pls = Object.entries(x.plant), ptot = pls.reduce((a, [, v]) => a + v[1], 0);
+    if(pls.length){ const [st, v] = pls.sort((a, b) => b[1][1] - a[1][1])[0];
+      items.push(`<div class="tend"><span class="tl2">Plantet meist</span><span class="site top" title="${v[1]} von ${ptot} Plants auf ${esc(st)}"><b>${esc(st)}</b>${Math.round(100 * v[1] / ptot)} %</span></div>`); }
+    const rts = Object.entries(x.retake).filter(([, v]) => v[1] >= 2);
+    if(rts.length){ const [st, v] = rts.sort((a, b) => a[1][0] / a[1][1] - b[1][0] / b[1][1])[0];
+      items.push(`<div class="tend"><span class="tl2">Schwächster Retake</span><span class="site ${v[0] / v[1] < .5 ? "r" : ""}" title="Gegner hat ${v[1]}× auf ${esc(st)} geplantet, ${v[0]}× zurückerobert – dort zu planten lohnt sich"><b>${esc(st)}</b>${v[0]}/${v[1]}</span></div>`); }
+    items.push(`<div class="tend"><span class="tl2">Angriff / Verteidigung</span>${rateCell(x.atk, false)}<span class="sub"> / </span>${rateCell(x.def, false)}</div>`);
+    items.push(`<div class="tend"><span class="tl2">Pistol-Runden</span>${rateCell(x.pistol)}</div>`);
+    const ap = Object.entries(x.after_pl || {});
+    if(ap.length){ const n = ap.reduce((a, [, v]) => a + v[1], 0), [bt, v] = ap.sort((a, b) => b[1][1] - a[1][1])[0];
+      items.push(`<div class="tend"><span class="tl2">Nach verlorener Pistol</span><b class="reco ${BUY_CLS[bt]}" title="${v[1]} von ${n}× nach verlorener Pistol-Runde, davon ${v[0]} gewonnen">${esc(bt)}</b><span class="sub">${v[1]}/${n}</span></div>`); }
+    if(x.thrifty?.[1]) items.push(`<div class="tend"><span class="tl2">Thrifties</span>${rateCell(x.thrifty)}</div>`);
+    return `<div class="tcard"><div class="sbmap" style="--bg:url('${MAP_IMG(mp)}')"><b>${esc(cap(mp))}</b><span class="sub" style="color:#ddd">${x.n} ${x.n === 1 ? "Map" : "Maps"} · ${x.rounds} Runden</span></div>${items.join("")}</div>`;
+  };
+  return `<div class="sechead"><h3>Tendenzen von ${esc(name)} ${tip("Aus den Riot-Matchdaten dieser Saison. Erwartete Maps zuerst. Ohne Farbe = zu wenig Daten.")}</h3></div><div class="tcards">${maps.map(card).join("")}</div>`;
+}
 const wbs = list => list.map(([t, c]) => `<span class="wb ${c}">${esc(t)}</span>`).join("");
 function renderPrep(A, mtA, B, mtB, entry){
   const pA = mapProfile(A), pB = mapProfile(B);
@@ -2386,7 +2446,10 @@ function renderPrep(A, mtA, B, mtB, entry){
     <div class="sub">${mt?.group ? `Gr. ${esc(mt.group)} · ` : ""}Platz ${esc(mt?.rank ?? "–")}</div>
     ${sm ? `<div class="rank"><img src="${RANK_ICON(sm.tier)}" alt=""><span class="sub">Top 5: ${esc(TIERS[sm.tier])} · ${sm.elo}</span></div>` : ""}</div></div>`;
 
-  // Map-Vergleich
+  // Map-Vergleich (mit Angriff/Verteidigung aus den Rundendaten, falls vorhanden)
+  const hdAny = !!(A.opl?.hd || B.opl?.hd);
+  const sideCell = (T, mp) => { const x = T.opl?.hd?.maps?.[mp];
+    return x ? `<span title="Angriff ${x.atk[0]}/${x.atk[1]} · Verteidigung ${x.def[0]}/${x.def[1]} Runden gewonnen">${rateCell(x.atk, false)}<span class="sub"> / </span>${rateCell(x.def, false)}</span>` : '<span class="sub">–</span>'; };
   const z = (x, k) => x[k] ? x[k] : '<span class="sub">0</span>';
   const wl = x => x.played ? `<span class="${x.won * 2 > x.played ? "pos-up" : x.won * 2 < x.played ? "pos-dn" : ""}">${x.won}–${x.played - x.won}</span>` : '<span class="sub">–</span>';
   const mapRows = [...rec.rows].sort((x, y) => (y.a.str - y.b.str) - (x.a.str - x.b.str)).map(r => {
@@ -2394,9 +2457,9 @@ function renderPrep(A, mtA, B, mtB, entry){
     const amp = d > 0.15 ? "g" : d < -0.15 ? "r" : "y";
     const tag = rec.bans.some(b => b.mp === r.mp) ? '<span class="rtag ban">Ban</span>' : rec.picks.some(p => p.mp === r.mp) ? '<span class="rtag pick">Pick</span>' : "";
     return `<tr><td class="mcell"><div class="mapname"><img src="${MAP_IMG(r.mp)}" alt="" onerror="this.remove()"><span>${esc(cap(r.mp))}</span></div></td>
-      <td class="num" data-l="${esc(nameA)} W–L">${wl(r.a)}</td><td class="num" data-l="Pick/Ban">${z(r.a, "pickN")}/${z(r.a, "banN")}</td>
+      <td class="num" data-l="${esc(nameA)} W–L">${wl(r.a)}</td>${hdAny ? `<td class="num" data-l="Angr./Vert.">${sideCell(A, r.mp)}</td>` : ""}<td class="num" data-l="Pick/Ban">${z(r.a, "pickN")}/${z(r.a, "banN")}</td>
       <td class="c amp" data-l="Vorteil"><span class="ampel ${amp}" title="${amp === "g" ? "Vorteil " + esc(nameA) : amp === "r" ? "Vorteil " + esc(nameB) : "ausgeglichen"}"></span>${tag}</td>
-      <td class="num" data-l="${esc(nameB)} W–L">${wl(r.b)}</td><td class="num" data-l="Pick/Ban">${z(r.b, "pickN")}/${z(r.b, "banN")}</td></tr>`;
+      <td class="num" data-l="${esc(nameB)} W–L">${wl(r.b)}</td>${hdAny ? `<td class="num" data-l="Angr./Vert.">${sideCell(B, r.mp)}</td>` : ""}<td class="num" data-l="Pick/Ban">${z(r.b, "pickN")}/${z(r.b, "banN")}</td></tr>`;
   }).join("");
 
   // Veto-Simulation
@@ -2413,9 +2476,9 @@ function renderPrep(A, mtA, B, mtB, entry){
   const maxAcsB = Math.max(0, ...plB.map(p => p.acs)), maxFbB = Math.max(0, ...plB.map(p => p.fb));
   const plList = (pl, mark) => pl.length ? pl.map(p => `<div class="pp plink" data-team="${esc(mark ? B.id : A.id)}" data-key="${esc(p.name.toLowerCase())}" title="Spielerprofil öffnen">
       ${p.rank?.tier > 2 ? `<img class="ri" src="${RANK_ICON(p.rank.tier)}" alt="" title="${esc(p.rank.name || "")}">` : '<span class="ri"></span>'}
-      <span class="pn">${esc(p.member?.opl_name || p.name)}${roleChip(p, true)}${mark && p.acs === maxAcsB ? ' <span class="star" title="Höchster ACS">★ ACS</span>' : ""}${mark && p.fb === maxFbB && p.fb ? ' <span class="star" title="Meiste First Bloods">★ FB</span>' : ""}</span>
+      <span class="pn">${esc(p.member?.opl_name || p.name)}${roleChip(p, true)}${(T => T.opl?.hd ? roleIcons(p.name, keyRoles(Object.values(T.opl.hd.players))) : "")(mark ? B : A)}${(h => h ? badgeHtml(h.cl, h.mk, h.cs) : "")(hdPlayer(mark ? B : A, p.name))}${mark && p.acs === maxAcsB ? ' <span class="star" title="Höchster ACS">★ ACS</span>' : ""}${mark && p.fb === maxFbB && p.fb ? ' <span class="star" title="Meiste First Bloods">★ FB</span>' : ""}</span>
       <span class="pv">${p.acs}<small>ACS</small></span><span class="pv">${p.kd}<small>K/D</small></span>
-      <span class="pv">${p.fb}<small>FB</small></span>${agentIcons(p.agents, false, 2)}</div>`).join("") : '<p class="sub">Keine Ligaspiele.</p>';
+      <span class="pv">${p.fb}<small>FB</small></span>${(h => h ? `<span class="pv">${h.adr}<small>ADR</small></span><span class="pv">${h.kast}%<small>KAST</small></span>` : "")(hdPlayer(mark ? B : A, p.name))}${agentIcons(p.agents, false, 2)}</div>`).join("") : '<p class="sub">Keine Ligaspiele.</p>';
 
   // Head-to-Head
   const h2h = (A.opl?.matches || []).filter(m => m.opp?.id === String(B.id) && (m.maps.length || m.outcome));
@@ -2439,10 +2502,11 @@ function renderPrep(A, mtA, B, mtB, entry){
     ${stepHtml ? `<div class="vlegend"><span><i class="A"></i>${esc(nameA)}</span><span><i class="B"></i>${esc(nameB)}</span><span><i class="dec"></i>Decider</span></div>` : ""}
     <div class="vsteps">${stepHtml || '<span class="sub">Zu wenig Daten.</span>'}</div>
     ${compRows ? `<div class="sechead"><h3>Comps auf den erwarteten Maps</h3></div><div class="pcomps">${compRows}</div>` : ""}
+    ${tendHtml(B, nameB, played.map(s => s.map), pool)}
 
     <div class="sechead"><h3>Map-Vergleich</h3></div>
-    <div class="scrollx"><table class="maptable prept"><thead><tr><th>Map</th><th class="num">${esc(nameA)} W–L</th><th class="num" title="eigene Picks / eigene Bans">Pick/Ban</th>
-      <th class="c">Vorteil</th><th class="num">${esc(nameB)} W–L</th><th class="num" title="Picks / Bans des Gegners">Pick/Ban</th></tr></thead><tbody>${mapRows}</tbody></table></div>
+    <div class="scrollx"><table class="maptable prept"><thead><tr><th>Map</th><th class="num">${esc(nameA)} W–L</th>${hdAny ? '<th class="num" title="Gewonnene Runden auf Angriff / Verteidigung (Rundendaten)">Angr./Vert.</th>' : ""}<th class="num" title="eigene Picks / eigene Bans">Pick/Ban</th>
+      <th class="c">Vorteil</th><th class="num">${esc(nameB)} W–L</th>${hdAny ? '<th class="num" title="Gewonnene Runden auf Angriff / Verteidigung (Rundendaten)">Angr./Vert.</th>' : ""}<th class="num" title="Picks / Bans des Gegners">Pick/Ban</th></tr></thead><tbody>${mapRows}</tbody></table></div>
 
     <div class="sechead"><h3>Spieler-Duell ${tip(`Je die 5 Spieler mit den meisten Ligamaps. ★ = bester Wert beim Gegner.`)}</h3></div>
     <div class="duel"><div><h4>${esc(nameA)}</h4>${plList(plA, false)}</div><div><h4>${esc(nameB)}</h4>${plList(plB, true)}</div></div>
@@ -2451,13 +2515,14 @@ function renderPrep(A, mtA, B, mtB, entry){
     <div class="duel"><div><h4>${esc(nameA)}</h4>${rolesCompact(A)}</div><div><h4>${esc(nameB)}</h4>${rolesCompact(B)}</div></div>` : ""}
 
     ${h2h.length ? `<div class="sechead"><h3>Bisherige Duelle diese Saison</h3></div>
-    <div class="matches">${h2h.map(m => `<div class="match"><div class="mhead"><span class="res ${({W:"w",L:"l",D:"d"})[m.outcome] || "d"}">${m.score ? m.score.join(":") : m.outcome || "–"}</span>
+    <div class="matches">${h2h.map(m => `<div class="match${m.maps.length ? " h2hm" : ""}" data-mid="${esc(m.id)}" title="Match-Übersicht öffnen"><div class="mhead"><span class="res ${({W:"w",L:"l",D:"d"})[m.outcome] || "d"}">${m.score ? m.score.join(":") : m.outcome || "–"}</span>
       <span class="opp">${m.maps.map(x => `${esc(cap(x.map))} ${x.us}:${x.them}`).join(" · ") || "ohne Spiel"}</span>${vodLinks(m)}</div></div>`).join("")}</div>` : ""}
     ${vodSection(B, nameB)}`;
 
   document.querySelectorAll(".duel .pp.plink").forEach(el => el.onclick = () => openPlayerById(el.dataset.team, el.dataset.key));
   $("#back").onclick = () => showDetail(false);
   $("#prepfirst").onchange = e => { prepFirst = e.target.value; const y = window.scrollY; renderPrep(A, mtA, B, mtB, entry); window.scrollTo(0, y); };
+  document.querySelectorAll("#detail .match.h2hm").forEach(el => el.onclick = e => { if(!e.target.closest("a, button")) openMatchById(String(A.id), el.dataset.mid); });
   $("#prepopp").onchange = e => openPrep(A, mtA, e.target.value,
     (A.opl?.matches || []).find(m => m.opp?.id === e.target.value && !m.maps.length && m.state !== "closed") || null);
 }
@@ -2576,7 +2641,7 @@ async function openMatchById(tid, mid){
   await openMatch(A, league.teams.find(t => t.id === String(tid)), mid, my);
 }
 async function openMatch(A, mtA, mid, my = ++current){
-  curTeam = String(A.id); metaShown = false; mapShown = null; brShown = null; agShown = null; setSideTab("table");
+  curTeam = String(A.id); metaShown = false; mapShown = null; brShown = null; agShown = null; histShown = false; setSideTab("table");
   document.querySelectorAll("tr.team").forEach(x => x.classList.toggle("sel", x.dataset.id === curTeam));
   setUrl({l: league.id, t: curTeam, mt: mid});
   const m = (A.opl?.matches || []).find(x => x.id === String(mid));
@@ -2598,7 +2663,7 @@ function teamLogo(id){
 function badgeHtml(cl = [], mk = [], cs = []){
   const b = [];
   cl.forEach((v, j) => { if(v) b.push(`<span class="pbadge cl" title="${v}× Clutch 1 gegen ${j + 1} gewonnen">1v${j + 1}${v > 1 ? ` ×${v}` : ""}</span>`); });
-  (cs || []).forEach((v, j) => { if(v) b.push(`<span class="pbadge cs" title="${v}× Clutch-Situation 1 gegen ${j + 1}: Spike gelegt, selbst gestorben, Runde durch die Explosion gewonnen"><i class="ri ri-D"></i>1v${j + 1}${v > 1 ? ` ×${v}` : ""}</span>`); });
+  (cs || []).forEach((v, j) => { if(v) b.push(`<span class="pbadge cs" title="${v}× Clutch-Situation 1 gegen ${j + 1}: Spike gelegt, selbst gestorben, Runde durch die Explosion gewonnen"><i class="rico rico-D"></i>1v${j + 1}${v > 1 ? ` ×${v}` : ""}</span>`); });
   mk.forEach((v, j) => { if(v && j >= 1) b.push(`<span class="pbadge mk${j === 3 ? " ace" : ""}" title="${v}× ${j + 2} Kills in einer Runde">${j === 3 ? "ACE" : `${j + 2}K`}${v > 1 ? ` ×${v}` : ""}</span>`); });
   return b.length ? `<div class="pbadges">${b.join("")}</div>` : "";
 }
@@ -2719,7 +2784,7 @@ function renderMatch(A, mtA, B, m, H = null){
     const half = 12;
     const cell = (r, i, side) => {
       const mine = r.w === side, thr = mine && isThrifty(r, i);
-      return `<div class="rcell${mine ? " on " + (side === ta ? "a" : "b") : ""}${thr ? " thr" : ""}">${mine ? `<i class="ri ri-${r.r || "T"}"></i>` : ""}${thr ? '<b class="thrb">$</b>' : ""}</div>`;
+      return `<div class="rcell${mine ? " on " + (side === ta ? "a" : "b") : ""}${thr ? " thr" : ""}">${mine ? `<i class="rico rico-${r.r || "T"}"></i>` : ""}${thr ? '<b class="thrb">$</b>' : ""}</div>`;
     };
     const col = (r, i, gi, g) => {
       const atkA = r.a1 == null ? null : (ta === 1 ? r.a1 : !r.a1);
@@ -2733,7 +2798,7 @@ function renderMatch(A, mtA, B, m, H = null){
         ${[ecoA, ecoB].map(v => `<div class="reco ${BUY_CLS[buyType(v, pistol)]}">${(v / 1000).toFixed(v < 9950 ? 1 : 0).replace(".", ",")}</div>`).join("")}</div>`;
     };
     return `<div class="rtl${gs.length > 1 ? " multi" : ""}"><div class="rtlh"><span></span><span class="a">${esc(nameA)}</span><span class="b">${esc(nameB)}</span><span class="la" title="Loadout ${esc(nameA)} in Tsd. Credits">Loadout</span><span class="lb" title="Loadout ${esc(nameB)} in Tsd. Credits">Loadout</span></div><div class="rtlr">${gs.map((g, gi) => g.rounds.map((r, i) => col(r, i, gi, g)).join("")).join("")}</div></div>
-      <div class="rleg"><span><i class="ri ri-E"></i>Elimination</span><span><i class="ri ri-D"></i>Spike gezündet</span><span><i class="ri ri-F"></i>Entschärft</span><span><i class="ri ri-T"></i>Zeit abgelaufen</span><span><b class="thrb static">$</b>Thrifty</span>
+      <div class="rleg"><span><i class="rico rico-E"></i>Elimination</span><span><i class="rico rico-D"></i>Spike gezündet</span><span><i class="rico rico-F"></i>Entschärft</span><span><i class="rico rico-T"></i>Zeit abgelaufen</span><span><b class="thrb static">$</b>Thrifty</span>
         <span class="rlegsep">Loadout (Tsd. Credits):</span>${["Pistol", "Eco", "Semi-Eco", "Semi-Buy", "Full Buy"].map(b => `<span><b class="reco ${BUY_CLS[b]}">${{Pistol: "P", Eco: "<5", "Semi-Eco": "5–10", "Semi-Buy": "10–20", "Full Buy": "20+"}[b]}</b>${b}</span>`).join("")}</div>`;
   };
   // Kennzahlen aus den Rundendaten (pro Team): Pistol, Angriff/Verteidigung, Plant-Sites, First Kills
@@ -2835,11 +2900,73 @@ document.addEventListener("click", e => {
   if(curTeam) openMatchById(curTeam, box.dataset.mid);
 });
 
+// ================================================================== Verlauf: alle gespielten Matches der Liga mit Suche
+let histShown = false, histQ = "";
+function showHistory(push = true){
+  if(!league) return;
+  ++current; curTeam = null; metaShown = false; mapShown = null; brShown = null; agShown = null; histShown = true;
+  document.querySelectorAll("tr.team.sel").forEach(x => x.classList.remove("sel"));
+  setSideTab("hist");
+  if(push) setUrl({l: league.id, hist: 1});
+  renderHistory();
+  showDetail(true);
+  $("#detail").scrollTop = 0; if(isMobile()) window.scrollTo(0, 0);
+}
+function renderHistory(){
+  const H = league.history || [];
+  $("#detail").innerHTML = `${crumbs([{label: "Verlauf"}])}
+    <h2 class="ptitle">Verlauf</h2>
+    <div class="hsearch"><input id="histq" type="search" placeholder="Suchen: Team, Map, Spieler, Runde …" value="${esc(histQ)}" autocomplete="off" aria-label="Matches durchsuchen">
+      <span class="sub" id="histn"></span></div>
+    <div id="histlist"></div>`;
+  $("#back").onclick = () => showDetail(false);
+  const inp = $("#histq");
+  inp.oninput = () => { histQ = inp.value; drawHistory(); };
+  drawHistory();
+  if(!isMobile()) inp.focus();
+}
+function drawHistory(){
+  const H = league.history || [];
+  const toks = histQ.toLowerCase().split(/\s+/).filter(Boolean);
+  const hay = e => [e.t1?.name, e.t2?.name, e.stage, e.bracket, ...e.maps.map(x => x.map), ...(e.players || [])].filter(Boolean).join(" ").toLowerCase();
+  const list = toks.length ? H.filter(e => { const h = hay(e); return toks.every(t => h.includes(t)); }) : H;
+  $("#histn").textContent = `${list.length} ${list.length === 1 ? "Match" : "Matches"}${toks.length ? ` von ${H.length}` : ""}`;
+  if(!H.length){ $("#histlist").innerHTML = '<p class="sub">Noch keine gespielten Matches.</p>'; return; }
+  if(!list.length){ $("#histlist").innerHTML = '<p class="sub">Keine Treffer.</p>'; return; }
+  const day = t => t ? new Date(t * 1000).toLocaleDateString("de-DE", {weekday: "long", day: "2-digit", month: "2-digit", year: "numeric"}) : "ohne Datum";
+  const clock = t => t ? new Date(t * 1000).toLocaleTimeString("de-DE", {hour: "2-digit", minute: "2-digit"}) : "";
+  const logo = id => { const l = teamLogo(id); return l ? `<img src="${esc(l)}" alt="" loading="lazy">` : '<span class="hlogo"></span>'; };
+  const hitPl = e => toks.length ? (e.players || []).filter(p => toks.some(t => p.toLowerCase().includes(t))) : [];
+  let lastDay = null, out = "";
+  for(const e of list.slice(0, 300)){
+    const d = day(e.start);
+    if(d !== lastDay){ out += `<div class="hday">${esc(d)}</div>`; lastDay = d; }
+    const [a, b] = e.score || [];
+    const ca = a > b ? "pos-up" : a < b ? "pos-dn" : "", cb = b > a ? "pos-up" : b < a ? "pos-dn" : "";
+    const pls = hitPl(e);
+    out += `<div class="hrow2" data-mid="${esc(e.id)}" data-t1="${esc(e.t1?.id)}" data-t2="${esc(e.t2?.id)}" title="Match-Übersicht öffnen">
+      <span class="hclock sub">${esc(clock(e.start))}</span>${e.hd ? '<i class="hhd" title="Rundendaten vorhanden: Rundenverlauf, ADR, KAST …"></i>' : ""}
+      <span class="ht">${esc(e.t1?.name || "")}${logo(e.t1?.id)}</span>
+      <span class="hscore"><b class="${ca}">${esc(a ?? "–")}</b><span class="sub">:</span><b class="${cb}">${esc(b ?? "–")}</b></span>
+      <span class="ht r">${logo(e.t2?.id)}${esc(e.t2?.name || "")}</span>
+      <span class="hmaps">${e.maps.map(x => `<span class="hmap" style="--bg:url('${MAP_IMG(x.map)}')">${esc(cap(x.map))} <b>${x.s1}:${x.s2}</b></span>`).join("")}
+        ${e.stage ? `<span class="stage" title="${esc(e.bracket || "")}">${esc(roundName(e.stage))}</span>` : ""}
+        ${pls.length ? `<span class="sub">Spieler: ${pls.map(esc).join(", ")}</span>` : ""}</span>
+    </div>`;
+  }
+  $("#histlist").innerHTML = out + (list.length > 300 ? `<p class="sub">… ${list.length - 300} weitere – Suche verfeinern.</p>` : "");
+  document.querySelectorAll("#histlist .hrow2").forEach(el => el.onclick = () => {
+    const tid = league.teams.some(t => t.id === el.dataset.t1) ? el.dataset.t1 : league.teams.some(t => t.id === el.dataset.t2) ? el.dataset.t2 : null;
+    if(tid) openMatchById(tid, el.dataset.mid);
+    else { const o = meta.team_league?.[el.dataset.t1] ? el.dataset.t1 : el.dataset.t2; if(meta.team_league?.[o]) location.hash = hashOf({l: meta.team_league[o], t: o, mt: el.dataset.mid}); }
+  });
+}
+
 // ================================================================== Agent-Seite (Klick auf ein Agent-Symbol)
 let agShown = null;
 function showAgent(a, push = true){
   if(!league) return;
-  ++current; curTeam = null; metaShown = false; mapShown = null; brShown = null; agShown = a;
+  ++current; curTeam = null; metaShown = false; mapShown = null; brShown = null; agShown = a; histShown = false;
   document.querySelectorAll("tr.team.sel").forEach(x => x.classList.remove("sel"));
   setSideTab("meta");
   if(push) setUrl({l: league.id, ag: a});

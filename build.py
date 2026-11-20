@@ -924,6 +924,8 @@ def bracket_paths(tid, brackets):
 # Map + Endstand + Spielernamen (nicht über die Uhrzeit: Matches werden oft verschoben, OPL-Zeit stimmt dann nicht).
 HD_RESULT = {"Elimination": "E", "Detonate": "D", "Defuse": "F"}   # sonst: Zeit abgelaufen o. Ä. → "T"
 HD_RETRY_H, HD_MAX_TRIES = 20, 7
+HD_VERSION = 2   # erhöhen, wenn hd_condense neue/andere Werte liefert → vorhandene Matches werden einmal neu verdichtet
+# 2: Clutches nur bis Rundenende, Spike-Clutches (cs) getrennt
 
 
 def _hd_names(players):
@@ -1053,9 +1055,10 @@ def hd_match(m, region, budget):
     """Rundendaten zu einem fertigen OPL-Match suchen. budget = [verbleibende Anfragen]. Ergebnis im Cache `hdm:<id>`."""
     key = f"hdm:{m['id']}"
     old = core.cache.peek(key) or {}
-    if old.get("done") or old.get("tries", 0) >= HD_MAX_TRIES:
+    stale = old.get("done") and old.get("v", 1) < HD_VERSION   # gefunden, aber mit älterer Verdichtung
+    if (old.get("done") and not stale) or (not stale and old.get("tries", 0) >= HD_MAX_TRIES):
         return old
-    if old.get("last") and time.time() - old["last"] < HD_RETRY_H * 3600:
+    if not stale and old.get("last") and time.time() - old["last"] < HD_RETRY_H * 3600:
         return old
     maps = [mp for mp in m.get("maps", []) if mp.get("players")]
     if not maps:
@@ -1068,7 +1071,7 @@ def hd_match(m, region, budget):
         team = core.cache.peek(f"team:{m[tk]['id']}") or {}
         ids.append([x["riot_id"] for x in team.get("members", []) if x.get("riot_id") and x["riot_id"].split("#")[0].strip().lower() in names])
     order = [x for pair in zip(ids[0] + [None] * 3, ids[1] + [None] * 3) for x in pair if x][:4]
-    found = old.get("games") or [None] * len(maps)
+    found = (old.get("games") if not stale else None) or [None] * len(maps)
     if len(found) != len(maps):
         found = [None] * len(maps)
     used = {g["rid"] for g in found if g}
@@ -1116,7 +1119,16 @@ def hd_match(m, region, budget):
                 consider(g)
         except core.HenrikError as e:
             log(f"  Rundendaten {m['id']}: {name}#{tag}: {e}")
-    res = {"games": found, "done": all(found), "tries": old.get("tries", 0) + 1, "last": time.time()}
+    if stale and not all(found):
+        # Neu-Verdichtung nicht komplett geklappt (z. B. Spiel nicht mehr in der Historie): alte Daten behalten, später erneut
+        og = old.get("games") or []
+        res = {**old, "games": [f or (og[i] if i < len(og) else None) for i, f in enumerate(found)], "last": time.time(),
+               "tries_v": old.get("tries_v", 0) + 1}
+        if res["tries_v"] >= HD_MAX_TRIES:
+            res["v"] = HD_VERSION   # aufgeben: alte Verdichtung bleibt
+        core.cache.set(key, res)
+        return res
+    res = {"games": found, "done": all(found), "tries": old.get("tries", 0) + 1, "last": time.time(), "v": HD_VERSION}
     core.cache.set(key, res)
     return res
 
@@ -1133,7 +1145,8 @@ def fetch_round_data(leagues, region, budget_n):
     todo = []
     for mid in dict.fromkeys(mids):
         m = core.cache.peek(f"match:{mid}")
-        if m and m.get("state") == "closed" and m.get("maps") and not (core.cache.peek(f"hdm:{mid}") or {}).get("done"):
+        h = core.cache.peek(f"hdm:{mid}") or {}
+        if m and m.get("state") == "closed" and m.get("maps") and (not h.get("done") or h.get("v", 1) < HD_VERSION):
             todo.append(m)
     todo.sort(key=lambda m: -(m.get("start") or 0))   # neueste zuerst (ältere fallen aus der kurzen Historie)
     n0 = sum(1 for _ in todo)
@@ -1169,7 +1182,7 @@ def hd_team_agg(tid, match_ids):
             if not g:
                 continue
             n_games += 1
-            mp = maps.setdefault(g["map"], {"n": 0, "rounds": 0, "atk": [0, 0], "def": [0, 0], "pistol": [0, 0], "fk": [0, 0], "thrifty": [0, 0],
+            mp = maps.setdefault(g["map"], {"n": 0, "rounds": 0, "atk": [0, 0], "def": [0, 0], "pistol": [0, 0], "fk": [0, 0], "thrifty": [0, 0], "after_pl": {},
                                             "plant": {}, "retake": {}, "buy": {}})
             mp["n"] += 1
             first_team = {p["n"]: p["t"] for p in g["players"]}
@@ -1194,6 +1207,9 @@ def hd_team_agg(tid, match_ids):
                 if i not in (0, 12) and opp and own <= THRIFTY * opp:
                     mp["thrifty"][1] += 1; mp["thrifty"][0] += won
                 bt = _buy(r["eco"][side - 1], i in (0, 12))
+                # Runde nach verlorener Pistol-Runde: Kaufart und Ergebnis (Force oder Eco?)
+                if i in (1, 13) and i - 1 < len(g["rounds"]) and g["rounds"][i - 1]["w"] and g["rounds"][i - 1]["w"] != side:
+                    x = mp["after_pl"].setdefault(bt, [0, 0]); x[1] += 1; x[0] += won
                 x = mp["buy"].setdefault(bt, [0, 0]); x[1] += 1; x[0] += won
             nr = len(g["rounds"]) or 1
             for p in g["players"]:
@@ -1335,9 +1351,27 @@ def export(out, leagues, region, repo, ref, base_cfg):
                 lpaths[t["id"]] = ps
         gms = league_matches[lg["id"]]
         gs_done = bool(gms) and all(m.get("state") == "closed" for m in gms)
+        # Verlauf: alle gespielten Matches der Liga (Gruppenphase + K.-o. dieser Liga), für den Reiter „Verlauf“ mit Suche
+        history = []
+        ko_all = [m for mid, m in bmatch.items() if bmeta[mid]["league"] == lg["id"]]
+        for m in gms + ko_all:
+            if m.get("state") != "closed" or not (m.get("maps") or m.get("result")):
+                continue
+            mp = m.get("maps") or []
+            w1, w2 = sum(x["s1"] > x["s2"] for x in mp), sum(x["s2"] > x["s1"] for x in mp)
+            e = {"id": m["id"], "start": m.get("start"), "t1": m.get("t1"), "t2": m.get("t2"),
+                 "score": [w1, w2] if mp else [r.get("val") for r in (m.get("result") or [])][:2],
+                 "maps": [{"map": x["map"], "s1": x["s1"], "s2": x["s2"]} for x in mp],
+                 "players": sorted({p["name"] for x in mp for p in x.get("players", []) if p.get("name")})}
+            if m["id"] in bmeta:
+                e.update(stage=bmeta[m["id"]]["stage"], bracket=bmeta[m["id"]]["bracket"], wildcard=bmeta[m["id"]]["wildcard"])
+            if any((core.cache.peek(f"hdm:{m['id']}") or {}).get("games") or []):
+                e["hd"] = 1
+            history.append(e)
+        history.sort(key=lambda e: -(e.get("start") or 0))
         (data / f"league-{lg['id']}.json").write_text(json.dumps(
             {**st, "id": lg["id"], "name": lg["name"], "summaries": summaries, "overview": overview, "movement": movement, "brackets": brackets_out + template_for(lg),
-             "paths": lpaths, "gs_done": gs_done,
+             "paths": lpaths, "gs_done": gs_done, "history": history,
              "updated": time.time() - (core.cache.age("standing:" + lg["url"]) or 0)},
             ensure_ascii=False, separators=(",", ":")))
         meta_leagues.append({"id": lg["id"], "name": lg["name"], "url": lg["url"], "title": st["title"],
