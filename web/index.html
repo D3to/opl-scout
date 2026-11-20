@@ -444,6 +444,39 @@
   .mapname img{width:56px;height:28px;object-fit:cover;border-radius:4px}
   .matches{display:flex;flex-direction:column;gap:8px}
   .match{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:9px 12px}
+  .match.mclick{cursor:pointer;transition:border-color .15s} .match.mclick:hover{border-color:var(--mut)}
+  /* Match-Übersicht */
+  .mhero{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:12px;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px;margin-bottom:10px}
+  .mht{display:flex;align-items:center;gap:10px;font-size:16px;min-width:0} .mht.r{flex-direction:row-reverse;text-align:right}
+  .mht img{width:44px;height:44px;border-radius:8px}
+  .mhs{text-align:center} .mscore{font-size:32px;font-weight:800;letter-spacing:.04em}
+  .mscore.w{color:var(--good)} .mscore.l{color:var(--bad)}
+  .mhl{display:flex;gap:8px;justify-content:center;margin-top:4px;flex-wrap:wrap}
+  .mmapbar{display:flex;gap:8px;flex-wrap:wrap}
+  .mmb,.sbmap{flex:1;min-width:140px;display:flex;justify-content:space-between;align-items:center;padding:10px 14px;border-radius:10px;color:#fff;text-shadow:0 1px 3px #000;
+    background:linear-gradient(90deg, rgba(0,0,0,.7), rgba(0,0,0,.3)), var(--bg) center/cover no-repeat;font-size:15px}
+  .mmb b,.sbmap span{font-size:18px} .mmb .pos-up,.sbmap .pos-up{color:#5ff0a8} .mmb .pos-dn,.sbmap .pos-dn{color:#ff8a8a}
+  .sbmap{margin-bottom:8px}
+  .sbmaps{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px} .sbmaps .sbmap{margin-bottom:0}
+  .sbmap.sbsum{background:var(--panel);border:1px solid var(--line);color:var(--txt);text-shadow:none}
+  .sbmap.sbsum .pos-up{color:var(--good)} .sbmap.sbsum .pos-dn{color:var(--bad)}
+  .sbmap small{font-size:12px;font-weight:400;opacity:.75}
+  .sechead .sbtabs{flex:0 1 auto}
+  .sboards{display:grid;grid-template-columns:1fr;gap:10px}
+  .sbteam{background:var(--panel);border:1px solid var(--line);border-radius:10px;overflow:auto}
+  .sbteam.won{border-color:color-mix(in srgb, var(--good) 45%, transparent)}
+  .sbh{display:flex;align-items:center;gap:8px;padding:8px 10px;border-bottom:1px solid var(--line)} .sbh img{width:24px;height:24px;border-radius:4px}
+  .sbteam.won .sbh b::after{content:" · Sieg";color:var(--good);font-weight:400;font-size:12px}
+  .sbt td{border-top:1px solid var(--line)}
+  /* kompakt: Namensspalte nimmt den Rest, Zahlen schmal und zentriert direkt daneben */
+  /* gleichmäßig verteilt: feste Breiten für Name/Agent, die Zahlenspalten teilen sich den Rest, zentriert */
+  .sbt{table-layout:fixed;min-width:640px}
+  .sbt th:first-child{width:24%} .sbt th.c{width:11%}
+  .sbt td:first-child{overflow:hidden;text-overflow:ellipsis}
+  .sbt th.num,.sbt td.num{text-align:center;padding-left:4px;padding-right:4px}
+  .sbt th.c,.sbt td.c{text-align:left} .sbt tr.mvp td{background:color-mix(in srgb, var(--cap) 8%, transparent)}
+  .sbt .agic{width:24px;height:24px}
+  @media (max-width:900px){ .mhero{grid-template-columns:1fr;text-align:center} .mht,.mht.r{justify-content:center;flex-direction:row} }
   .mhead{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
   .mhead .opp{font-weight:600;flex:1}
   .res{font-weight:700;min-width:34px;text-align:center;border-radius:4px;padding:1px 6px;font-size:13px}
@@ -1302,7 +1335,7 @@ function matchesHtml(o){
     else if(m.state === "closed") res = `<span class="res d" title="Ohne Ergebnis auf OPL">–</span>`;
     else res = `<span class="res up">${m.start && m.start > now ? "geplant" : "offen"}</span>`;
     const veto = m.veto.map(v => `<span class="veto ${v.action} ${v.by||"dec"}" title="${v.action === "ban" ? "Ban" : "Pick"} ${v.by === "self" ? "dieses Team" : v.by === "opp" ? "Gegner" : ""}${v.side ? ` · Start ${v.side === "atk" ? "Angriff" : "Verteidigung"}` : ""}">${v.action === "ban" ? "✕" : "✓"} ${esc(cap(v.map))}</span>`).join("");
-    return `<div class="match"><div class="mhead"><span class="sub">${date(m.start)}</span>${res}
+    return `<div class="match${played ? " mclick" : ""}" data-mid="${esc(m.id)}"${played ? ' title="Scoreboard öffnen"' : ""}><div class="mhead"><span class="sub">${date(m.start)}</span>${res}
       <span class="opp">vs ${teamLink(m.opp.id, m.opp.name)}</span>${m.stage ? `<span class="stage" title="${esc(m.bracket || "")}">${esc(m.stage)}</span>` : ""}
       ${!played && m.state !== "closed" && m.opp?.id && m.opp.id !== "-1" ? `<button class="tiny prepbtn" data-opp="${esc(m.opp.id)}" data-mid="${esc(m.id)}">Vorbereiten</button>` : ""}
       ${vodLinks(m)}<a class="sub" href="https://www.opleague.pro/match/${esc(m.id)}" target="_blank" rel="noopener">OPL ↗</a></div>
@@ -1372,12 +1405,12 @@ function rolesCompact(T){
 let routing = false;   // während eine URL angewendet wird, keine neuen History-Einträge
 function parseRoute(){
   const q = new URLSearchParams(location.hash.slice(1));
-  return {l: q.get("l"), t: q.get("t"), vs: q.get("vs"), m: q.get("m"), p: q.get("p"), map: q.get("map"), br: q.get("br"), ag: q.get("ag"), meta: q.has("meta")};
+  return {l: q.get("l"), t: q.get("t"), vs: q.get("vs"), m: q.get("m"), p: q.get("p"), map: q.get("map"), br: q.get("br"), ag: q.get("ag"), mt: q.get("mt"), meta: q.has("meta")};
 }
 function hashOf(r){
   if(!r.l) return "";
   return "#l=" + encodeURIComponent(r.l) + (r.t ? "&t=" + encodeURIComponent(r.t) : "") + (r.vs ? "&vs=" + encodeURIComponent(r.vs) : "")
-    + (r.vs && r.m ? "&m=" + encodeURIComponent(r.m) : "") + (r.t && r.p && !r.vs ? "&p=" + encodeURIComponent(r.p) : "") + (r.br && !r.t ? "&br=" + encodeURIComponent(r.br) : r.map && !r.t ? "&map=" + encodeURIComponent(r.map) : r.ag && !r.t ? "&ag=" + encodeURIComponent(r.ag) : r.meta && !r.t ? "&meta" : "");
+    + (r.vs && r.m ? "&m=" + encodeURIComponent(r.m) : "") + (r.t && r.p && !r.vs ? "&p=" + encodeURIComponent(r.p) : "") + (r.t && r.mt && !r.p && !r.vs ? "&mt=" + encodeURIComponent(r.mt) : "") + (r.br && !r.t ? "&br=" + encodeURIComponent(r.br) : r.map && !r.t ? "&map=" + encodeURIComponent(r.map) : r.ag && !r.t ? "&ag=" + encodeURIComponent(r.ag) : r.meta && !r.t ? "&meta" : "");
 }
 function setUrl(r, push = true){
   if(routing) return;
@@ -1403,6 +1436,9 @@ async function applyRoute(r){
         const entry = (team.opl?.matches || []).find(m => m.id === r.m)
           || (team.opl?.matches || []).find(m => m.opp?.id === r.vs && !m.maps.length && m.state !== "closed") || null;
         await openPrep(team, league.teams.find(t => t.id === r.t), r.vs, entry);
+      }else if(r.mt){
+        curTeam = r.t;
+        await openMatchById(r.t, r.mt);
       }else{
         await loadTeam(r.t);
       }
@@ -1425,7 +1461,7 @@ async function applyRoute(r){
     }
   }finally{ routing = false; }
   // ungültige Teile der URL (z. B. Team nicht in der Liga) bereinigen
-  const want = hashOf({l: league?.id, t: curTeam, vs: r.t === curTeam ? r.vs : null, m: r.m, p: r.t === curTeam ? r.p : null, meta: metaShown && r.meta,
+  const want = hashOf({l: league?.id, t: curTeam, vs: r.t === curTeam ? r.vs : null, m: r.m, p: r.t === curTeam ? r.p : null, mt: r.t === curTeam ? r.mt : null, meta: metaShown && r.meta,
                        map: !curTeam && mapShown ? mapShown : null, br: !curTeam && brShown ? brShown : null, ag: !curTeam && agShown ? agShown : null});
   if(location.hash && want !== location.hash && !(r.t && r.t === curTeam)) history.replaceState(null, "", want || location.pathname);
 }
@@ -2405,6 +2441,100 @@ function makeCollapsible(root){
   });
 }
 new MutationObserver(() => makeCollapsible($("#detail"))).observe($("#detail"), {childList: true, subtree: true});
+
+// ================================================================== Match-Übersicht (Scoreboard je Map)
+// Daten: Match-Eintrag des Teams + Map-Statistiken aus der Spieler-Historie beider Teams (history[].m = Match-ID)
+async function openMatchById(tid, mid){
+  const my = ++current;
+  $("#detail").innerHTML = '<div class="empty"><span class="spin"></span> Lade Match…</div>';
+  let A;
+  try{ A = await getJSON(`data/team-${tid}.json?t=${meta.generated}`); }catch(e){ $("#detail").innerHTML = '<div class="empty err">Keine Daten zu diesem Team.</div>'; return; }
+  if(my !== current) return;
+  await openMatch(A, league.teams.find(t => t.id === String(tid)), mid, my);
+}
+async function openMatch(A, mtA, mid, my = ++current){
+  curTeam = String(A.id); metaShown = false; mapShown = null; brShown = null; agShown = null; setSideTab("table");
+  document.querySelectorAll("tr.team").forEach(x => x.classList.toggle("sel", x.dataset.id === curTeam));
+  setUrl({l: league.id, t: curTeam, mt: mid});
+  const m = (A.opl?.matches || []).find(x => x.id === String(mid));
+  if(!m){ $("#detail").innerHTML = '<div class="empty">Match nicht gefunden.</div>'; return; }
+  let B = null;
+  if(m.opp?.id && Number(m.opp.id) > 0) try{ B = await getJSON(`data/team-${m.opp.id}.json?t=${meta.generated}`); }catch(e){}
+  if(my !== current) return;
+  renderMatch(A, mtA, B, m);
+  showDetail(true);
+  $("#detail").scrollTop = 0; if(isMobile()) window.scrollTo(0, 0);
+}
+function teamLogo(id){
+  const t = league.teams.find(x => x.id === String(id));
+  return t?.logo || "";
+}
+function renderMatch(A, mtA, B, m){
+  const nameA = A.name || mtA?.name, nameB = m.opp?.name || B?.name || "Gegner";
+  const agIc = a => { const ic = AGENT_ICONS[(a || "").toLowerCase()]; return ic ? `<img class="agic" src="${esc(ic)}" alt="${esc(a)}" title="${esc(a)}">` : `<span class="sub">${esc(a || "–")}</span>`; };
+  // Spielerzeilen einer Map (Index i, falls dieselbe Map zweimal vorkommt)
+  const rowsFor = (T, mp, i) => T ? Object.values(T.opl?.players || {}).map(p => {
+    const hs = (p.history || []).filter(h => h.m === String(m.id) && h.map === mp);
+    const h = hs[Math.min(i, hs.length - 1)];
+    return h ? {name: p.name, team: T.id, ...h} : null;
+  }).filter(Boolean).sort((x, y) => y.acs - x.acs) : [];
+  const nth = (mp, idx) => m.maps.slice(0, idx).filter(x => x.map === mp).length;
+  const total = (rows) => {   // über alle Maps summiert
+    const g = {};
+    for(const r of rows){ const x = g[r.name] ??= {name: r.name, team: r.team, n: 0, acs: 0, k: 0, d: 0, a: 0, fb: 0, econ: 0, plants: 0, defuses: 0, agents: []};
+      x.n++; x.acs += r.acs; x.k += r.k; x.d += r.d; x.a += r.a; x.fb += r.fb; x.econ += r.econ; x.plants += r.plants; x.defuses += r.defuses; x.agents.push(r.agent); }
+    return Object.values(g).map(x => ({...x, acs: Math.round(x.acs / x.n), econ: Math.round(x.econ / x.n)})).sort((x, y) => y.acs - x.acs);
+  };
+  const board = (rows, name, logo, won, mvp) => `<div class="sbteam${won ? " won" : ""}"><div class="sbh">${logo ? `<img src="${esc(logo)}" alt="">` : ""}<b>${esc(name)}</b></div>
+    ${rows.length ? `<table class="sbt"><thead><tr><th>Spieler</th><th class="c">Agent</th><th class="num">ACS</th><th class="num">K</th><th class="num">D</th><th class="num">A</th><th class="num">+/-</th><th class="num opt">K/D</th><th class="num opt">FB</th><th class="num opt">Econ</th><th class="num opt" title="Plants/Defuses">P/D</th></tr></thead><tbody>${
+      rows.map(r => { const pm = r.k - r.d;
+        return `<tr${r.name === mvp ? ' class="mvp"' : ""}><td><span class="pname plink" data-team="${esc(r.team)}" data-key="${esc(r.name.toLowerCase())}">${esc(r.name)}</span>${r.name === mvp ? ' <span class="star" title="Höchster ACS im Match">MVP</span>' : ""}</td>
+        <td class="c">${(r.agents || [r.agent]).map(agIc).join("")}</td><td class="num"><b>${r.acs}</b></td><td class="num">${r.k}</td><td class="num">${r.d}</td><td class="num">${r.a}</td>
+        <td class="num ${pm > 0 ? "pos-up" : pm < 0 ? "pos-dn" : ""}">${pm > 0 ? "+" : ""}${pm}</td><td class="num opt">${r.d ? (r.k / r.d).toFixed(2) : r.k}</td>
+        <td class="num opt">${r.fb}</td><td class="num opt">${r.econ}</td><td class="num opt">${r.plants}/${r.defuses}</td></tr>`; }).join("")}</tbody></table>`
+      : '<p class="sub">Keine Spielerdaten.</p>'}</div>`;
+  const allA = m.maps.flatMap((x, i) => rowsFor(A, x.map, nth(x.map, i))), allB = m.maps.flatMap((x, i) => rowsFor(B, x.map, nth(x.map, i)));
+  const mvpOf = (ra, rb) => [...ra, ...rb].sort((x, y) => y.acs - x.acs)[0]?.name;
+  const tabs = m.maps.length > 1 ? ["Gesamt", ...m.maps.map(x => cap(x.map))] : m.maps.map(x => cap(x.map));
+  const panes = m.maps.length > 1 ? [{ra: total(allA), rb: total(allB), us: m.score?.[0], them: m.score?.[1], all: true,
+    rounds: [m.maps.reduce((n, x) => n + x.us, 0), m.maps.reduce((n, x) => n + x.them, 0)]}] : [];
+  m.maps.forEach((x, i) => panes.push({ra: rowsFor(A, x.map, nth(x.map, i)), rb: rowsFor(B, x.map, nth(x.map, i)), us: x.us, them: x.them, map: x.map}));
+  const veto = (m.veto || []).map((v, i) => `<div class="vstep ${v.action === "pick" ? "pick" : v.action} ${v.by === "self" ? "A" : v.by === "opp" ? "B" : "dec"}"><span class="vn">${i + 1}</span>
+    <img src="${MAP_IMG(v.map)}" alt="" onerror="this.remove()"><span class="vm">${esc(cap(v.map))}</span><span class="vw">${v.action === "ban" ? "Ban" : v.by ? "Pick" : "Decider"}</span></div>`).join("");
+  const date = m.start ? new Date(m.start * 1000).toLocaleString("de-DE", {weekday: "short", day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit"}) + " Uhr" : "";
+  const res = m.score ? m.score : [m.maps.filter(x => x.us > x.them).length, m.maps.filter(x => x.us < x.them).length];
+  const cls = {W: "w", L: "l", D: "d"}[m.outcome] || "d";
+  $("#detail").innerHTML = `
+    ${crumbs([{label: nameA, href: hashOf({l: league.id, t: String(A.id)})}, {label: `vs ${nameB}`}])}
+    <div class="mhero">
+      <div class="mht">${teamLogo(A.id) ? `<img src="${esc(teamLogo(A.id))}" alt="">` : ""}<b>${esc(nameA)}</b></div>
+      <div class="mhs"><div class="mscore ${cls}">${res[0]} : ${res[1]}</div><div class="sub">${esc(date)}</div>
+        <div class="sub">${esc((/BO\d/i.exec(m.format || "") || [""])[0])}${m.stage ? ` · ${esc(roundName(m.stage))}` : ""}${m.bracket ? ` · ${esc(m.bracket)}` : ""}</div>
+        <div class="mhl">${vodLinks(m)}<a class="sub" href="https://www.opleague.pro/match/${esc(m.id)}" target="_blank" rel="noopener">OPL ↗</a></div></div>
+      <div class="mht r">${teamLogo(m.opp?.id) ? `<img src="${esc(teamLogo(m.opp.id))}" alt="">` : ""}<b>${teamLink(m.opp?.id, nameB)}</b></div>
+    </div>
+    ${veto ? `<div class="sechead"><h3>Veto ${tip(`Rot = ${nameA}, blau = ${nameB}, gestrichelt = Decider.`)}</h3></div><div class="vsteps">${veto}</div>` : ""}
+    ${panes.length ? `<div class="sechead"><h3>Scoreboard ${tip("Pro Map aus den OPL-Stats beider Teams, sortiert nach ACS. „Gesamt“ = Summe bzw. Ø über alle Maps. MVP = höchster ACS.")}</h3>
+      <div class="seg sbtabs">${tabs.map((t, i) => `<button class="${i ? "" : "on"}" data-sb="${i}">${esc(t)}</button>`).join("")}</div></div>
+    ${panes.map((p, i) => `<div class="sbpane" data-sb="${i}"${i ? " hidden" : ""}>
+      ${p.all ? `<div class="sbmaps">${m.maps.map(x => `<div class="sbmap" style="--bg:url('${MAP_IMG(x.map)}')"><b>${esc(cap(x.map))}</b><span class="${x.us > x.them ? "pos-up" : x.us < x.them ? "pos-dn" : ""}">${x.us} : ${x.them}</span></div>`).join("")}
+        <div class="sbmap sbsum" title="Runden über alle Maps"><b>Σ</b><span class="${p.rounds[0] > p.rounds[1] ? "pos-up" : p.rounds[0] < p.rounds[1] ? "pos-dn" : ""}">${p.rounds[0]} : ${p.rounds[1]}</span></div></div>` : ""}
+      ${p.map ? `<div class="sbmap" style="--bg:url('${MAP_IMG(p.map)}')"><b>${esc(cap(p.map))}</b><span class="${p.us > p.them ? "pos-up" : p.us < p.them ? "pos-dn" : ""}">${p.us} : ${p.them}</span></div>` : ""}
+      <div class="sboards">${board(p.ra, nameA, teamLogo(A.id), p.us > p.them, mvpOf(p.ra, p.rb))}${board(p.rb, nameB, teamLogo(m.opp?.id), p.them > p.us, mvpOf(p.ra, p.rb))}</div></div>`).join("")}`
+      : '<p class="sub">Für dieses Match gibt es keine Map-Ergebnisse.</p>'}`;
+  $("#back").onclick = () => showDetail(false);
+  document.querySelectorAll(".sbtabs button").forEach(b => b.onclick = () => {
+    document.querySelectorAll(".sbtabs button").forEach(x => x.classList.toggle("on", x === b));
+    document.querySelectorAll(".sbpane").forEach(x => x.hidden = x.dataset.sb !== b.dataset.sb);
+  });
+  document.querySelectorAll("#detail .plink[data-key]").forEach(el => el.onclick = () => openPlayerById(el.dataset.team, el.dataset.key));
+}
+// Klick auf ein gespieltes Match in der Match-Liste der Teamseite → Übersicht
+document.addEventListener("click", e => {
+  const box = e.target.closest?.(".match.mclick");
+  if(!box || e.target.closest("a, button, select, input, .tlink, .tl, img")) return;
+  if(curTeam) openMatchById(curTeam, box.dataset.mid);
+});
 
 // ================================================================== Agent-Seite (Klick auf ein Agent-Symbol)
 let agShown = null;
