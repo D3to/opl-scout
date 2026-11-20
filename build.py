@@ -117,25 +117,181 @@ def refresh_players(riot_ids, region, deadline, force=False, max_age=50 * 60):
     return left
 
 
+def league_number(lg):
+    m = re.search(r"(\d)\.\s*Liga", lg.get("name", "")) or re.search(r"(\d)Liga", lg.get("url", ""))
+    return m.group(1) if m else None
+
+
+def find_brackets(lg):
+    """K.-o.-Events (Wildcard, Playoffs, Relegation) dieser Liga im OPL-Menü finden.
+    Das Menü der Gruppenphase zeigt nur je Turnier einen Eintrag, die Geschwister-Events
+    (z. B. „Wildcardturnier 2. Liga“) stehen im Menü dieses Turniers → eine Ebene tiefer suchen."""
+    n = league_number(lg)
+    if not n:
+        return []
+    found, seen = {}, set()
+    queue = [e for e in core.opl_season_events(lg["url"]) if "Gruppenphase" not in e["slug"]]
+    while queue:
+        e = queue.pop(0)
+        if e["id"] in seen:
+            continue
+        seen.add(e["id"])
+        tail = e["slug"].split("-", 1)[-1]
+        digits = set("".join(re.findall(r"([\d\-]+)Liga", tail)).replace("-", ""))
+        if n in digits:
+            found[e["id"]] = e
+        try:
+            for sub in core.opl_season_events(e["url"].replace("/course", "/standing")):
+                if "Gruppenphase" not in sub["slug"] and sub["id"] not in seen:
+                    queue.append(sub)
+        except Exception as ex:
+            log(f"  Menü {e['label']}: {ex}")
+        time.sleep(0.2)
+    return list(found.values())
+
+
+def crawl_brackets(lg):
+    """Brackets der Liga laden und alle Matches darin (Veto, Maps, Stats) wie in der Gruppenphase crawlen."""
+    out = []
+    for e in find_brackets(lg):
+        b = core.opl_bracket(e["url"])
+        if not b.get("rounds"):
+            # nicht ausgelost: trotzdem anzeigen (Hinweis „hat nicht stattgefunden“ bzw. „noch nicht ausgelost“)
+            name = (b.get("title") or "").replace(" | OPL", "").split(" - ")[-1].strip() or e["label"]
+            out.append({"event": e["id"], "label": name, "url": e["url"], "stage": e["slug"].split("-", 1)[-1], "empty": True})
+            log(f"  {name}: nicht ausgelost")
+            continue
+        n = 0
+        for r in b["rounds"]:
+            for x in r["matches"]:
+                if not x["id"].isdigit():
+                    continue
+                before = (core.cache.peek(f"match:{x['id']}") or {}).get("fetched")
+                try:
+                    core.opl_match(x["id"])
+                except Exception as ex:
+                    log(f"  Match {x['id']} fehlgeschlagen: {ex}")
+                    continue
+                if (core.cache.peek(f"match:{x['id']}") or {}).get("fetched") != before:
+                    n += 1
+                    time.sleep(0.3)
+        name = b["title"].replace(" | OPL", "").split(" - ")[-1].strip()
+        out.append({"event": e["id"], "label": name or e["label"], "url": e["url"], "stage": e["slug"].split("-", 1)[-1]})
+        log(f"  Bracket {name}: {sum(len(r['matches']) for r in b['rounds'])} Matches, {n} neu geladen")
+    core.cache.set(f"league_brackets:{lg['id']}", out)
+    return out
+
+
+def _all_menu_events(start_url):
+    """Alle Events einer Saison über die OPL-Menüs (rekursiv, jedes Event nur einmal)."""
+    found, queue = {}, list(core.opl_season_events(start_url))
+    while queue:
+        e = queue.pop(0)
+        if e["id"] in found:
+            continue
+        found[e["id"]] = e
+        try:
+            queue += [x for x in core.opl_season_events(e["url"].replace("/course", "/standing")) if x["id"] not in found]
+        except Exception as ex:
+            log(f"  Menü {e['label']}: {ex}")
+        time.sleep(0.2)
+    return list(found.values())
+
+
+def _liga_digits(slug):
+    tail = slug.split("-", 1)[-1]
+    return sorted(set("".join(re.findall(r"([\d\-]+)Liga", tail) + re.findall(r"Liga(\d)", tail)).replace("-", "")))
+
+
+def build_templates(cfg):
+    """Leere Playoff-/Relegations-Brackets als Vorschau: Struktur aus der Vorsaison (config `bracket_template`),
+    Startplätze als Tabellenplätze der Vorsaison (z. B. „1. Liga A3“). Wird wöchentlich neu gebaut."""
+    url = cfg.get("bracket_template")
+    if not url:
+        return
+    if core.cache.get("bracket_templates", 7 * 24) is not None:
+        return
+    events = _all_menu_events(url.replace("/course", "/standing"))
+    # Tabellen der Vorsaison → Startplatz jedes Teams
+    seeds, done = {}, set()
+    for e in events:
+        if "Gruppenphase" not in e["slug"]:
+            continue
+        n = (_liga_digits(e["slug"]) or ["?"])[0]
+        page = core.fetch(e["url"].replace("/course", "/standing"))
+        # Gruppen-Ligen: Gesamttabelle des Elternevents (jede Seite verlinkt die Tabellen aller Ligen → passende wählen)
+        parents = re.findall(r'event\\?/(\d+-[A-Za-z0-9]+-Gruppenphase-[A-Za-z0-9]*?)\\?/standing\\?/overview', page)
+        parent = next((x for x in parents if _liga_digits(x) == [n]), None)
+        st_url = (f"https://www.opleague.pro/event/{parent}/standing/overview" if parent and "Gruppe" in e["slug"]
+                  else e["url"].replace("/course", "/standing"))
+        if st_url in done:
+            continue
+        done.add(st_url)
+        try:
+            st = core.opl_standings(st_url)
+        except Exception as ex:
+            log(f"  Vorlage: Tabelle {e['label']} nicht lesbar: {ex}")
+            continue
+        for t in st["teams"]:
+            seeds[t["id"]] = {"n": n, "group": t.get("group") or "", "rank": _int(t["rank"])}
+    out = []
+    for e in events:
+        if not re.search(r"Playoff|Relegation", e["slug"], re.I):
+            continue
+        b = core.opl_bracket(e["url"])
+        if not b.get("rounds"):
+            continue
+        idx = {x["id"]: (r, x) for r in b["rounds"] for x in r["matches"]}
+        rounds = []
+        for r in b["rounds"]:
+            ms = []
+            for x in r["matches"]:
+                slots = []
+                for t in x["teams"]:
+                    src = next((idx[v] for v in x["before"] if v in idx and any(tt["id"] == t["id"] for tt in idx[v][1]["teams"])), None)
+                    if src:
+                        pr, px = src
+                        slots.append({"from": "Verlierer" if x["id"] in px["loser"] else "Sieger", "round": _bracket_title(pr, px)})
+                    elif str(t["id"]).startswith("-"):
+                        slots.append({"bye": True})          # Freilos / Default Win
+                    elif t["id"] in seeds:
+                        slots.append({"seed": seeds[t["id"]]})
+                    else:
+                        slots.append({})
+                ms.append({"id": x["id"], "pos": x["pos"], "slots": slots, "winner": x["winner"], "loser": x["loser"],
+                           "title": _bracket_title(r, x)})
+            rounds.append({"key": r["key"], "titles": r["titles"], "matches": ms})
+        label = b["title"].replace(" | OPL", "").split(" - ")[-1].strip().replace("\\/", "/")
+        season = re.search(r"(Sommer|Winter)season \d{4}(?:/\d{2})?", b["title"])
+        out.append({"label": label, "stage": e["slug"].split("-", 1)[-1], "digits": _liga_digits(e["slug"]),
+                    "source": season.group(0) if season else "Vorsaison", "url": e["url"], "rounds": rounds})
+        log(f"  Vorlage {label}: {sum(len(r['matches']) for r in rounds)} Matches")
+    core.cache.set("bracket_templates", out)
+
+
 def crawl_matches(lg, refresh_course=True):
     """Lädt alle Matches einer Liga. Gültig sind nur Matches, deren Event-ID zur Liga
     (bzw. ihren Gruppen) gehört – damit zählt nur die ausgewählte Saison."""
     course = core.opl_course(lg["url"], refresh=refresh_course)
     ok, fetched = [], 0
     for mid in course["matches"]:
-        before = core.cache.age(f"match:{mid}")
+        before = (core.cache.peek(f"match:{mid}") or {}).get("fetched")
         try:
             m = core.opl_match(mid)
         except Exception as e:
             log(f"  Match {mid} fehlgeschlagen: {e}")
             continue
-        if core.cache.age(f"match:{mid}") != before:
+        if (core.cache.peek(f"match:{mid}") or {}).get("fetched") != before:   # wirklich neu geladen
             fetched += 1
             time.sleep(0.3)   # OPL schonen
         if m.get("event") in course["events"]:
             ok.append(mid)
     core.cache.set(f"league_matches:{lg['id']}", ok)
     log(f"  Matches: {len(ok)} gültig, {fetched} neu geladen (Events {', '.join(course['events'])})")
+    try:
+        crawl_brackets(lg)
+    except Exception as e:
+        log(f"  Brackets fehlgeschlagen: {e}")
     return ok
 
 
@@ -310,7 +466,9 @@ def team_opl(tid, matches, meta=None):
         # Ergebnis: offizieller OPL-Ergebnisblock (deckt auch kampflos/Freilos ab), sonst aus den Maps
         res = m.get("result") or []
         mine, theirs = (res[me - 1], res[2 - me]) if len(res) == 2 else ({}, {})
-        if mine.get("winner"):
+        if mine.get("val") == "Q":
+            outcome = "Q"            # Wildcard: Match nicht nötig, beide Teams qualifiziert
+        elif mine.get("winner"):
             outcome = "W"
         elif theirs.get("winner"):
             outcome = "L"
@@ -320,7 +478,7 @@ def team_opl(tid, matches, meta=None):
             outcome = "D"
         else:
             outcome = None
-        kind = "played" if played else ("bye" if opp.get("id") in ("-1", "") or "default" in opp.get("name", "").lower()
+        kind = "played" if played else "qual" if outcome == "Q" else ("bye" if opp.get("id") in ("-1", "") or "default" in opp.get("name", "").lower()
                                          else "ff" if outcome else None)
         entry = {"id": m["id"], "start": m.get("start"), "state": m.get("state"), "format": m.get("format"),
                  "opp": opp, "home": me == 1,
@@ -695,42 +853,169 @@ def match_vods(matches, league_title):
     return out
 
 
+def _bracket_title(r, x):
+    t = r["titles"]
+    return (t[x["pos"]] if x["pos"] < len(t) else "") or next((v for v in t if v), "")
+
+
+def bracket_paths(tid, brackets):
+    """Wo steht das Team in jedem Bracket? → nächstes Match mit Zielen bei Sieg/Niederlage,
+    ausgeschieden, qualifiziert oder Turniersieg."""
+    out = []
+    for d, b in brackets:
+        idx = {x["id"]: (r, x) for r in b["rounds"] for x in r["matches"]}
+        mine = [(r, x) for r in b["rounds"] for x in r["matches"] if any(t["id"] == tid for t in x["teams"])]
+        if not mine:
+            continue
+        r, x = mine[-1]   # letzte Runde, in der das Team steht = aktuelle Position
+        me = next(t for t in x["teams"] if t["id"] == tid)
+        opp = next((t for t in x["teams"] if t["id"] != tid), None)
+        def target(ids, how=None):
+            if not ids or ids[0] not in idx:
+                return None
+            tr, tx = idx[ids[0]]
+            known = [t for t in tx["teams"] if t["id"] not in (tid, "", "0") and t["name"] not in ("TBD", "")]
+            others = [idx[v][1] for v in tx["before"] if v in idx and v != x["id"]]
+            if known:
+                vs = known[0]["name"]
+            elif others:
+                o = others[0]
+                who = "Verlierer" if tx["id"] in o["loser"] else "Sieger"   # wer aus dem anderen Match dorthin kommt
+                vs = f"{who} aus " + " vs ".join(t["name"] for t in o["teams"] if t["name"]) if o["teams"] else "offen"
+            else:
+                vs = "offen"
+            return {"round": _bracket_title(tr, tx), "match": tx["id"], "vs": vs}
+        entry = {"label": d["label"], "event": d["event"], "url": d["url"], "round": _bracket_title(r, x), "match": x["id"],
+                 "opp": opp["name"] if opp else None, "opp_id": opp["id"] if opp else None}
+        sc = str(me.get("score") or "")
+        if x["state"] != "closed":
+            entry.update(state="next", win=target(x["winner"], "Sieger"), lose=target(x["loser"], "Verlierer"))
+        elif sc == "Q":
+            entry["state"] = "qualified"
+        else:
+            won = "--winner" in me["cls"] or sc == "W" or (opp and sc.isdigit() and str(opp.get("score") or "").isdigit() and int(sc) > int(opp["score"]))
+            if won and not x["winner"]:
+                entry["state"] = "champion"
+            elif won:
+                entry.update(state="waiting", win=target(x["winner"], "Sieger"))
+            elif x["loser"]:
+                entry.update(state="waiting", lose=target(x["loser"], "Verlierer"))
+            else:
+                entry["state"] = "out"
+        out.append(entry)
+    return out
+
+
 def export(out, leagues, region, repo, ref, base_cfg):
     data = out / "data"
     data.mkdir(parents=True, exist_ok=True)
     meta_leagues = []
     team_ids = set()
+    team_league = {}   # Team-ID → Liga-ID (Links in Brackets auf Teamseiten anderer Ligen)
     league_matches = {lg["id"]: [m for m in (core.cache.peek(f"match:{mid}") for mid in
                                   core.cache.peek(f"league_matches:{lg['id']}") or []) if m]
                       for lg in leagues}
-    opl_by_team = {}
+    opl_by_team, opl_all_by_team, paths_by_team, gs_by_team = {}, {}, {}, {}
     metas = {lid: league_meta(ms) for lid, ms in league_matches.items()}
+    # K.-o.-Brackets (Wildcard, Playoffs, Relegation) aller Ligen
+    league_brackets, bmatch, bmeta = {}, {}, {}
+    for lg in leagues:
+        lst = []
+        for d in core.cache.peek(f"league_brackets:{lg['id']}") or []:
+            b = core.cache.peek("bracket:" + d["url"])
+            if not b:
+                continue
+            lst.append((d, b))
+            for r in b["rounds"]:
+                for x in r["matches"]:
+                    m = core.cache.peek(f"match:{x['id']}")
+                    if m:
+                        bmatch[x["id"]] = m
+                        bmeta[x["id"]] = {"stage": _bracket_title(r, x), "bracket": d["label"], "event": d["event"],
+                                          "wildcard": "Wildcard" in d.get("stage", "") + d["label"], "league": lg["id"]}
+        league_brackets[lg["id"]] = lst
+    all_brackets = [x for lst in league_brackets.values() for x in lst]
+    # Vorschau-Brackets (Vorlage aus der Vorsaison), solange OPL das Event noch nicht angelegt hat
+    templates = core.cache.peek("bracket_templates") or []
+    cur_seed = {}   # (Liga-Nr., Gruppe, Platz) → Team nach aktuellem Tabellenstand
+    for lg in leagues:
+        st = core.cache.peek("standing:" + lg["url"])
+        for t in (st or {}).get("teams", []):
+            cur_seed[(league_number(lg), t.get("group") or "", _int(t["rank"]))] = {"id": t["id"], "name": t["name"], "logo": t.get("logo")}
+    def template_for(lg):
+        n, real = league_number(lg), {d.get("stage") for d, _ in league_brackets.get(lg["id"], [])}
+        out = []
+        for tp in templates:
+            if n not in tp["digits"] or tp["stage"] in real:
+                continue
+            rounds = [{"key": r["key"], "titles": r["titles"], "matches": [{**x, "slots": [
+                {**sl, "team": cur_seed.get((sl["seed"]["n"], sl["seed"]["group"], sl["seed"]["rank"]))} if sl.get("seed") else sl
+                for sl in x["slots"]]} for x in r["matches"]]} for r in tp["rounds"]]
+            out.append({"event": "tpl-" + tp["stage"], "label": tp["label"], "template": True, "source": tp["source"],
+                        "digits": tp["digits"], "url": tp["url"], "rounds": rounds})
+        return out
+    bracket_league = {d["event"]: lid for lid, lst in league_brackets.items() for d, _ in lst}
     for lg in leagues:
         st = core.cache.peek("standing:" + lg["url"])
         if not st:
             continue
         summaries = {}
         for t in st["teams"]:
-            opl = opl_by_team[t["id"]] = team_opl(t["id"], league_matches[lg["id"]], metas[lg["id"]])
+            # Statistik = Gruppenphase + Playoffs/Relegation; Wildcardturnier nur optional (Umschalter, Standard aus)
+            bm = [m for m in bmatch.values() if t["id"] in (m["t1"]["id"], m["t2"]["id"])]
+            ko = [m for m in bm if not bmeta[m["id"]]["wildcard"]]
+            wc = [m for m in bm if bmeta[m["id"]]["wildcard"]]
+            opl = opl_by_team[t["id"]] = team_opl(t["id"], league_matches[lg["id"]] + ko, metas[lg["id"]])
+            gs_by_team[t["id"]] = team_opl(t["id"], league_matches[lg["id"]], metas[lg["id"]]) if ko else opl
+            if wc:
+                full = team_opl(t["id"], league_matches[lg["id"]] + ko + wc, metas[lg["id"]])
+                opl["matches"] = full["matches"]          # Match-Liste immer komplett
+                opl_all_by_team[t["id"]] = full
+            for e in opl["matches"]:
+                if e["id"] in bmeta:
+                    e.update({k: v for k, v in bmeta[e["id"]].items() if k != "league"})
+            paths_by_team[t["id"]] = [{**p, "league": bracket_league.get(p["event"])} for p in bracket_paths(t["id"], all_brackets)]
             # aktive Spieler = mind. ein Ligaspiel; ohne gespielte Matches → OPL-Position
             active = set(opl["players"]) if opl["maps_played"] else None
             summaries[t["id"]] = core.team_summary(t["id"], region, active)
-        overview = league_overview(league_matches[lg["id"]], opl_by_team, st["teams"])
-        vods = match_vods(league_matches[lg["id"]], st.get("title", ""))
+        ko_league = [m for mid, m in bmatch.items() if bmeta[mid]["league"] == lg["id"] and not bmeta[mid]["wildcard"]]
+        overview = league_overview(league_matches[lg["id"]] + ko_league, opl_by_team, st["teams"])
+        vods = match_vods(league_matches[lg["id"]] + list(bmatch.values()), st.get("title", ""))
         for t in st["teams"]:
-            for e in (opl_by_team.get(t["id"]) or {}).get("matches", []):
-                if e["id"] in vods:
-                    e["vods"] = vods[e["id"]]
+            for o in (opl_by_team.get(t["id"]), opl_all_by_team.get(t["id"])):
+                for e in (o or {}).get("matches", []):
+                    if e["id"] in vods:
+                        e["vods"] = vods[e["id"]]
+        # Brackets dieser Liga für die Playoff-Ansicht (mit Termin, Format, VODs aus den Match-Details)
+        brackets_out = []
+        for d, b in league_brackets.get(lg["id"], []):
+            rounds = []
+            for r in b["rounds"]:
+                ms = []
+                for x in r["matches"]:
+                    m = bmatch.get(x["id"]) or {}
+                    ms.append({**x, "start": m.get("start"), "format": m.get("format"), "vods": vods.get(x["id"], []),
+                               "maps": [{"map": mp["map"], "s1": mp["s1"], "s2": mp["s2"]} for mp in m.get("maps", [])],
+                               "title": _bracket_title(r, x)})
+                rounds.append({"key": r["key"], "titles": r["titles"], "matches": ms})
+            entry = {"event": d["event"], "label": d["label"], "url": d["url"], "rounds": rounds}
+            if not rounds:
+                entry["empty"] = True
+                # Gruppenphase läuft schon → ein nicht ausgelostes Turnier vor der Saison (Wildcard) fand nicht statt
+                entry["note"] = ("Hat diese Saison nicht stattgefunden – auf OPL nie ausgelost."
+                                 if "Wildcard" in d.get("stage", "") else "Noch nicht ausgelost.")
+            brackets_out.append(entry)
         log(f"  {lg['name']}: {len(vods)} Matches mit VOD")
-        prev = rank_history(lg, st, opl_by_team)
+        prev = rank_history(lg, st, gs_by_team)   # Tabelle: nur Gruppenphase
         movement = {"md": prev["md"], "src": prev["src"], "ranks": prev["ranks"]} if prev else None
         (data / f"league-{lg['id']}.json").write_text(json.dumps(
-            {**st, "id": lg["id"], "name": lg["name"], "summaries": summaries, "overview": overview, "movement": movement,
+            {**st, "id": lg["id"], "name": lg["name"], "summaries": summaries, "overview": overview, "movement": movement, "brackets": brackets_out + template_for(lg),
              "updated": time.time() - (core.cache.age("standing:" + lg["url"]) or 0)},
             ensure_ascii=False, separators=(",", ":")))
         meta_leagues.append({"id": lg["id"], "name": lg["name"], "url": lg["url"], "title": st["title"],
                              "zones": lg.get("zones") or []})
         team_ids.update(t["id"] for t in st["teams"])
+        team_league.update({t["id"]: lg["id"] for t in st["teams"]})
 
 
     rank_times = []
@@ -746,9 +1031,15 @@ def export(out, leagues, region, repo, ref, base_cfg):
                     stats[m["riot_id"].lower()] = s
                     if s.get("updated") and s.get("current"):
                         rank_times.append(s["updated"])
-        opl = opl_by_team.get(tid) or {"maps": {}, "players": {}, "matches": [], "agents": [], "maps_played": 0}
+        gs = opl_by_team.get(tid) or {"maps": {}, "players": {}, "matches": [], "agents": [], "maps_played": 0}
+        full = opl_all_by_team.get(tid)
+        extra = {}
+        if full:   # Teamseite: Umschalter „inkl. Wildcardturnier“ (Standard aus)
+            extra["opl_wc"] = {k: full[k] for k in ("maps", "players", "agents", "maps_played", "record")}
+        if paths_by_team.get(tid):
+            extra["brackets"] = paths_by_team[tid]
         (data / f"team-{tid}.json").write_text(json.dumps(
-            {**team, "stats": stats, "opl": opl}, ensure_ascii=False, separators=(",", ":")))
+            {**team, "stats": stats, "opl": gs, **extra}, ensure_ascii=False, separators=(",", ":")))
 
     (data / "meta.json").write_text(json.dumps({
         "generated": time.time(),
@@ -762,6 +1053,7 @@ def export(out, leagues, region, repo, ref, base_cfg):
         "opl_updated": max([core.cache.peek("standing:" + lg["url"]) and
                             time.time() - (core.cache.age("standing:" + lg["url"]) or 0) or 0 for lg in leagues] or [0]),
         "leagues": meta_leagues,
+        "team_league": team_league,
     }, ensure_ascii=False, indent=1))
 
     for f in (HERE / "web").iterdir():
@@ -803,6 +1095,11 @@ def main():
     if not has_key and not a.export_only:
         log("WARNUNG: kein HENRIKDEV_API_KEY – es werden nur OPL-Daten aktualisiert")
 
+    if not a.export_only and not a.skip_opl:
+        try:
+            build_templates(base_cfg)
+        except Exception as e:
+            log(f"Bracket-Vorlagen fehlgeschlagen: {e}")
     if not a.export_only:
         try:
             fetch_youtube(base_cfg)

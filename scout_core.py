@@ -489,6 +489,61 @@ def opl_course(league_url, refresh=False):
     return res
 
 
+def opl_season_events(league_url, refresh=False):
+    """Alle Events der Saison aus dem OPL-Menü (Gruppenphase, Wildcard, Playoffs, Relegation …).
+    → [{"id", "label", "url" (course), "slug"}]"""
+    key = "season_events:" + league_url
+    hit = None if refresh else cache.get(key, OPL_TTL)
+    if hit is not None:
+        return hit
+    page = fetch(_course_url(league_url))
+    out, seen = [], set()
+    for href, label in re.findall(r'"href":"(https:\\/\\/www\.opleague\.pro\\/event\\/[^"]+?\\/course)","title":"[^"]*"\},"label":"([^"]+)"', page):
+        url = href.replace("\\/", "/")
+        m = re.search(r"/event/(\d+)-([^/]+)/course", url)
+        if not m or m.group(1) in seen:
+            continue
+        seen.add(m.group(1))
+        out.append({"id": m.group(1), "label": html.unescape(label), "url": url, "slug": m.group(2)})
+    cache.set(key, out)
+    return out
+
+
+def opl_bracket(course_url, refresh=False):
+    """K.-o.-Baum eines Events (Wildcard, Playoffs, Relegation) aus dem Datenblock `full_data` der Kursseite.
+    Runden in Reihenfolge; pro Match Position (0 = Upper, 1 = Lower Bracket) und Ziel für Sieger/Verlierer."""
+    key = "bracket:" + course_url
+    hit = None if refresh else cache.get(key, OPL_TTL)
+    if hit is not None:
+        return hit
+    page = fetch(course_url)
+    i = page.find("var full_data = ")
+    if i < 0:   # Event angelegt, aber (noch) nicht ausgelost
+        title = re.search(r"<title>(.*?)</title>", page, re.S)
+        res = {"title": html.unescape(title.group(1).strip()) if title else "", "rounds": [],
+               "unseeded": "not seeded" in page}
+        cache.set(key, res)
+        return res
+    data, _ = json.JSONDecoder().raw_decode(page[i + len("var full_data = "):])
+    title = re.search(r"<title>(.*?)</title>", page, re.S)
+    rounds = []
+    for k in sorted(data.get("rounds", {}), key=int):
+        r = data["rounds"][k]
+        ms = []
+        for x in r.get("matches", []):
+            ms.append({
+                "id": str(x["id"]), "pos": int(x.get("position") or 0), "state": x.get("state_key"),
+                "date": (x.get("popover") or {}).get("match_date"),
+                "teams": [{"id": str(t.get("id")), "name": html.unescape(t.get("name") or ""), "short": t.get("short_name"),
+                           "logo": t.get("logo"), "score": t.get("score"), "cls": t.get("class") or ""} for t in x.get("teams", [])],
+                "winner": [str(v) for v in x.get("winner") or []], "loser": [str(v) for v in x.get("loser") or []],
+                "before": [str(v) for v in x.get("before") or []]})
+        rounds.append({"key": int(k), "titles": r.get("titles") or ["", ""], "matches": ms})
+    res = {"title": html.unescape(title.group(1).strip()) if title else "", "rounds": rounds}
+    cache.set(key, res)
+    return res
+
+
 def _num(s):
     try:
         return int(s)

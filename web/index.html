@@ -233,6 +233,54 @@
   .formleg .ln{width:18px;height:0;display:inline-block;border-top:2px solid}
   .formleg .ln.trend{border-color:var(--acc);border-top-width:3px} .formleg .ln.own{border-color:var(--warn);border-top-style:dashed} .formleg .ln.lg{border-color:var(--mut);border-top-style:dotted}
   .agic{width:22px;height:22px;border-radius:50%;vertical-align:middle;background:var(--panel2)}
+  .sidetabs{display:flex;border-bottom:1px solid var(--line);background:var(--panel)}
+  .sidetabs button{flex:1;background:none;border:0;border-bottom:2px solid transparent;border-radius:0;color:var(--mut);padding:9px 6px;font-weight:600}
+  .sidetabs button:hover{color:var(--txt)}
+  .sidetabs button.on{color:var(--txt);border-bottom-color:var(--acc)}
+  .sidetabs button:disabled{opacity:.4;cursor:default}
+  .kost{margin-left:6px;font-size:10px;font-weight:600;padding:1px 6px;border-radius:9px;vertical-align:1px}
+  .kost:empty{display:none}
+  .kost.pre{background:color-mix(in srgb, var(--warn) 18%, transparent);color:var(--warn)}
+  .kost.live{background:color-mix(in srgb, var(--bad) 20%, transparent);color:var(--bad)}
+  .kost.next{background:var(--panel2);color:var(--txt)}
+  .kost.done{background:color-mix(in srgb, var(--good) 18%, transparent);color:var(--good)}
+  .bracket{display:flex;gap:14px;overflow-x:auto;padding-bottom:8px}
+  .bcol{flex:0 0 230px;width:230px;min-width:0;display:flex;flex-direction:column}   /* feste Breite → UB/LB-Runden stehen übereinander */
+  .bcms{min-width:0} .bcard{min-width:0}
+  .bspacer{border-left:1px dashed var(--line);opacity:.5}
+  .bct{font-size:12px;font-weight:600;color:var(--mut);text-transform:uppercase;letter-spacing:.03em;margin-bottom:8px;min-height:16px}
+  .bcms{display:flex;flex-direction:column;justify-content:space-around;gap:10px;flex:1}
+  .bcard{background:var(--panel);border:1px solid var(--line);border-radius:10px;overflow:hidden;transition:border-color .15s}
+  .bcard.open{border-style:dashed}
+  .bcard.hl{border-color:var(--acc)}
+  .bt{display:flex;align-items:center;gap:7px;padding:5px 9px;border-bottom:1px solid var(--line);font-size:13px}
+  .bt img,.bt .blogo{width:18px;height:18px;object-fit:contain;flex:none}
+  .bt .bn{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .bt .bn a.tlink2{color:var(--txt)} .bt .bn a.tlink2:hover{text-decoration:underline}
+  .bt .bs{font-weight:700;min-width:16px;text-align:right}
+  .bt.win .bn{font-weight:600} .bt.win .bs{color:var(--good)} .bt.lose{opacity:.55}
+  .bt.hl{background:color-mix(in srgb, var(--acc) 15%, transparent);opacity:1}
+  .bcard.tpl{border-style:dashed}
+  .bempty{display:flex;gap:14px;align-items:center;background:var(--panel);border:1px dashed var(--line);border-radius:10px;padding:16px 18px;margin-top:10px}
+  .bempty .bei{font-size:26px} .btabs button.off{opacity:.65}
+  .bt .seed{font-size:10px;color:var(--mut);border:1px solid var(--line);border-radius:4px;padding:0 4px;white-space:nowrap}
+  .tplbadge{font-size:11px;font-weight:600;vertical-align:middle;padding:2px 7px;border-radius:5px;background:color-mix(in srgb, var(--warn) 18%, transparent);color:var(--warn)}
+  .tplnote{background:color-mix(in srgb, var(--warn) 10%, transparent);border:1px dashed color-mix(in srgb, var(--warn) 45%, transparent);border-radius:8px;padding:8px 12px;margin:0 0 10px;font-size:13px}
+  .bq{color:var(--good);font-size:11px;border:1px solid var(--good);border-radius:4px;padding:0 4px}
+  .bfoot{display:flex;align-items:center;gap:6px;flex-wrap:wrap;padding:5px 9px;font-size:11px}
+  .bfoot .vod{font-size:11px;padding:0 5px} .bfoot a.sub{margin-left:auto}
+  .bmaps{padding:0 9px 6px;font-size:11px}
+  .btabs{display:flex;gap:6px;flex-wrap:wrap;margin:6px 0}
+  .btabs button.on{border-color:var(--acc);color:var(--txt)}
+  .stage{font-size:11px;padding:1px 6px;border-radius:4px;background:color-mix(in srgb, var(--warn) 15%, transparent);color:var(--warn);white-space:nowrap}
+  .bpaths{display:flex;flex-direction:column;gap:6px;margin:0 0 10px}
+  .bpath{display:flex;align-items:center;gap:12px;background:var(--panel);border:1px solid var(--line);border-left:3px solid var(--warn);border-radius:8px;padding:7px 12px;flex-wrap:wrap}
+  .bpl{font-size:12px;color:var(--mut);white-space:nowrap} .bpt{flex:1;min-width:200px}
+  .kotoggle{display:inline-flex;align-items:center;gap:5px;font-size:13px;cursor:pointer;white-space:nowrap}
+  .shtools{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+  /* Teamnamen-Links überall gleich: Handzeiger + Unterstreichen beim Darüberfahren */
+  .tlink,a.tl,a.tlink2,.brlink{cursor:pointer;color:inherit;text-decoration:none}
+  .tlink:hover,a.tl:hover,a.tlink2:hover,.brlink:hover{text-decoration:underline}
   .maplink{cursor:pointer} .maplink:hover span{text-decoration:underline}
   .mapbanner{position:relative;border-radius:12px;overflow:hidden;margin-bottom:12px;height:130px;background:var(--panel2)}
   .mapbanner img{width:100%;height:100%;object-fit:cover;display:block;filter:brightness(.6)}
@@ -279,7 +327,7 @@
   .rstat.ok{background:rgba(62,207,142,.15);color:var(--good)}
   .rstat.thin{background:rgba(255,198,107,.13);color:var(--warn)}
   .rstat.gap{background:rgba(255,107,107,.15);color:var(--bad)}
-  #metabtn.active{border-color:var(--acc);color:var(--txt)}
+
   .metabar{display:inline-block;width:44px;height:4px;background:var(--panel2);border-radius:2px;overflow:hidden;vertical-align:middle;margin-left:6px}
   .metabar i{display:block;height:100%;background:var(--acc)}
   .metabar.ban i{background:var(--mut)}
@@ -473,11 +521,15 @@
 <div id="notice"></div>
 <main>
   <div id="teams">
+    <div class="sidetabs" id="sidetabs" role="tablist">
+      <button data-v="table" role="tab" title="Tabelle und Teams">Tabelle</button>
+      <button data-v="meta" role="tab" title="Liga-weite Auswertung: Maps, Agents, Comps, Bestenliste">Meta</button>
+      <button data-v="ko" role="tab" title="K.-o.-Runden: Wildcard, Playoffs, Relegation">K.-o.<span class="kost" id="kost"></span></button>
+    </div>
     <div class="sidetools">
       <label>Ø <select id="metric" title="Welcher Durchschnitt in der Leiste angezeigt wird"></select></label>
       <label><span class="lbl">Sortieren</span> <select id="sort" aria-label="Sortieren"></select></label>
       <button id="sortdir" class="ghost" title="Richtung umkehren">⇅</button>
-      <button id="metabtn" class="ghost" title="Liga-weite Auswertung: Maps, Agents, Comps, Bestenliste">📊 Liga-Meta</button>
       <button id="leaguerefresh" style="display:none" title="Startet die GitHub Action für diese Liga (Kader + Stats aller Teams)">⟳ Liga aktualisieren</button>
       <div id="admininfo"></div>
     </div>
@@ -578,7 +630,7 @@ async function openLeague(id, keepTeam=false){
   if(!keepTeam){
     $("#teamlist").innerHTML = '<div class="empty"><span class="spin"></span> Lade Standings…</div>';
     $("#detail").innerHTML = '<div class="empty">← Team anklicken, um Spieler und Stats zu sehen</div>';
-    curTeam = null; metaShown = false; $("#metabtn").classList.remove("active");
+    curTeam = null; metaShown = false; setSideTab("table");
     showDetail(false, true);
   }
   try{
@@ -591,6 +643,7 @@ async function openLeague(id, keepTeam=false){
   $("#sort").value = sortKey;
   renderTeams();
   updateAdminUI();
+  updateKoStatus();
   if(keepTeam && curTeam) loadTeam(curTeam, true);
   else if(metaShown || !curTeam) showMeta(false);   // Desktop: Liga-Meta als Startansicht
 }
@@ -652,7 +705,7 @@ function renderTeams(){
   document.querySelectorAll("tr.team").forEach(tr => tr.onclick = () => {
     document.querySelectorAll("tr.team.sel").forEach(x=>x.classList.remove("sel"));
     tr.classList.add("sel");
-    metaShown = false; $("#metabtn").classList.remove("active");
+    metaShown = false; setSideTab("table");
     loadTeam(tr.dataset.id);
     showDetail(true);
   });
@@ -674,7 +727,7 @@ function avgIcon(sm){
 // ------------------------------------------------------------------ Teamansicht
 async function loadTeam(id, silent=false){
   const my = ++current;
-  curTeam = id; mapShown = null;
+  curTeam = id; lastTeam = id; mapShown = null; brShown = null; setSideTab("table");
   if(!silent) setUrl({l: league.id, t: id});
   const meta_t = league.teams.find(t => t.id === id);
   if(!silent) $("#detail").innerHTML = `<div class="empty"><span class="spin"></span> Lade ${esc(meta_t?.name || "")}…</div>`;
@@ -692,7 +745,12 @@ function statsFor(team, m){
   return pub;
 }
 
+let wcIncl = store.get("wcIncl") === true;   // Teamseite: Wildcardturnier in die Stats einrechnen (Standard aus)
 function renderTeam(team, mt){
+  const full = team._full || team;
+  // Stats = Gruppenphase + Playoffs/Relegation; mit Umschalter zusätzlich das Wildcardturnier (Match-Liste bleibt komplett)
+  if(full.opl_wc && wcIncl) team = {...full, opl: {...full.opl, ...full.opl_wc}, _full: full};
+  else team = full;
   const s = mt?.stats || {};
   const byOpl = (team.opl?.maps_played || 0) > 0;
   // aktiv = mind. ein Ligaspiel; ohne gespielte Ligaspiele zählt die OPL-Rolle
@@ -779,11 +837,13 @@ function renderTeam(team, mt){
           + avgBox(pk + "aktive Spieler", byOpl ? "(mind. 1 Ligaspiel diese Saison)" : "(Player + Captain – noch keine Ligaspiele)", L.filter(e=>e.core).map(e=>e.elo), "", avgPeak)
           + avgBox(pk + "alle Mitglieder", "(ganzer Kader)", L.map(e=>e.elo), "np", avgPeak); })()}
     </div>
-    <div class="sechead"><h3>Spieler</h3>
+    <div class="sechead"><h3>Spieler</h3><div class="shtools">
+      ${full.opl_wc ? `<label class="kotoggle" title="Matches aus dem Wildcardturnier (vor der Saison) in Spieler-Stats, Map-Pool, Agents und Rollen einrechnen (${full.opl_wc.maps_played - full.opl.maps_played} Maps aus ${esc([...new Set(full.opl.matches.filter(m => m.wildcard).map(m => m.bracket))].join(", "))}). Playoffs und Relegation zählen immer.">
+        <input type="checkbox" id="wcincl"${wcIncl ? " checked" : ""}> inkl. Wildcard</label>` : ""}
       <label>Stats <select id="statsrc">
         <option value="opl">OPL-Liga (diese Saison)</option>
         <option value="ranked">Ranked (letzte 20 Spiele)</option>
-      </select></label></div>
+      </select></label></div></div>
     <div id="players"><table><thead><tr>
       ${pth("name","Spieler")}${pth("rank","Aktueller Rang")}${pth("peak","Peak")}${statSrc === "opl"
         ? `${pth("maps","Maps","num")}${pth("acs","ACS","num")}${pth("kd","K/D","num")}${pth("econ","Econ","num","Econ-Rating")}${pth("fb","FB","num","First Bloods")}${pth("wr","WR","num","Anteil gewonnener Maps")}<th>Agents <span class="sub">(% der Maps)</span></th>`
@@ -795,6 +855,7 @@ function renderTeam(team, mt){
     ${mapPoolHtml(team.opl)}
     ${teamAgentsHtml(team.opl)}
     ${rolesHtml(team)}
+    ${bracketPathHtml(full)}
     ${matchesHtml(team.opl)}`;
   const rb = $("#teamrefresh");
   if(rb) rb.onclick = () => auth?.mode === "admin" ? adminRefreshTeam(team.id || curTeam) : localRefreshTeam(team, mt);
@@ -810,8 +871,10 @@ function renderTeam(team, mt){
     window.scrollTo(0, y); $("#detail").scrollTop = d;
   });
   const sr = $("#sortreset"); if(sr) sr.onclick = () => { playerSort = {k: null, dir: 1}; renderTeam(team, mt); };
-  document.querySelectorAll("#detail .plink[data-key]").forEach(el => el.onclick = () => openPlayer(team, mt, el.dataset.key));
-  $("#avgs").onclick = () => { avgPeak = !avgPeak; const y = $("#detail").scrollTop, w = window.scrollY; renderTeam(team, mt); $("#detail").scrollTop = y; if(isMobile()) window.scrollTo(0, w); };
+  document.querySelectorAll("#detail .plink[data-key]").forEach(el => el.onclick = () => openPlayer(full, mt, el.dataset.key));
+  if($("#wcincl")) $("#wcincl").onchange = e => { wcIncl = e.target.checked; store.set("wcIncl", wcIncl); const y = $("#detail").scrollTop, w = window.scrollY; renderTeam(full, mt); $("#detail").scrollTop = y; if(isMobile()) window.scrollTo(0, w); };
+  document.querySelectorAll("#detail .brlink[data-br]").forEach(el => el.onclick = () => showBracket(el.dataset.br, true));
+  $("#avgs").onclick = () => { avgPeak = !avgPeak; const y = $("#detail").scrollTop, w = window.scrollY; renderTeam(full, mt); $("#detail").scrollTop = y; if(isMobile()) window.scrollTo(0, w); };
   document.querySelectorAll(".prepbtn").forEach(btn => btn.onclick = () =>
     openPrep(team, mt, btn.dataset.opp, (team.opl?.matches || []).find(m => m.id === btn.dataset.mid)));
   const pa = $("#prepany");
@@ -958,6 +1021,14 @@ function vodLinks(m){
   return (m.vods || []).map(v => `<a class="vod${v.official ? " off" : ""}" href="https://www.youtube.com/watch?v=${encodeURIComponent(v.id)}" target="_blank" rel="noopener"
     title="${esc(v.title)} – ${esc(v.channel || "")}${v.part ? ` · Match ${v.part} im Video` : ""}">▶ ${v.official ? "VOD" : esc(v.channel || "VOD")}${v.part ? ` <small>${v.part}/2</small>` : ""}</a>`).join("");
 }
+// Link auf eine Teamseite – aktuelle Liga direkt, andere Liga per URL, sonst nur Text
+function teamLink(id, name){
+  id = String(id ?? "");
+  if(!id || Number(id) < 0) return esc(name || "");
+  if(league?.teams.some(t => t.id === id)) return `<a class="tl" href="#l=${encodeURIComponent(league.id)}&t=${encodeURIComponent(id)}">${esc(name)}</a>`;
+  const lid = meta?.team_league?.[id];
+  return lid ? `<a class="tl" href="#l=${encodeURIComponent(lid)}&t=${encodeURIComponent(id)}" title="Teamseite (${esc(meta.leagues.find(l => l.id === lid)?.name || "andere Liga")})">${esc(name)}</a>` : esc(name || "");
+}
 function matchesHtml(o){
   const ms = o?.matches || [];
   if(!ms.length) return "";
@@ -969,16 +1040,17 @@ function matchesHtml(o){
     <label>Vergleich mit <select id="prepany"><option value="">Gegner wählen…</option>${(league?.teams || []).filter(t => t.id !== curTeam).map(t => `<option value="${esc(t.id)}">${esc(t.name)}</option>`).join("")}</select></label></div>
   <div class="matches">${ms.map(m => {
     const played = m.maps.length > 0;
-    const cls = {W: "w", L: "l", D: "d"}[m.outcome] || "d";
+    const cls = {W: "w", L: "l", D: "d", Q: "w"}[m.outcome] || "d";
     let res;
-    if(played){ const [w,l] = m.score; res = `<span class="res ${cls}">${w}:${l}</span>`; }
+    if(m.kind === "qual") res = `<span class="res w" title="Match nicht mehr nötig – beide Teams qualifiziert">Q</span><span class="ffkind">qualifiziert</span>`;
+    else if(played){ const [w,l] = m.score; res = `<span class="res ${cls}">${w}:${l}</span>`; }
     else if(m.kind === "bye") res = `<span class="res ${cls}" title="Freilos – kein Gegner, Sieg ohne Spiel">${m.outcome || "–"}</span><span class="ffkind">Freilos</span>`;
     else if(m.kind === "ff") res = `<span class="res ${cls}" title="Kampflos gewertet – keine Map gespielt">${m.outcome}</span><span class="ffkind">kampflos</span>`;
     else if(m.state === "closed") res = `<span class="res d" title="Ohne Ergebnis auf OPL">–</span>`;
     else res = `<span class="res up">${m.start && m.start > now ? "geplant" : "offen"}</span>`;
     const veto = m.veto.map(v => `<span class="veto ${v.action} ${v.by||"dec"}" title="${v.action === "ban" ? "Ban" : "Pick"} ${v.by === "self" ? "dieses Team" : v.by === "opp" ? "Gegner" : ""}${v.side ? ` · Start ${v.side === "atk" ? "Angriff" : "Verteidigung"}` : ""}">${v.action === "ban" ? "✕" : "✓"} ${esc(cap(v.map))}</span>`).join("");
     return `<div class="match"><div class="mhead"><span class="sub">${date(m.start)}</span>${res}
-      <span class="opp">vs ${esc(m.opp.name)}</span>
+      <span class="opp">vs ${teamLink(m.opp.id, m.opp.name)}</span>${m.stage ? `<span class="stage" title="${esc(m.bracket || "")}">${esc(m.stage)}</span>` : ""}
       ${!played && m.state !== "closed" && m.opp?.id && m.opp.id !== "-1" ? `<button class="tiny prepbtn" data-opp="${esc(m.opp.id)}" data-mid="${esc(m.id)}">Vorbereiten</button>` : ""}
       ${vodLinks(m)}<a class="sub" href="https://www.opleague.pro/match/${esc(m.id)}" target="_blank" rel="noopener">OPL ↗</a></div>
       ${played ? `<div class="mmaps">${m.maps.map(x => `<span class="${x.us>x.them?"pos-up":x.us<x.them?"pos-dn":""}">${esc(cap(x.map))} ${x.us}:${x.them}</span>`).join(" · ")}</div>` : ""}
@@ -1047,12 +1119,12 @@ function rolesCompact(T){
 let routing = false;   // während eine URL angewendet wird, keine neuen History-Einträge
 function parseRoute(){
   const q = new URLSearchParams(location.hash.slice(1));
-  return {l: q.get("l"), t: q.get("t"), vs: q.get("vs"), m: q.get("m"), p: q.get("p"), map: q.get("map"), meta: q.has("meta")};
+  return {l: q.get("l"), t: q.get("t"), vs: q.get("vs"), m: q.get("m"), p: q.get("p"), map: q.get("map"), br: q.get("br"), meta: q.has("meta")};
 }
 function hashOf(r){
   if(!r.l) return "";
   return "#l=" + encodeURIComponent(r.l) + (r.t ? "&t=" + encodeURIComponent(r.t) : "") + (r.vs ? "&vs=" + encodeURIComponent(r.vs) : "")
-    + (r.vs && r.m ? "&m=" + encodeURIComponent(r.m) : "") + (r.t && r.p && !r.vs ? "&p=" + encodeURIComponent(r.p) : "") + (r.map && !r.t ? "&map=" + encodeURIComponent(r.map) : r.meta && !r.t ? "&meta" : "");
+    + (r.vs && r.m ? "&m=" + encodeURIComponent(r.m) : "") + (r.t && r.p && !r.vs ? "&p=" + encodeURIComponent(r.p) : "") + (r.br && !r.t ? "&br=" + encodeURIComponent(r.br) : r.map && !r.t ? "&map=" + encodeURIComponent(r.map) : r.meta && !r.t ? "&meta" : "");
 }
 function setUrl(r, push = true){
   if(routing) return;
@@ -1066,7 +1138,7 @@ async function applyRoute(r){
     const lid = meta.leagues.some(l => l.id === r.l) ? r.l : (league?.id || store.get("league") || meta.leagues[0]?.id);
     if(!league || league.id !== lid) await openLeague(lid);
     if(r.t && league.teams.some(t => t.id === r.t)){
-      metaShown = false; $("#metabtn").classList.remove("active");
+      metaShown = false; setSideTab("table");
       document.querySelectorAll("tr.team").forEach(x => x.classList.toggle("sel", x.dataset.id === r.t));
       if(r.p && !r.vs){
         curTeam = r.t;
@@ -1082,11 +1154,14 @@ async function applyRoute(r){
         await loadTeam(r.t);
       }
       showDetail(true, true);
+    }else if(r.br && (league.brackets || []).some(b => b.event === r.br)){
+      showBracket(r.br, false);
+      showDetail(true, true);
     }else if(r.map && league.overview?.maps?.[r.map]){
       showMap(r.map, false);
       showDetail(true, true);
     }else if(r.meta){
-      showMeta(false); $("#metabtn").classList.add("active");
+      showMeta(false); setSideTab("meta");
       showDetail(true, true);
     }else{
       if(curTeam || !metaShown){ curTeam = null; document.querySelectorAll("tr.team.sel").forEach(x => x.classList.remove("sel")); showMeta(false); }
@@ -1095,7 +1170,7 @@ async function applyRoute(r){
   }finally{ routing = false; }
   // ungültige Teile der URL (z. B. Team nicht in der Liga) bereinigen
   const want = hashOf({l: league?.id, t: curTeam, vs: r.t === curTeam ? r.vs : null, m: r.m, p: r.t === curTeam ? r.p : null, meta: metaShown && r.meta,
-                       map: !curTeam && mapShown ? mapShown : null});
+                       map: !curTeam && mapShown ? mapShown : null, br: !curTeam && brShown ? brShown : null});
   if(location.hash && want !== location.hash && !(r.t && r.t === curTeam)) history.replaceState(null, "", want || location.pathname);
 }
 const shareBtn = () => `<button class="ghost tiny sharebtn" title="Link zu dieser Ansicht kopieren – z. B. für Discord">🔗 Link kopieren</button>`;
@@ -1128,7 +1203,7 @@ async function openPlayerById(tid, key){
 }
 function openPlayer(team, mt, key){
   ++current;
-  curTeam = String(team.id); metaShown = false; $("#metabtn").classList.remove("active");
+  curTeam = String(team.id); metaShown = false; setSideTab("table");
   document.querySelectorAll("tr.team").forEach(x => x.classList.toggle("sel", x.dataset.id === curTeam));
   setUrl({l: league.id, t: curTeam, p: key});
   renderPlayer(team, mt, key);
@@ -1317,9 +1392,9 @@ document.addEventListener("click", e => {
   if(el && league?.overview?.maps?.[el.dataset.map]){ e.preventDefault(); showMap(el.dataset.map, true); }
 });
 function showMap(mp, push = true){
-  ++current; curTeam = null; metaShown = false; mapShown = mp; mapPlMin = null;
+  ++current; curTeam = null; metaShown = false; mapShown = mp; mapPlMin = null; brShown = null;
   document.querySelectorAll("tr.team.sel").forEach(x => x.classList.remove("sel"));
-  $("#metabtn").classList.add("active");
+  setSideTab("meta");
   if(push) setUrl({l: league.id, map: mp});
   renderMap(mp);
   showDetail(true);
@@ -1447,6 +1522,163 @@ function drawScatter(list){
 let scatterT;
 window.addEventListener("resize", () => { clearTimeout(scatterT); scatterT = setTimeout(() => { if(mapShown && $("#mscatter")) drawScatter(league.overview.maps[mapShown].agents); }, 150); });
 
+// ================================================================== K.-o.-Runden (Wildcard, Playoffs, Relegation)
+let brShown = null;
+function showBracket(ev, push = true){
+  const b = (league.brackets || []).find(x => x.event === ev) || league.brackets?.[0];
+  if(!b) return;
+  ++current; curTeam = null; metaShown = false; mapShown = null; brShown = b.event;
+  document.querySelectorAll("tr.team.sel").forEach(x => x.classList.remove("sel"));
+  setSideTab("ko");
+  if(push) setUrl({l: league.id, br: b.event});
+  renderBracket(b);
+  showDetail(true);
+  $("#detail").scrollTop = 0; if(isMobile()) window.scrollTo(0, 0);
+}
+// Vorschau-Match (Vorlage aus der Vorsaison): Startplätze mit Prognose nach aktueller Tabelle
+function templateCard(x, multi){
+  const rows = x.slots.map(sl => {
+    if(sl.bye) return `<div class="bt"><span class="blogo"></span><span class="bn sub">Freilos</span><span class="bs"></span></div>`;
+    if(sl.from) return `<div class="bt"><span class="blogo"></span><span class="bn sub">${esc(sl.from)} ${esc(sl.round)}</span><span class="bs"></span></div>`;
+    if(!sl.seed) return `<div class="bt"><span class="blogo"></span><span class="bn sub">offen</span><span class="bs"></span></div>`;
+    const sd = sl.seed, lbl = (multi ? `${sd.n}. Liga ` : "") + (sd.group ? `${sd.group}${sd.rank}` : `Platz ${sd.rank}`);
+    const t = sl.team;
+    return `<div class="bt tplslot" data-tid="${esc(t?.id || "")}" title="${esc(`Startplatz: ${lbl}` + (t ? ` – nach aktuellem Tabellenstand: ${t.name}` : ""))}">
+      ${t?.logo ? `<img src="${esc(t.logo)}" alt="" loading="lazy" onerror="this.remove()">` : '<span class="blogo"></span>'}
+      <span class="bn">${t ? teamLink(t.id, t.name) : '<span class="sub">offen</span>'}</span><span class="seed">${esc(lbl)}</span></div>`;
+  }).join("");
+  return `<div class="bcard tpl">${rows}</div>`;
+}
+function bracketCard(x){
+  const inLeague = id => league.teams.some(t => t.id === id);
+  const done = x.state === "closed";
+  const date = x.start ? new Date(x.start * 1000).toLocaleString("de-DE", {day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit"}) : (x.date || "");
+  const rows = x.teams.map(t => {
+    const tbd = !t.name || t.name === "TBD" || t.id === "0";
+    const pseudo = !tbd && Number(t.id) < 0;   // „Default Win“, Freilos o. Ä.
+    const win = t.cls.includes("winner"), lose = t.cls.includes("loser"), q = t.score === "Q";
+    const other = meta.team_league?.[t.id];   // Team einer anderen Liga → dessen Teamseite in der App
+    const name = tbd ? '<span class="sub">offen</span>' : pseudo ? `<span class="sub">${esc(t.name)}</span>` : inLeague(t.id)
+      ? `<span class="tlink" data-team="${esc(t.id)}">${esc(t.name)}</span>`
+      : other ? `<a class="tlink2" href="#l=${encodeURIComponent(other)}&t=${encodeURIComponent(t.id)}" title="Teamseite (${esc(meta.leagues.find(l => l.id === other)?.name || "andere Liga")})">${esc(t.name)}</a>`
+      : `<a href="https://www.opleague.pro/team/${esc(t.id)}" target="_blank" rel="noopener" title="Team in keiner der Ligen – OPL-Profil">${esc(t.name)} ↗</a>`;
+    const sc = q ? '<span class="bq" title="qualifiziert">Q</span>' : t.score != null && t.score !== "" && !["N", "-"].includes(String(t.score)) ? esc(t.score) : "";
+    return `<div class="bt${win ? " win" : ""}${lose ? " lose" : ""}" data-tid="${esc(tbd ? "" : t.id)}">
+      ${t.logo && !tbd && !pseudo ? `<img src="${esc(t.logo)}" alt="" loading="lazy" onerror="this.remove()">` : '<span class="blogo"></span>'}<span class="bn">${name}</span><span class="bs">${sc}</span></div>`;
+  }).join("");
+  const both = x.teams.length === 2 && x.teams.every(t => inLeague(t.id));
+  const maps = (x.maps || []).map(m => `${esc(cap(m.map))} ${m.s1}:${m.s2}`).join(" · ");
+  return `<div class="bcard${done ? "" : " open"}" data-mid="${esc(x.id)}">${rows}
+    <div class="bfoot"><span class="sub">${esc(date)}${x.format ? ` · ${esc((/BO\d/i.exec(x.format) || [""])[0])}` : ""}</span>
+      ${vodLinks(x)}${!done && both ? `<button class="tiny prepbtn2" data-a="${esc(x.teams[0].id)}" data-b="${esc(x.teams[1].id)}" data-mid="${esc(x.id)}">Vorbereiten</button>` : ""}
+      <a class="sub" href="https://www.opleague.pro/match/${esc(x.id)}" target="_blank" rel="noopener">OPL ↗</a></div>
+    ${maps ? `<div class="bmaps sub">${maps}</div>` : ""}</div>`;
+}
+function renderBracket(b){
+  // nicht mehr erreichbare Matches weglassen: Runden hinter einer Qualifikation (beide Seiten „N“ / noch offen).
+  // Matches mit „Q“ (Qualifikation erreicht) bleiben sichtbar.
+  const unreachable = x => !b.template && x.teams?.length && x.teams.every(t => String(t.score) === "N") && !(x.maps || []).length;
+  const side = pos => b.rounds.map(r => ({key: r.key, title: r.titles[pos] || "", ms: r.matches.filter(x => x.pos === pos && !unreachable(x))})).filter(c => c.ms.length);
+  const multi = (b.digits || []).length > 1;
+  const col = c => `<div class="bcol"><div class="bct">${esc(c.title)}</div><div class="bcms">${c.ms.map(x => b.template ? templateCard(x, multi) : bracketCard(x)).join("")}</div></div>`;
+  const ub = side(0), lb = side(1);
+  // Lower Bracket zeitlich unter das Upper Bracket rücken: so viele Leerspalten, wie UB-Runden vor der ersten LB-Runde liegen
+  const lbStart = lb.length ? lb[0].key : 0;
+  const shift = ub.filter(c => c.key < lbStart).length;
+  const spacer = '<div class="bcol bspacer" aria-hidden="true"></div>'.repeat(shift);
+  // gleich viele Spalten in beiden Brackets, damit gemeinsames Scrollen bis zum Ende passt
+  const total = Math.max(ub.length, shift + lb.length);
+  const tail = n => '<div class="bcol bfill" aria-hidden="true"></div>'.repeat(Math.max(0, n));
+  const tabs = (league.brackets || []).length > 1 ? `<div class="btabs">${league.brackets.map(x => `<button class="ghost tiny${x.event === b.event ? " on" : ""}${x.empty ? " off" : ""}" data-br="${esc(x.event)}">${esc(x.label)}${x.template ? " · Vorschau" : x.empty ? " · fand nicht statt" : ""}</button>`).join("")}</div>` : "";
+  $("#detail").innerHTML = `
+    <div class="toolbar"><button class="back ghost" id="back">← Teams</button><a class="sub" href="${esc(b.url)}" target="_blank" rel="noopener">${b.template ? "Vorlage auf OPL ↗" : "Auf OPL ansehen ↗"}</a>${shareBtn()}</div>
+    ${tabs}
+    <h2 style="margin:0 0 4px">🏆 ${esc(b.label)}${b.template ? ' <span class="tplbadge">Vorschau</span>' : ""}</h2>
+    ${b.template ? `<p class="tplnote">Noch nicht auf OPL angelegt. Struktur und Startplätze wie in der <b>${esc(b.source)}</b>; die Teams sind eine Prognose nach dem <b>aktuellen Tabellenstand</b>. Sobald OPL das Event anlegt, erscheint hier das echte Bracket.</p>`
+      : b.empty ? "" : `<p class="summary">Fahre über ein Team, um seinen Weg durchs Bracket zu sehen. Ein Klick öffnet die Teamseite, auch bei Teams anderer Ligen.</p>`}
+    ${b.empty ? `<div class="bempty"><div class="bei">🚫</div><div><b>${esc(b.note || "Noch nicht ausgelost.")}</b>
+      <div class="sub">Das Event ist auf OPL angelegt, es gibt aber keine Auslosung und keine Matches. Sollte sich das ändern, erscheint das Bracket hier automatisch.</div></div></div>` : ""}
+    ${ub.length ? `<div class="sechead"><h3>Upper Bracket</h3></div><div class="bracket">${ub.map(col).join("")}${lb.length ? tail(total - ub.length) : ""}</div>` : ""}
+    ${lb.length ? `<div class="sechead"><h3>Lower Bracket</h3></div><div class="bracket">${spacer}${lb.map(col).join("")}${tail(total - shift - lb.length)}</div>` : ""}`;
+  // beide Brackets gemeinsam seitlich scrollen, damit die Runden übereinander bleiben
+  const scs = [...document.querySelectorAll("#detail .bracket")];
+  let syncing = false;
+  scs.forEach(el => el.addEventListener("scroll", () => {
+    if(syncing) return; syncing = true;
+    scs.forEach(o => { if(o !== el) o.scrollLeft = el.scrollLeft; });
+    setTimeout(() => { syncing = false; }, 30);
+  }));
+  $("#back").onclick = () => showDetail(false);
+  document.querySelectorAll(".btabs button").forEach(x => x.onclick = () => showBracket(x.dataset.br, true));
+  document.querySelectorAll("#detail .tlink[data-team]").forEach(el => el.onclick = () => openTeamFromMeta(el.dataset.team));
+  document.querySelectorAll(".bt[data-tid]").forEach(el => {
+    const id = el.dataset.tid; if(!id) return;
+    el.onmouseenter = () => document.querySelectorAll(`.bt[data-tid="${CSS.escape(id)}"]`).forEach(x => { x.classList.add("hl"); x.closest(".bcard").classList.add("hl"); });
+    el.onmouseleave = () => document.querySelectorAll(".bt.hl, .bcard.hl").forEach(x => x.classList.remove("hl"));
+  });
+  document.querySelectorAll(".prepbtn2").forEach(btn => btn.onclick = async () => {
+    const A = await getJSON(`data/team-${btn.dataset.a}.json?t=${meta.generated}`);
+    curTeam = btn.dataset.a;
+    openPrep(A, league.teams.find(t => t.id === btn.dataset.a), btn.dataset.b, (A.opl?.matches || []).find(m => m.id === btn.dataset.mid) || null);
+  });
+}
+// Teamseite: Stand des Teams in jedem K.-o.-Turnier
+function bracketPathHtml(T){
+  const ps = T.brackets || [];
+  if(!ps.length) return "";
+  const tgt = (t, how) => t ? `${how} → <b>${esc(t.round)}</b>${t.vs ? ` vs ${esc(t.vs)}` : ""}` : `${how} → ausgeschieden`;
+  return `<div class="sechead"><h3>K.-o.-Runden</h3></div><div class="bpaths">${ps.map(p => {
+    const link = (league.brackets || []).some(b => b.event === p.event)
+      ? `<span class="tlink brlink" data-br="${esc(p.event)}">Bracket ↗</span>`
+      : p.league ? `<a href="#l=${encodeURIComponent(p.league)}&br=${encodeURIComponent(p.event)}" title="Bracket in der anderen Liga öffnen">Bracket ↗</a>`
+      : `<a href="${esc(p.url)}" target="_blank" rel="noopener">OPL ↗</a>`;
+    let txt;
+    if(p.state === "next") txt = `Nächstes Match: <b>${esc(p.round)}</b> vs ${p.opp ? teamLink(p.opp_id, p.opp) : "offen"}<div class="sub">${tgt(p.win, "Sieg")} · ${tgt(p.lose, "Niederlage")}</div>`;
+    else if(p.state === "waiting") txt = `Weiter in <b>${esc((p.win || p.lose)?.round || "")}</b>${(p.win || p.lose)?.vs ? ` vs ${esc((p.win || p.lose).vs)}` : ""}`;
+    else if(p.state === "qualified") txt = `<span class="pos-up">✓ Qualifiziert</span> <span class="sub">(${esc(p.round)})</span>`;
+    else if(p.state === "champion") txt = `<span class="pos-up">🏆 Turniersieg</span>`;
+    else txt = `<span class="pos-dn">Ausgeschieden</span> <span class="sub">in ${esc(p.round)}${p.opp ? ` gegen ${teamLink(p.opp_id, p.opp)}` : ""}</span>`;
+    return `<div class="bpath"><span class="bpl">🏆 ${esc(p.label)}</span><div class="bpt">${txt}</div>${link}</div>`;
+  }).join("")}</div>`;
+}
+
+// ================================================================== Reiter der Seitenleiste: Tabelle | Meta | K.-o.
+let lastTeam = null;
+function setSideTab(v){
+  document.querySelectorAll("#sidetabs button").forEach(b => b.classList.toggle("on", b.dataset.v === v));
+}
+function tabClick(v){
+  if(v === "meta") return showMeta(true);
+  if(v === "ko"){
+    const b = league?.brackets?.find(x => !x.empty) || league?.brackets?.[0];
+    if(b) showBracket(b.event, true);
+    return;
+  }
+  // Tabelle: am Handy zurück zur Liste, am Desktop das zuletzt geöffnete (sonst erste) Team
+  setSideTab("table");
+  if(isMobile()){ showDetail(false); return; }
+  const id = (lastTeam && league.teams.some(t => t.id === lastTeam)) ? lastTeam : document.querySelector("tr.team")?.dataset.id;
+  if(id) openTeamFromMeta(id);
+}
+// Status am K.-o.-Reiter: live > nächstes Match > Vorschau > abgeschlossen
+function updateKoStatus(){
+  const tab = document.querySelector('#sidetabs button[data-v="ko"]'), el = $("#kost");
+  const bs = league?.brackets || [];
+  tab.disabled = !bs.length;
+  tab.title = bs.length ? `K.-o.-Runden: ${bs.map(b => b.label + (b.template ? " (Vorschau)" : b.empty ? " (fand nicht statt)" : "")).join(", ")}` : "Für diese Liga gibt es noch keine K.-o.-Runden";
+  const now = Date.now() / 1000;
+  const real = bs.filter(b => !b.template && !b.empty).flatMap(b => b.rounds.flatMap(r => r.matches))
+    .filter(x => x.teams?.every(t => t.name && t.name !== "TBD") && !x.teams.every(t => String(t.score) === "N"));
+  const live = real.some(x => x.state !== "closed" && x.start && x.start <= now && now - x.start < 4 * 3600);
+  const next = real.filter(x => x.state !== "closed" && x.start && x.start > now).sort((a, b) => a.start - b.start)[0];
+  let cls = "", txt = "";
+  if(live){ cls = "live"; txt = "● live"; }
+  else if(next){ cls = "next"; txt = new Date(next.start * 1000).toLocaleDateString("de-DE", {day: "2-digit", month: "2-digit"}); }
+  else if(bs.some(b => b.template)){ cls = "pre"; txt = "Vorschau"; }
+  else if(real.length){ cls = "done"; txt = "✓"; }
+  el.className = "kost " + cls; el.textContent = txt;
+}
+
 // ================================================================== Liga-Meta
 let metaSort = {k: null, dir: -1}, lbSort = {k: "acs", dir: -1}, lbMin = null, lbAll = false, metaShown = false;
 const pct = (a, b) => b ? Math.round(100 * a / b) : null;
@@ -1475,9 +1707,9 @@ function sth(st, attr, k, label, cls = "", title = ""){
 }
 function showMeta(push = true){
   if(!league) return;
-  ++current; curTeam = null; metaShown = true; mapShown = null;
+  ++current; curTeam = null; metaShown = true; mapShown = null; brShown = null;
   document.querySelectorAll("tr.team.sel").forEach(x => x.classList.remove("sel"));
-  $("#metabtn").classList.toggle("active", push || !isMobile());
+  setSideTab(push || !isMobile() ? "meta" : "table");
   if(push) setUrl({l: league.id, meta: 1});
   renderMeta();
   if(push) showDetail(true);
@@ -1566,7 +1798,7 @@ function renderMeta(){
   $("#detail").scrollTop = keep; if(isMobile()) window.scrollTo(0, keepW);
 }
 function openTeamFromMeta(id){
-  metaShown = false; $("#metabtn").classList.remove("active");
+  metaShown = false; setSideTab("table");
   document.querySelectorAll("tr.team").forEach(x => x.classList.toggle("sel", x.dataset.id === id));
   loadTeam(id);
   $("#detail").scrollTop = 0; if(isMobile()) window.scrollTo(0, 0);
@@ -1687,7 +1919,7 @@ function vodSection(T, name){
   return `<div class="sechead"><h3>VODs von ${esc(name)} <span class="sub">(YouTube, diese Saison)</span></h3></div>
     ${ms.length ? `<div class="matches">${ms.map(m => `<div class="match"><div class="mhead"><span class="sub">${date(m.start)}</span>
       <span class="res ${({W: "w", L: "l", D: "d"})[m.outcome] || "d"}">${m.score ? m.score.join(":") : m.outcome || "–"}</span>
-      <span class="opp">vs ${esc(m.opp.name)}</span>${vodLinks(m)}</div>
+      <span class="opp">vs ${teamLink(m.opp.id, m.opp.name)}</span>${vodLinks(m)}</div>
       ${m.maps.length ? `<div class="mmaps">${m.maps.map(x => `${esc(cap(x.map))} ${x.us}:${x.them}`).join(" · ")}</div>` : ""}</div>`).join("")}</div>`
       : '<p class="sub">Keine VODs gefunden (offizieller Kanal Uniliga VODS und bekannte POV-Kanäle).</p>'}`;
 }
@@ -1820,6 +2052,7 @@ function showDetail(on, silent=false){
     if(isMobile()) window.scrollTo(0, 0);
   }else{
     if(!silent) setUrl({l: league?.id});
+    if(isMobile()) setSideTab("table");   // am Handy ist die Liste die Tabelle
     document.body.classList.remove("show-detail");
     if(isMobile()) requestAnimationFrame(() => window.scrollTo(0, listScroll));
   }
@@ -2075,7 +2308,7 @@ async function openUrl(){
   $("#open").onclick = openUrl;
   $("#url").addEventListener("keydown", e => { if(e.key === "Enter") openUrl(); });
   $("#leaguerefresh").onclick = adminRefreshLeague;
-  $("#metabtn").onclick = () => showMeta(true);
+  document.querySelectorAll("#sidetabs button").forEach(b => b.onclick = () => tabClick(b.dataset.v));
   $("#loginbtn").onclick = () => { setMenu(false); openLogin(); };
   const themeIcon = () => {
     const light = document.documentElement.dataset.theme === "light";

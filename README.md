@@ -13,6 +13,12 @@ jedes Teams (Riot-IDs aus den OPL-Profilen) und für jeden Spieler:
 - Spieler-Stats wahlweise aus der **OPL-Liga** (Standard: ACS, K/D, Econ, First Bloods, Map-Winrate,
   Agents) oder aus **Ranked** (letzte 20 Spiele). Rang und Peak kommen immer aus Ranked.
 
+- **K.-o.-Runden** (Wildcard, Playoffs, Relegation): werden automatisch im OPL-Menü der Saison gefunden,
+  sobald OPL sie anlegt. Bracket-Ansicht (Upper/Lower Bracket), Runde in der Match-Liste, „Weg im Bracket“
+  auf der Teamseite (nächstes Match, Ziel bei Sieg/Niederlage). Playoffs und Relegation zählen in die Stats,
+  das Wildcardturnier nur per Umschalter (Standard aus). Noch nicht angelegte Playoffs erscheinen als Vorschau
+  mit der Struktur der Vorsaison (`bracket_template` in `config/leagues.json`).
+
 Gezählt werden nur Matches, deren Event-ID zur gewählten Liga gehört (bei Gruppen-Ligen auch die
 Gruppen-Events, z. B. „1. Liga – Gruppe A/B“). Fertige Matches werden nur einmal von OPL geladen.
 
