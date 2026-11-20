@@ -508,7 +508,7 @@
   .wbar b{text-align:right;font-variant-numeric:tabular-nums}
   .wbar.opag{grid-template-columns:64px 80px 1fr 40px 26px} .wbar.opag .agents{display:flex} .wbar.opag .agents img{width:22px;height:22px}
   .opagent{display:flex;align-items:center;gap:8px;margin-top:8px;font-size:13px} .opagent .agents img{width:28px;height:28px}
-  .defb{color:var(--link)}
+  .sidev2{font-weight:400} .sidev b,.metatable td b{font-weight:800}
   .match.h2hm{cursor:pointer} .match.h2hm:hover{border-color:var(--mut)}
   .match.mclick{cursor:pointer;transition:border-color .15s} .match.mclick:hover{border-color:var(--mut)}
   /* Match-Übersicht */
@@ -1913,6 +1913,9 @@ function showMap(mp, push = true){
   showDetail(true);
   $("#detail").scrollTop = 0; if(isMobile()) window.scrollTo(0, 0);
 }
+// Angriff / Verteidigung einheitlich (Liga-Meta + Map-Seite): Verteidigung fett, wenn über 50 % (Verteidiger-Map)
+const sideSplit = q => { const d = 100 - q;
+  return `<span class="sidev2">${q}%</span><span class="sub"> / </span>${d > 50 ? `<b>${d}%</b>` : `<span class="sidev2">${d}%</span>`}`; };
 // Agent, der am häufigsten den Operator kauft: [Name, Anteil an allen OP-Runden]
 function topOpAgent(o){
   const es = Object.entries(o || {}).sort((a, b) => b[1] - a[1]), tot = es.reduce((a, [, v]) => a + v, 0);
@@ -1940,7 +1943,7 @@ function mapRoundsHtml(h){
     .map(([k, l]) => `<span class="mres" title="${l}: ${rt[k]} von ${rn} Runden"><i class="rico rico-${k}"></i>${l} <b>${Math.round(100 * rt[k] / rn)}%</b></span>`).join("");
   return `<div class="sechead"><h3>Runden-Stats ${tip(`Aus den Riot-Matchdaten von ${h.n} ${h.n === 1 ? "Map" : "Maps"} (${h.rounds} Runden) dieser Liga. Post-Plant = Angreifer gewinnen nach dem Plant, Retake = Verteidiger gewinnen trotzdem.`)}</h3></div>
     <div class="kpis">
-      <div class="kpi wide" title="${h.atk} von ${h.rounds} Runden von den Angreifern gewonnen"><div class="v">${q}% <span class="sub">/</span> ${100 - q > 50 ? `<b class="defb">${100 - q}%</b>` : `<span class="sub">${100 - q}%</span>`}</div><div class="l">Angriff / Verteidigung</div><span class="balance wide"><i style="width:${q}%"></i></span></div>
+      <div class="kpi wide" title="${h.atk} von ${h.rounds} Runden von den Angreifern gewonnen"><div class="v sidev">${sideSplit(q)}</div><div class="l">Angriff / Verteidigung</div><span class="balance wide"><i style="width:${q}%"></i></span></div>
       <div class="kpi" title="${h.pistol_conv[0]} von ${h.pistol_conv[1]}"><div class="v">${h.pistol_conv[1] ? Math.round(100 * h.pistol_conv[0] / h.pistol_conv[1]) + "%" : "–"}</div><div class="l">Pistol → R2</div></div>
       <div class="kpi" title="${h.thrifty} Thrifties in ${h.n} Maps"><div class="v">${(h.thrifty / h.n).toFixed(1)}</div><div class="l">Thrifties / Map</div></div>
       <div class="kpi"><div class="v">${(ptot / h.n).toFixed(1)}</div><div class="l">Plants / Map</div></div>
@@ -2306,7 +2309,7 @@ function renderMeta(){
       ${dec ? `<td class="num" data-l="Decider">${v.decider || '<span class="sub">0</span>'}</td>` : ""}
       <td class="num" data-l="Picker gewinnt" title="${v.pick_won} von ${v.pick_n} gepickten Maps vom pickenden Team gewonnen">${pw == null ? '<span class="sub">–</span>' : `<span class="${pw > 50 ? "pos-up" : pw < 50 ? "pos-dn" : ""}">${pw}%</span> <span class="sub">(${v.pick_n})</span>`}</td>
       <td class="num" data-l="Atk-Start gewinnt" title="${v.atk_won} von ${v.atk_n} Maps vom Team gewonnen, das im Angriff gestartet ist">${aw == null ? '<span class="sub">–</span>' : `${aw}% <span class="sub">(${v.atk_n})</span>`}</td>
-      ${hdMeta ? `<td class="num" data-l="Angriff" title="${v.hd ? `${v.hd.atk} von ${v.hd.rounds} Runden von den Angreifern gewonnen` : "keine Rundendaten"}">${v.hd ? (q => `<span class="balance" title="Angriff ${q} % · Verteidigung ${100 - q} %"><i style="width:${q}%"></i></span>${q}<span class="sub"> / </span>${100 - q > 50 ? `<b>${100 - q}</b>` : 100 - q}`)(Math.round(100 * v.hd.atk / v.hd.rounds)) : '<span class="sub">–</span>'}</td>
+      ${hdMeta ? `<td class="num" data-l="Angriff" title="${v.hd ? `${v.hd.atk} von ${v.hd.rounds} Runden von den Angreifern gewonnen` : "keine Rundendaten"}">${v.hd ? (q => `<span class="balance" title="Angriff ${q} % · Verteidigung ${100 - q} %"><i style="width:${q}%"></i></span>${sideSplit(q)}`)(Math.round(100 * v.hd.atk / v.hd.rounds)) : '<span class="sub">–</span>'}</td>
       <td class="num" data-l="Pistol → R2">${v.hd ? rateCell(v.hd.pistol_conv, false) : '<span class="sub">–</span>'}</td>` : ""}
       <td class="num" data-l="Ø Runden" title="${v.close} von ${v.played} Maps knapp (≤ 3 Runden Differenz)">${v.avg_rounds ?? '<span class="sub">–</span>'}</td>
       <td class="m-ag" data-l="Top-Agents">${agentIcons(v.agents, true, 6) || '<span class="sub">–</span>'}</td>

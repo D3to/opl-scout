@@ -1356,6 +1356,7 @@ def export(out, leagues, region, repo, ref, base_cfg):
                         "digits": tp["digits"], "url": tp["url"], "rounds": rounds})
         return out
     bracket_league = {d["event"]: lid for lid, lst in league_brackets.items() for d, _ in lst}
+    hd_stats = []
     for lg in leagues:
         st = core.cache.peek("standing:" + lg["url"])
         if not st:
@@ -1449,6 +1450,13 @@ def export(out, leagues, region, repo, ref, base_cfg):
                 e["hd"] = 1
             history.append(e)
         history.sort(key=lambda e: -(e.get("start") or 0))
+        # Übersicht für das Log/die Zusammenfassung des Laufs: erkannt, gespielt (ohne kampflose Siege/Freilose), mit Rundendaten
+        played = [e for e in history if e["maps"]]
+        n_hd = sum(1 for e in played if e.get("hd"))
+        n_v = sum(1 for e in played if e.get("hd") and (core.cache.peek(f"hdm:{e['id']}") or {}).get("v", 1) >= HD_VERSION)
+        hd_stats.append((lg["name"], len(history), len(played), n_hd, n_v))
+        log(f"  {lg['name']}: {len(history)} Matches erkannt, {len(played)} gespielt (ohne kampflose/Freilose), "
+            f"{n_hd} mit Rundendaten ({n_v} aktuell, Version {HD_VERSION})")
         (data / f"league-{lg['id']}.json").write_text(json.dumps(
             {**st, "id": lg["id"], "name": lg["name"], "summaries": summaries, "overview": overview, "movement": movement, "brackets": brackets_out + template_for(lg),
              "paths": lpaths, "gs_done": gs_done, "history": history,
@@ -1471,6 +1479,15 @@ def export(out, leagues, region, repo, ref, base_cfg):
                 {"id": mid, "t1": m.get("t1"), "t2": m.get("t2"), "maps": v["games"]}, ensure_ascii=False, separators=(",", ":")))
             n_hd += 1
     log(f"Rundendaten: {n_hd} Matches exportiert")
+
+    # Zusammenfassung des GitHub-Laufs (Actions → Lauf öffnen): Matches und Rundendaten je Liga
+    summary = os.environ.get("GITHUB_STEP_SUMMARY")
+    if summary and hd_stats:
+        rows = "\n".join(f"| {n} | {a} | {b} | {c} ({round(100 * c / b) if b else 0} %) | {v} |" for n, a, b, c, v in hd_stats)
+        tot = [sum(x[i] for x in hd_stats) for i in range(1, 5)]
+        with open(summary, "a", encoding="utf-8") as f:
+            f.write("### Matches und Rundendaten\n\n| Liga | erkannt | gespielt (ohne kampflose/Freilose) | mit Rundendaten | davon aktuelle Version |\n"
+                    f"|---|---|---|---|---|\n{rows}\n| **Gesamt** | {tot[0]} | {tot[1]} | {tot[2]} ({round(100 * tot[2] / tot[1]) if tot[1] else 0} %) | {tot[3]} |\n\n")
 
     rank_times = []
     for tid in team_ids:
