@@ -219,6 +219,22 @@
   .ri2{display:flex;align-items:center;gap:10px}
   .ri2 img{width:64px;height:32px;object-fit:cover;border-radius:5px}
   .ri2.alt{opacity:.75}
+  .oddw{display:flex;flex-wrap:wrap;align-items:center;gap:8px 14px;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:8px 12px;margin-bottom:10px;font-size:13px}
+  .oddw .tl2{color:var(--mut);font-size:12px}
+  .oddc{display:inline-flex;align-items:center;gap:6px} .oddc img{height:16px;filter:brightness(1.6)}
+  :root[data-theme="light"] .oddc img{filter:invert(1) brightness(.4)}
+  #rtip{position:fixed;z-index:1000;display:none;min-width:250px;max-width:340px;background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:9px 11px;
+    box-shadow:0 8px 24px rgba(0,0,0,.4);pointer-events:none;font-size:12px;display:none}
+  #rtip .rtt-h{display:flex;justify-content:space-between;gap:10px;font-weight:700;font-size:13px}
+  .rtt-win{display:inline-flex;align-items:center;gap:5px} .rtt-win.a{color:var(--acc)} .rtt-win.b{color:var(--link)}
+  .rtt-l{margin-top:5px;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+  .rtt-l .site b{width:16px;height:16px;line-height:16px}
+  .fbw{height:12px;filter:brightness(1.6)}
+  .rtt-team{margin-top:7px;padding-left:7px;border-left:3px solid var(--acc)} .rtt-team.b{border-left-color:var(--link)}
+  .rtt-th{display:flex;align-items:center;gap:6px} .rtt-th .reco{display:inline-flex;height:15px;min-width:24px;font-size:9.5px}
+  .rtt-w{display:flex;flex-wrap:wrap;gap:6px 10px;margin-top:4px;align-items:center}
+  .rtt-w img{height:13px;filter:brightness(1.6)} .wtxt{font-size:11px;color:var(--mut)}
+  :root[data-theme="light"] .rtt-w img,:root[data-theme="light"] .fbw{filter:invert(1) brightness(.4)}
   .tcards{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:10px}
   .tcard{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:8px 10px;display:flex;flex-direction:column;gap:6px}
   .tcard .sbmap{margin:-2px -4px 2px;min-width:0}
@@ -453,6 +469,9 @@
   .match{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:9px 12px}
   /* Verlauf */
   .hsearch{display:flex;align-items:center;gap:10px;margin:6px 0 10px}
+  .hgear{margin-left:auto} .hgear.on{color:var(--acc);border-color:var(--acc)}
+  .hopts[hidden]{display:none}
+  .hopts{display:flex;flex-wrap:wrap;gap:16px;align-items:center;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:8px 12px;margin:-4px 0 10px;font-size:13px}
   .hsearch input{flex:1;max-width:460px;background:var(--panel);border:1px solid var(--line);border-radius:8px;color:var(--txt);padding:8px 12px;font:inherit}
   .hsearch input:focus{outline:none;border-color:var(--mut)}
   .hday{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--mut);margin:14px 0 6px}
@@ -468,6 +487,28 @@
   .hmaps{grid-area:m;display:flex;flex-wrap:wrap;gap:6px;align-items:center;justify-content:center}
   .hmap{font-size:11px;padding:2px 8px;border-radius:5px;color:#fff;text-shadow:0 1px 2px #000;background:linear-gradient(90deg, rgba(0,0,0,.65), rgba(0,0,0,.35)), var(--bg) center/cover}
   .hhd{display:inline-block;width:12px;height:12px;background:var(--mut);opacity:.8;-webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect x='3' y='13' width='4' height='8' rx='1'/%3E%3Crect x='10' y='8' width='4' height='13' rx='1'/%3E%3Crect x='17' y='3' width='4' height='18' rx='1'/%3E%3C/svg%3E") center/contain no-repeat;mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect x='3' y='13' width='4' height='8' rx='1'/%3E%3Crect x='10' y='8' width='4' height='13' rx='1'/%3E%3Crect x='17' y='3' width='4' height='18' rx='1'/%3E%3C/svg%3E") center/contain no-repeat}
+  .balance{display:inline-block;width:34px;height:6px;border-radius:3px;margin-right:6px;vertical-align:middle;background:var(--link);overflow:hidden}
+  .balance i{display:block;height:100%;background:var(--acc)}
+  .balance.wide{display:block;width:100%;margin:6px 0 0}
+  .msites{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:8px;margin-top:8px}
+  .msite{display:flex;align-items:center;gap:12px;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:10px 14px;min-width:0}
+  .msite .sub{white-space:nowrap}
+  .msite .site{font-size:13px} .msite .site b{width:20px;height:20px;line-height:20px;font-size:11px}
+  .msl{display:flex;gap:14px;font-size:12px;color:var(--mut);flex:1;white-space:nowrap} .msl b{font-size:14px;display:block}
+  .mress{display:flex;flex-wrap:wrap;gap:14px;margin-top:8px;font-size:12px;color:var(--mut)}
+  .mres{display:inline-flex;align-items:center;gap:5px} .mres b{color:var(--txt)}
+  .wcols{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px;margin-top:10px}
+  .wcols h4{margin:0 0 6px;font-size:12px;color:var(--mut);font-weight:600;text-transform:uppercase;letter-spacing:.04em}
+  .wbars{display:flex;flex-direction:column;gap:4px;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:8px 10px}
+  .wbar{display:grid;grid-template-columns:64px 80px 1fr 40px;align-items:center;gap:8px;font-size:12px}
+  .wic{height:18px;display:flex;align-items:center} .wic img{max-height:18px;max-width:64px;filter:brightness(1.6)}
+  :root[data-theme="light"] .wic img:not(.wmap){filter:invert(1) brightness(.4)}
+  .wic img.wmap{width:48px;height:18px;object-fit:cover;border-radius:3px;filter:none;max-width:none}
+  .wbt{height:6px;border-radius:3px;background:var(--panel2);overflow:hidden} .wbt i{display:block;height:100%;background:var(--acc);opacity:.8}
+  .wbar b{text-align:right;font-variant-numeric:tabular-nums}
+  .wbar.opag{grid-template-columns:64px 80px 1fr 40px 26px} .wbar.opag .agents{display:flex} .wbar.opag .agents img{width:22px;height:22px}
+  .opagent{display:flex;align-items:center;gap:8px;margin-top:8px;font-size:13px} .opagent .agents img{width:28px;height:28px}
+  .defb{color:var(--link)}
   .match.h2hm{cursor:pointer} .match.h2hm:hover{border-color:var(--mut)}
   .match.mclick{cursor:pointer;transition:border-color .15s} .match.mclick:hover{border-color:var(--mut)}
   /* Match-Übersicht */
@@ -512,8 +553,12 @@
   .buyc .reco{min-width:22px;height:16px}
   .pstyle td{vertical-align:middle} .pstyle .mcell .sub{display:block;font-size:10px;margin-left:2px}
   .ric{display:inline-block;width:14px;height:14px;margin-left:5px;vertical-align:-2px;background:var(--c);flex:none;cursor:help;-webkit-mask:var(--m) center/contain no-repeat;mask:var(--m) center/contain no-repeat}
+  .ric-op{--c:var(--info);--m:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.4' stroke-linecap='round'%3E%3Ccircle cx='12' cy='12' r='8'/%3E%3Cpath d='M12 1v6M12 17v6M1 12h6M17 12h6'/%3E%3C/svg%3E")}
   .ric-plant{--c:var(--warn);--m:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='black' d='M12 2l5 9-5 11-5-11z'/%3E%3Cpath fill='white' d='M12 7l2 4-2 5-2-5z' opacity='.35'/%3E%3C/svg%3E")} .ric-entry{--c:var(--acc);--m:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='none' stroke='black' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round' d='M4 6l7 6-7 6M12 6l7 6-7 6'/%3E%3C/svg%3E")}
   .pbadge.cs{color:var(--np);background:var(--npbg);display:inline-flex;align-items:center;gap:2px} .pbadge.cs .rico{width:10px;height:10px}
+  .rolecol .ric{margin:0 2px}
+  .rolelegend{display:flex;flex-wrap:wrap;gap:6px 16px;align-items:center;font-size:12px;color:var(--mut);margin:6px 2px 0}
+  .rolelegend span{display:inline-flex;align-items:center;gap:4px} .rolelegend .ric{margin:0}
   .rolechips{display:inline-flex;align-items:center;font-size:12px;color:var(--mut);margin-left:8px}
   .pbadgerow{margin-top:8px;display:flex;align-items:center;flex-wrap:wrap} .pbadgerow .pbadges{flex-wrap:wrap} .pbadgerow .pbadge{font-size:12px;line-height:20px;padding:0 8px}
   tr.hrow{cursor:pointer} tr.hrow:hover td{background:var(--panel2)}
@@ -1141,10 +1186,12 @@ function renderTeam(team, mt){
   const elos = [], peaks = [];
   const hasHd = !!team.opl?.hd;
   const roles = hasHd ? keyRoles(Object.values(team.opl.hd.players)) : null;
+  const showRoles = !!(roles && (roles.op || roles.entry || roles.planter));
   const items = members.map((m, idx) => {
-    const head = `<td class="c6"><div><span class="pname plink" data-key="${esc(memberKey(team, m))}" title="Spielerprofil öffnen">${esc(m.opl_name)}</span> ${m.position && m.position !== "Player" ? `<span class="pos ${esc(m.position)} ${act(m)?"":"np"}">${esc(m.position)}</span>` : ""}${roleChip(oplPlayer(team, m))}${hasHd ? roleIcons(oplPlayer(team, m)?.name, roles) : ""}</div>
-      <div class="sub psub">${m.riot_id ? esc(m.riot_id) : "keine Riot-ID hinterlegt"}${statSrc === "opl" && hasHd ? (h => h ? badgeHtml(h.cl, h.mk, h.cs) : "")(hdPlayer(team, oplPlayer(team, m)?.name)) : ""}</div></td>`;
+    const head = `<td class="c6"><div><span class="pname plink" data-key="${esc(memberKey(team, m))}" title="Spielerprofil öffnen">${esc(m.opl_name)}</span> ${m.position && m.position !== "Player" ? `<span class="pos ${esc(m.position)} ${act(m)?"":"np"}">${esc(m.position)}</span>` : ""}${roleChip(oplPlayer(team, m))}</div>
+      <div class="sub psub">${m.riot_id ? esc(m.riot_id) : "keine Riot-ID hinterlegt"}${statSrc === "opl" && hasHd ? (h => h ? badgeCompact(h.cl, h.mk, h.cs) : "")(hdPlayer(team, oplPlayer(team, m)?.name)) : ""}</div></td>`;
     const NC = statSrc === "opl" ? (hasHd ? 9 : 7) : 6;          // Anzahl Stat-Spalten je Quelle
+    const roleTd = showRoles ? `<td class="c rolecol" data-l="Rolle">${roleIcons(oplPlayer(team, m)?.name, roles) || '<span class="sub">–</span>'}</td>` : "";
     let body = `<td colspan="${NC + 3}" class="nomob"></td>`;
     if(m.riot_id){
       const p = statsFor(team, m);
@@ -1190,7 +1237,7 @@ function renderTeam(team, mt){
       }
       body = rankTds + statTds + `<td class="c6">${link}${localTag}${statSrc !== "opl" && p?.matches_error ? `<div class="err" title="${esc(p.matches_error)}">Matches n/a</div>` : ""}</td>`;
     }
-    return {m, idx, active: act(m), v: sortValues(team, m), html: `<tr class="${act(m)?"":"nonplayer"}">${head}${body}</tr>`};
+    return {m, idx, active: act(m), v: sortValues(team, m), html: `<tr class="${act(m)?"":"nonplayer"}">${head}${roleTd}${body}</tr>`};
   });
   // Sortierung: aktive immer zuerst; innerhalb nach gewählter Spalte, sonst nach Rollen-Tag
   const {k: sk, dir: sd} = playerSort;
@@ -1204,7 +1251,7 @@ function renderTeam(team, mt){
     }
     return a.idx - b.idx;
   });
-  const sepRow = `<tr class="sep"><td colspan="${statSrc === "opl" ? (hasHd ? 13 : 11) : 10}">${byOpl ? "Nicht aktiv – kein Ligaspiel in dieser Saison" : "Kein aktiver Spieler (Stand-In, Manager, Coach …)"}</td></tr>`;
+  const sepRow = `<tr class="sep"><td colspan="${(statSrc === "opl" ? (hasHd ? 13 : 11) : 10) + (showRoles ? 1 : 0)}">${byOpl ? "Nicht aktiv – kein Ligaspiel in dieser Saison" : "Kein aktiver Spieler (Stand-In, Manager, Coach …)"}</td></tr>`;
   const rows = items.map((it, i) => (!it.active && (i === 0 || items[i-1].active) ? sepRow : "") + it.html).join("");
 
   const oldest = Math.min(...times.filter(Boolean)), newest = Math.max(...times.filter(Boolean));
@@ -1220,7 +1267,7 @@ function renderTeam(team, mt){
           + avgBox(pk + "Kader", "Ø aller Kadermitglieder", L.map(e=>e.elo), "np", avgPeak); })()}
     </div>
     <div class="sechead"><h3>Spieler ${tip(statSrc === "opl"
-      ? `Stats aus allen gespielten Ligamaps auf OPLeague (${(team.opl?.matches||[]).filter(x=>x.maps.length).length} Matches). Rang und Peak aus Ranked (HenrikDev-API).${team.opl?.hd ? " ADR, KAST und Badges aus den Riot-Matchdaten. Gelber Spike = Haupt-Planter, rote Pfeile = Entry-Fragger (meiste Erst-Duelle pro Runde)." : ""}`
+      ? `Stats aus allen gespielten Ligamaps auf OPLeague (${(team.opl?.matches||[]).filter(x=>x.maps.length).length} Matches). Rang und Peak aus Ranked (HenrikDev-API).${team.opl?.hd ? " ADR, KAST und Badges aus den Riot-Matchdaten. Gelber Spike = Haupt-Planter, rote Pfeile = Entry-Fragger (meiste Erst-Duelle pro Runde), blaues Fadenkreuz = Operator-Spieler." : ""}`
       : "Stats aus den letzten bis zu 20 Competitive-Matches (HenrikDev-API).")}</h3><div class="shtools">
       ${full.opl_wc ? `<label class="kotoggle" title="Matches aus dem Wildcardturnier (vor der Saison) in Spieler-Stats, Map-Pool, Agents und Rollen einrechnen (${full.opl_wc.maps_played - full.opl.maps_played} Maps aus ${esc([...new Set(full.opl.matches.filter(m => m.wildcard).map(m => m.bracket))].join(", "))}). Playoffs und Relegation zählen immer.">
         <input type="checkbox" id="wcincl"${wcIncl ? " checked" : ""}> inkl. Wildcard</label>` : ""}
@@ -1229,10 +1276,12 @@ function renderTeam(team, mt){
         <option value="ranked">Ranked (letzte 20 Spiele)</option>
       </select></label></div></div>
     <div id="players"><table><thead><tr>
-      ${pth("name","Spieler")}${pth("rank","Aktueller Rang")}${pth("peak","Peak")}${statSrc === "opl"
+      ${pth("name","Spieler")}${showRoles ? '<th class="c" title="Aus den Rundendaten errechnete Rollen – Legende unter der Tabelle">Rolle</th>' : ""}${pth("rank","Aktueller Rang")}${pth("peak","Peak")}${statSrc === "opl"
         ? `${pth("maps","Maps","num")}${pth("acs","ACS","num")}${pth("kd","K/D","num")}${pth("econ","Econ","num","Econ-Rating")}${pth("fb","FB","num","First Bloods")}${pth("wr","WR","num","Anteil gewonnener Maps")}${hasHd ? `${pth("adr","ADR","num","Schaden pro Runde (Rundendaten)")}${pth("kast","KAST","num","Runden mit Kill, Assist, überlebt oder getradet (Rundendaten)")}` : ""}<th>Agents ${tip("Prozent: Anteil der Maps, auf denen der Spieler den Agent gespielt hat")}</th>`
         : `${pth("kd","K/D","num")}${pth("hs","HS%","num")}${pth("adr","ADR","num")}${pth("acs","ACS","num")}${pth("wr","Winrate","num")}<th>Agents</th>`}<th class="resetsort">${playerSort.k ? `<button class="ghost tiny" id="sortreset" title="Zurück zur Standard-Sortierung nach Rollen-Tag">↺ Tag</button>` : ""}</th>
     </tr></thead><tbody>${rows}</tbody></table></div>
+    ${showRoles ? `<div class="rolelegend"><span><i class="ric ric-op"></i>Operator-Spieler</span><span><i class="ric ric-entry"></i>Entry-Fragger</span><span><i class="ric ric-plant"></i>Haupt-Planter</span>
+</div>` : ""}
     ${mapPoolHtml(team.opl)}
     ${playstyleHtml(team.opl)}
     ${teamAgentsHtml(team.opl)}
@@ -1689,6 +1738,7 @@ function renderPlayer(team, mt, key){
       ${(d => kpi(d ? Math.round(100 * hp.fk / d) + "%" : "–", "ESR", lr("esr"), `Entry Success Rate: gewonnene Erst-Duelle der Runde (${hp.fk} First Kills, ${hp.fd} First Deaths)`, d ? [100 * hp.fk / d, "esr"] : null))(hp.fk + hp.fd)}
       ${kpi(`${hp.fk}/${hp.fd}`, "FK/FD", null, "First Kills / First Deaths")}${kpi(hp.cl.reduce((a, b) => a + b, 0), "Clutches", lr("cl"), hp.cl.map((v, j) => `1v${j + 1}: ${v}`).join(" · ") + ((hp.cs || []).some(Boolean) ? `\nDazu ${hp.cs.reduce((a, b) => a + b, 0)}× Spike-Clutch (gestorben, Spike explodiert)` : ""), [hp.cl.reduce((a, b) => a + b, 0) / hp.n, "clpm"])}
       ${kpi(hp.mk.slice(1).reduce((a, b) => a + b, 0), "3K+", null, `3K: ${hp.mk[1]} · 4K: ${hp.mk[2]} · ACE: ${hp.mk[3]}`)}</div>
+    ${hp.wk && Object.keys(hp.wk).length ? `<div class="wcols"><div><h4>Kills je Waffe</h4>${weaponBars(hp.wk)}</div><div><h4>Gekauft <span class="sub">(Runden)</span></h4>${weaponBars(hp.wb, 5, "Runden")}</div></div>` : ""}
     ${badgeHtml(hp.cl, hp.mk, hp.cs) ? `<div class="pbadgerow">${badgeHtml(hp.cl, hp.mk, hp.cs)}${(r => roleIcons(hp.name, r) ? `<span class="rolechips">${roleIcons(hp.name, r)}${r.planter === hp.name.toLowerCase() ? " Haupt-Planter" : ""}${r.entry === hp.name.toLowerCase() ? `${r.planter === hp.name.toLowerCase() ? " ·" : ""} Entry` : ""}</span>` : "")(keyRoles(Object.values(team.opl.hd.players)))}</div>` : ""}` : "";
 
   // Form: Diagramm wird nach dem Rendern gezeichnet (braucht die Breite)
@@ -1863,6 +1913,43 @@ function showMap(mp, push = true){
   showDetail(true);
   $("#detail").scrollTop = 0; if(isMobile()) window.scrollTo(0, 0);
 }
+// Agent, der am häufigsten den Operator kauft: [Name, Anteil an allen OP-Runden]
+function topOpAgent(o){
+  const es = Object.entries(o || {}).sort((a, b) => b[1] - a[1]), tot = es.reduce((a, [, v]) => a + v, 0);
+  return es.length ? [es[0][0], Math.round(100 * es[0][1] / tot)] : null;
+}
+// Operator-Anteil je Map als Balkenliste (Liga-Meta)
+function opByMap(maps){
+  const es = Object.entries(maps).filter(([, v]) => v.hd?.op?.[1]).map(([mp, v]) => [mp, v.hd.op]).sort((a, b) => b[1][0] / b[1][1] - a[1][0] / a[1][1]);
+  if(!es.length) return '<span class="sub">–</span>';
+  return `<div class="wbars">${es.map(([mp, [o, n]]) => { const p = Math.round(100 * o / n);
+    const ag = topOpAgent(maps[mp].hd.op_ag);
+    return `<div class="wbar opag" title="${esc(cap(mp))}: ${o} von ${n} Team-Runden mit Operator${ag ? ` · meist auf ${ag[0]} (${ag[1]} %)` : ""}"><span class="wic"><img src="${MAP_IMG(mp)}" alt="" class="wmap"></span><span class="wn">${esc(cap(mp))}</span><span class="wbt"><i style="width:${p}%"></i></span><b>${p}%</b>${ag ? agentIcons([ag[0]], false, 1) : "<span></span>"}</div>`; }).join("")}</div>`;
+}
+// Map-Seite: Rundendaten der Liga (Seitenbalance, Pistol-Folgerunde, Plants je Site, Rundenausgänge)
+function mapRoundsHtml(h){
+  if(!h || !h.rounds) return "";
+  const q = Math.round(100 * h.atk / h.rounds);
+  const ptot = Object.values(h.plant).reduce((a, x) => a + x[1], 0);
+  const sites = Object.entries(h.plant).sort((a, b) => a[0].localeCompare(b[0])).map(([st, [w, n]]) => {
+    const share = Math.round(100 * n / ptot), post = Math.round(100 * w / n);
+    return `<div class="msite"><span class="site"><b>${esc(st)}</b>${share} %</span><div class="msl"><span title="Angreifer gewinnen nach Plant auf ${esc(st)}: ${w} von ${n}">Post-Plant <b class="${post > 50 ? "pos-up" : post < 50 ? "pos-dn" : ""}">${post}%</b></span>
+      <span title="Verteidiger erobern ${esc(st)} zurück: ${n - w} von ${n}">Retake <b class="${100 - post > 50 ? "pos-up" : 100 - post < 50 ? "pos-dn" : ""}">${100 - post}%</b></span></div><span class="sub">${n} Plants</span></div>`; }).join("");
+  const rt = h.res || {}, rn = Object.values(rt).reduce((a, b) => a + b, 0) || 1;
+  const res = [["E", "Elimination"], ["D", "Spike gezündet"], ["F", "Entschärft"], ["T", "Zeit"]].filter(([k]) => rt[k])
+    .map(([k, l]) => `<span class="mres" title="${l}: ${rt[k]} von ${rn} Runden"><i class="rico rico-${k}"></i>${l} <b>${Math.round(100 * rt[k] / rn)}%</b></span>`).join("");
+  return `<div class="sechead"><h3>Runden-Stats ${tip(`Aus den Riot-Matchdaten von ${h.n} ${h.n === 1 ? "Map" : "Maps"} (${h.rounds} Runden) dieser Liga. Post-Plant = Angreifer gewinnen nach dem Plant, Retake = Verteidiger gewinnen trotzdem.`)}</h3></div>
+    <div class="kpis">
+      <div class="kpi wide" title="${h.atk} von ${h.rounds} Runden von den Angreifern gewonnen"><div class="v">${q}% <span class="sub">/</span> ${100 - q > 50 ? `<b class="defb">${100 - q}%</b>` : `<span class="sub">${100 - q}%</span>`}</div><div class="l">Angriff / Verteidigung</div><span class="balance wide"><i style="width:${q}%"></i></span></div>
+      <div class="kpi" title="${h.pistol_conv[0]} von ${h.pistol_conv[1]}"><div class="v">${h.pistol_conv[1] ? Math.round(100 * h.pistol_conv[0] / h.pistol_conv[1]) + "%" : "–"}</div><div class="l">Pistol → R2</div></div>
+      <div class="kpi" title="${h.thrifty} Thrifties in ${h.n} Maps"><div class="v">${(h.thrifty / h.n).toFixed(1)}</div><div class="l">Thrifties / Map</div></div>
+      <div class="kpi"><div class="v">${(ptot / h.n).toFixed(1)}</div><div class="l">Plants / Map</div></div>
+    </div>
+    ${sites ? `<div class="msites">${sites}</div>` : ""}
+    ${res ? `<div class="mress">${res}</div>` : ""}
+    ${h.wk && Object.keys(h.wk).length ? `<div class="wcols"><div><h4>Kills je Waffe</h4>${weaponBars(h.wk, 6)}</div><div><h4>Operator</h4><div class="kpi"><div class="v">${h.op?.[1] ? Math.round(100 * h.op[0] / h.op[1]) + "%" : "–"}</div><div class="l">der Team-Runden mit Operator</div>
+      ${(ag => ag ? `<div class="opagent">${agentIcons([ag[0]], false, 1)}<span>meist <b>${esc(ag[0])}</b> <span class="sub">(${ag[1]} % der OP-Runden)</span></span></div>` : "")(topOpAgent(h.op_ag))}</div></div></div>` : ""}`;
+}
 function renderMap(mp){
   const ov = league.overview, s = ov?.maps?.[mp];
   if(!s){ $("#detail").innerHTML = '<div class="empty">Keine Daten zu dieser Map.</div>'; return; }
@@ -1922,6 +2009,7 @@ function renderMap(mp){
       ${kpi(s.atk_n ? Math.round(100 * s.atk_won / s.atk_n) + "%" : "–", "Atk-Start gewinnt", `${s.atk_won} von ${s.atk_n} Maps`)}
       ${kpi(s.avg_rounds ?? "–", "Ø Runden")}${kpi(s.played ? Math.round(100 * s.close / s.played) + "%" : "–", "Knapp (≤ 3)", `${s.close} von ${s.played} Maps mit höchstens 3 Runden Differenz`)}
     </div>
+    ${mapRoundsHtml(s.hd)}
     ${s.agents.length ? `<div class="sechead"><h3>Agents ${tip(`Anteil der Team-Maps auf dieser Map, auf denen der Agent gespielt wurde, mit Winrate. Gruppiert nach Rolle.`)}</h3></div>${agents}
     <div class="sechead"><h3>Meta-Diagramm ${tip(`Rechts = oft gespielt, oben = gewinnt oft. Blass = weniger als 3 Team-Maps, Winrate unsicher. Gestrichelt = Mirror: beide Teams spielen ihn oft gleichzeitig, deshalb liegt seine Winrate zwangsläufig nahe 50 %.`)}</h3></div>
     <div class="scatterbox"><div id="mscatter"></div><div class="formleg"><span>→ oft gespielt</span><span>↑ gewinnt oft</span><span><i class="lg-faint"></i>wenig Daten</span><span><i class="lg-dash"></i>Mirror</span></div>
@@ -2167,6 +2255,8 @@ function metaMapVal([mp, v], k, n){
   if(k === "banr") return pct(v.ban, n);
   if(k === "pickwin") return pct(v.pick_won, v.pick_n);
   if(k === "atkwin") return pct(v.atk_won, v.atk_n);
+  if(k === "hatk") return v.hd?.rounds ? 100 * v.hd.atk / v.hd.rounds : null;
+  if(k === "pconv") return v.hd?.pistol_conv[1] ? 100 * v.hd.pistol_conv[0] / v.hd.pistol_conv[1] : null;
   return v[k] ?? null;
 }
 function sortRows(rows, st, val, dflt){
@@ -2201,6 +2291,7 @@ function renderMeta(){
     $("#back").onclick = () => showDetail(false); return;
   }
   const n = ov.veto_matches, dec = ov.bo !== 2;
+  const hdMeta = Object.values(ov.maps).some(v => v.hd), hdPl = ov.players.some(p => p.hd_n);
   // ---- Maps
   const maps = sortRows(Object.entries(ov.maps), metaSort, (r, k) => metaMapVal(r, k, n),
     (a, b) => b[1].played - a[1].played || (b[1].pick + b[1].decider) - (a[1].pick + a[1].decider) || a[1].ban - b[1].ban);
@@ -2215,12 +2306,14 @@ function renderMeta(){
       ${dec ? `<td class="num" data-l="Decider">${v.decider || '<span class="sub">0</span>'}</td>` : ""}
       <td class="num" data-l="Picker gewinnt" title="${v.pick_won} von ${v.pick_n} gepickten Maps vom pickenden Team gewonnen">${pw == null ? '<span class="sub">–</span>' : `<span class="${pw > 50 ? "pos-up" : pw < 50 ? "pos-dn" : ""}">${pw}%</span> <span class="sub">(${v.pick_n})</span>`}</td>
       <td class="num" data-l="Atk-Start gewinnt" title="${v.atk_won} von ${v.atk_n} Maps vom Team gewonnen, das im Angriff gestartet ist">${aw == null ? '<span class="sub">–</span>' : `${aw}% <span class="sub">(${v.atk_n})</span>`}</td>
+      ${hdMeta ? `<td class="num" data-l="Angriff" title="${v.hd ? `${v.hd.atk} von ${v.hd.rounds} Runden von den Angreifern gewonnen` : "keine Rundendaten"}">${v.hd ? (q => `<span class="balance" title="Angriff ${q} % · Verteidigung ${100 - q} %"><i style="width:${q}%"></i></span>${q}<span class="sub"> / </span>${100 - q > 50 ? `<b>${100 - q}</b>` : 100 - q}`)(Math.round(100 * v.hd.atk / v.hd.rounds)) : '<span class="sub">–</span>'}</td>
+      <td class="num" data-l="Pistol → R2">${v.hd ? rateCell(v.hd.pistol_conv, false) : '<span class="sub">–</span>'}</td>` : ""}
       <td class="num" data-l="Ø Runden" title="${v.close} von ${v.played} Maps knapp (≤ 3 Runden Differenz)">${v.avg_rounds ?? '<span class="sub">–</span>'}</td>
       <td class="m-ag" data-l="Top-Agents">${agentIcons(v.agents, true, 6) || '<span class="sub">–</span>'}</td>
       <td class="m-comp" data-l="Häufigste Comps">${comps}</td></tr>`;
   }).join("");
   const mapOpts = [["", "Standard"], ["played", "Gespielt"], ["pickr", "Pick-Rate"], ["banr", "Ban-Rate"], ...(dec ? [["decider", "Decider"]] : []),
-    ["pickwin", "Picker gewinnt"], ["atkwin", "Angriffsstart gewinnt"], ["avg_rounds", "Ø Runden"], ["map", "Map A–Z"]];
+    ["pickwin", "Picker gewinnt"], ["atkwin", "Angriffsstart gewinnt"], ...(hdMeta ? [["hatk", "Angriff (Runden)"], ["pconv", "Pistol → R2"]] : []), ["avg_rounds", "Ø Runden"], ["map", "Map A–Z"]];
   // ---- Bestenliste
   const maxMaps = Math.max(0, ...ov.players.map(p => p.maps));
   if(lbMin == null || lbMin > maxMaps) lbMin = Math.min(LB_MIN, Math.max(1, maxMaps));
@@ -2232,6 +2325,7 @@ function renderMeta(){
     <td class="opt"><span class="tlink" data-team="${esc(p.team)}">${esc(p.team_name)}</span></td>
     <td class="num">${p.maps}</td><td class="num">${p.acs}</td><td class="num">${p.kd.toFixed(2)}</td>
     <td class="num opt" title="${p.k}/${p.d}/${p.a}">${p.k}/${p.d}/${p.a}</td><td class="num">${p.fbpm.toFixed(2)}</td>
+    ${hdPl ? (d => `<td class="num">${d(p.adr)}</td><td class="num">${d(p.kast, "%")}</td><td class="num opt">${d(p.hs, "%")}</td><td class="num opt" title="${p.hd_n ? `${p.fk} First Kills, ${p.fd} First Deaths` : ""}">${d(p.esr, "%")}</td><td class="num opt">${p.hd_n ? p.cl : '<span class="sub">–</span>'}</td>`)((v, u = "") => v == null ? '<span class="sub">–</span>' : v + u) : ""}
     <td class="num opt">${p.econ}</td><td class="num opt"><span class="${p.winrate > 50 ? "pos-up" : p.winrate < 50 ? "pos-dn" : ""}">${p.winrate}%</span></td>
     <td class="opt">${agentIcons(p.agents, false, 3)}</td></tr>`).join("");
   const minOpts = [...new Set([1, 2, 3, 4, 5, 6, 8, 10].filter(x => x <= Math.max(1, maxMaps)))];
@@ -2248,18 +2342,21 @@ function renderMeta(){
       ${dec ? sth(metaSort,"data-mm","decider","Decider","num","Wie oft die Map als Decider übrig blieb") : ""}
       ${sth(metaSort,"data-mm","pickwin","Picker gewinnt","num","Wie oft das Team, das die Map gepickt hat, sie auch gewinnt")}
       ${sth(metaSort,"data-mm","atkwin","Atk-Start gewinnt","num","Wie oft das Team gewinnt, das im Angriff startet")}
+      ${hdMeta ? `${sth(metaSort,"data-mm","hatk","Angr. / Vert.","num","Rundengewinne in % für Angreifer / Verteidiger (Rundendaten). Fett = Verteidiger gewinnen mehr als die Hälfte")}${sth(metaSort,"data-mm","pconv","Pistol → R2","num","Wie oft der Gewinner der Pistol-Runde auch die zweite Runde gewinnt (Rundendaten)")}` : ""}
       ${sth(metaSort,"data-mm","avg_rounds","Ø Runden","num","Ø gespielte Runden pro Map")}
       <th title="Anteil der Teams, die den Agent auf dieser Map gespielt haben">Top-Agents</th><th>Häufigste Comps</th>
     </tr></thead><tbody>${mapRows}</tbody></table></div>
     <div class="sechead"><h3>Agents ${tip(`Anteil aller ${2 * ov.maps_played} Team-Maps (jede Map zählt für beide Teams).`)}</h3></div>
     <div class="teamagents">${ov.agents.map(([a, c, p]) => { const ic = AGENT_ICONS[a.toLowerCase()];
       return `<span class="ag" title="${esc(a)}: ${c} von ${2 * ov.maps_played} Team-Maps">${ic ? `<img src="${esc(ic)}" alt="${esc(a)}">` : `<span class="sub">${esc(a)}</span>`}<span class="bar"><i style="width:${p}%"></i></span><small>${p}%</small></span>`; }).join("")}</div>
+    ${(w => Object.keys(w).length ? `<div class="sechead"><h3>Waffen ${tip("Anteil aller Kills je Waffe in dieser Liga (Rundendaten). Operator = Anteil der Team-Runden mit mindestens einem Operator.")}</h3></div>
+      <div class="wcols"><div><h4>Kills je Waffe</h4>${weaponBars(w, 8)}</div><div><h4>Operator je Map</h4>${opByMap(ov.maps)}</div></div>` : "")(Object.values(ov.maps).reduce((a, v) => { for(const [k, c] of Object.entries(v.hd?.wk || {})) a[k] = (a[k] || 0) + c; return a; }, {}))}
     <div class="sechead"><h3>Bestenliste ${tip(`OPL-Statistiken dieser Saison. Mit „min. Maps“ blendest du Spieler mit wenigen Einsätzen aus.`)}</h3>
       <div class="lbtools"><label>min. Maps <select id="lbmin">${minOpts.map(x => `<option${x === lbMin ? " selected" : ""}>${x}</option>`).join("")}</select></label>
       <span class="sub">${pls.length} Spieler</span></div></div>
     <div class="lbwrap"><table class="lbtable"><thead><tr><th>#</th>${lt("name","Spieler","")}${lt("team","Team","opt")}${lt("maps","Maps")}${lt("acs","ACS")}${lt("kd","K/D")}
-      <th class="num opt">K/D/A</th>${lt("fbpm","FB/Map","num","First Bloods pro Map")}${lt("econ","Econ","num opt")}${lt("winrate","Map-WR","num opt")}<th class="opt">Agents</th></tr></thead>
-      <tbody>${lbRows || `<tr><td colspan="11" class="sub">Keine Spieler mit so vielen Maps.</td></tr>`}</tbody></table></div>
+      <th class="num opt">K/D/A</th>${lt("fbpm","FB/Map","num","First Bloods pro Map")}${hdPl ? `${lt("adr","ADR","num","Schaden pro Runde (Rundendaten)")}${lt("kast","KAST","num","Runden mit Kill, Assist, überlebt oder getradet (Rundendaten)")}${lt("hs","HS%","num opt","Anteil Kopftreffer (Rundendaten)")}${lt("esr","ESR","num opt","Entry Success Rate: gewonnene Erst-Duelle (Rundendaten)")}${lt("cl","Clutches","num opt","Gewonnene 1vX-Clutches (Rundendaten)")}` : ""}${lt("econ","Econ","num opt")}${lt("winrate","Map-WR","num opt")}<th class="opt">Agents</th></tr></thead>
+      <tbody>${lbRows || `<tr><td colspan="${hdPl ? 16 : 11}" class="sub">Keine Spieler mit so vielen Maps.</td></tr>`}</tbody></table></div>
     ${pls.length > 25 ? `<p><button class="ghost" id="lball">${lbAll ? "Nur Top 25" : `Alle ${pls.length} anzeigen`}</button></p>` : ""}`;
   $("#back").onclick = () => showDetail(false);
   const rerender = () => { renderMeta(); };
@@ -2423,9 +2520,24 @@ function tendHtml(T, name, expected, pool){
     if(ap.length){ const n = ap.reduce((a, [, v]) => a + v[1], 0), [bt, v] = ap.sort((a, b) => b[1][1] - a[1][1])[0];
       items.push(`<div class="tend"><span class="tl2">Nach verlorener Pistol</span><b class="reco ${BUY_CLS[bt]}" title="${v[1]} von ${n}× nach verlorener Pistol-Runde, davon ${v[0]} gewonnen">${esc(bt)}</b><span class="sub">${v[1]}/${n}</span></div>`); }
     if(x.thrifty?.[1]) items.push(`<div class="tend"><span class="tl2">Thrifties</span>${rateCell(x.thrifty)}</div>`);
+    if(x.op?.[1]){ const r = keyRoles(Object.values(T.opl.hd.players)); const opP = r.op ? Object.values(T.opl.hd.players).find(p => p.name.toLowerCase() === r.op)?.name : null;
+      items.push(`<div class="tend"><span class="tl2">Operator</span><b>${Math.round(100 * x.op[0] / x.op[1])} %</b><span class="sub">der Runden${opP ? ` · meist ${esc(opP)}` : ""}</span></div>`); }
     return `<div class="tcard"><div class="sbmap" style="--bg:url('${MAP_IMG(mp)}')"><b>${esc(cap(mp))}</b><span class="sub" style="color:#ddd">${x.n} ${x.n === 1 ? "Map" : "Maps"} · ${x.rounds} Runden</span></div>${items.join("")}</div>`;
   };
-  return `<div class="sechead"><h3>Tendenzen von ${esc(name)} ${tip("Aus den Riot-Matchdaten dieser Saison. Erwartete Maps zuerst. Ohne Farbe = zu wenig Daten.")}</h3></div><div class="tcards">${maps.map(card).join("")}</div>`;
+  const oddHtml = oddWeaponsHtml(T);
+  return `<div class="sechead"><h3>Tendenzen von ${esc(name)} ${tip("Aus den Riot-Matchdaten dieser Saison. Erwartete Maps zuerst. Ohne Farbe = zu wenig Daten. Ungewöhnliche Waffen: Kill-Anteil mindestens doppelt so hoch wie im Liga-Ø.")}</h3></div>${oddHtml}<div class="tcards">${maps.map(card).join("")}</div>`;
+}
+// ungewöhnliche Waffen eines Teams: Kill-Anteil ≥ 2× Liga-Ø (mind. 3 % und 5 Kills) – Vorbereitung + Spielweise
+function oddWeaponsHtml(T){
+  if(!T.opl?.hd) return "";
+  const tw = {}; for(const p of Object.values(T.opl.hd.players || {})) for(const [w, c] of Object.entries(weaponMerge(p.wk))) tw[w] = (tw[w] || 0) + c;
+  const lw = {}; for(const v of Object.values(league.overview?.maps || {})) for(const [w, c] of Object.entries(weaponMerge(v.hd?.wk))) lw[w] = (lw[w] || 0) + c;
+  const tT = Object.values(tw).reduce((a, b) => a + b, 0), lT = Object.values(lw).reduce((a, b) => a + b, 0);
+  const odd = tT && lT ? Object.entries(tw).filter(([w, c]) => !["Fähigkeit", "Messer", "Spike", "Sonstige"].includes(w) && c >= 5 && c / tT >= 0.03 && c / tT >= 2 * ((lw[w] || 0) / lT))
+    .sort((a, b) => b[1] / tT / ((lw[b[0]] || 1) / lT) - a[1] / tT / ((lw[a[0]] || 1) / lT)).slice(0, 4) : [];
+  const oddHtml = odd.length ? `<div class="oddw"><span class="tl2">Ungewöhnliche Waffen</span>${odd.map(([w, c]) => { const ic = WEAPON[w.toLowerCase()]?.icon, tp = Math.round(100 * c / tT), lp = (Math.round(1000 * (lw[w] || 0) / lT) / 10).toLocaleString("de-DE");
+    return `<span class="oddc" title="${esc(w)}: ${c} Kills = ${tp} % der Team-Kills · Liga-Ø ${lp} %">${ic ? `<img src="${esc(ic)}" alt="">` : ""}<b>${esc(w)}</b> ${tp} % <span class="sub">(Liga ${lp} %)</span></span>`; }).join("")}</div>` : "";
+  return oddHtml;
 }
 const wbs = list => list.map(([t, c]) => `<span class="wb ${c}">${esc(t)}</span>`).join("");
 function renderPrep(A, mtA, B, mtB, entry){
@@ -2689,11 +2801,13 @@ function playstyleHtml(o){
   const rows = Object.entries(H.maps).sort((a, b) => b[1].n - a[1].n);
   const buys = ["Eco", "Semi-Eco", "Semi-Buy", "Full Buy"];
   return `<div class="sechead"><h3>Spielweise ${tip(`Aus den Riot-Matchdaten von ${H.n} ${H.n === 1 ? "Map" : "Maps"}${o.maps_played > H.n ? ` (von ${o.maps_played} gespielten)` : ""}. Plants: Runden nach eigenem Plant gewonnen / Plants. Retakes: Runden nach gegnerischem Plant noch gewonnen. Kaufarten: Siegquote nach eigenem Loadout. Ohne Farbe = zu wenig Daten (unter 5 Runden bzw. 3 Plants).`)}</h3></div>
+  ${oddWeaponsHtml({opl: o})}
   <div class="scrollx"><table class="maptable pstyle"><thead><tr><th>Map</th><th class="num">Runden</th><th class="num">Pistol</th><th class="num" title="Anteil der Runden mit dem ersten Kill">First Kills</th>
     <th class="num" title="Runden mit höchstens 45 % des gegnerischen Loadouts: davon gewonnen (Thrifty)">Thrifty</th>
+    <th class="num" title="Anteil der Runden, in denen das Team mindestens einen Operator gekauft hat">Operator</th>
     <th class="c">Plants (Angriff)</th><th class="c">Retakes (Verteidigung)</th><th class="c" title="Siegquote nach eigener Kaufart">Kaufarten</th></tr></thead><tbody>${
     rows.map(([mp, x]) => `<tr><td class="mcell"><div class="mapname maplink" data-map="${esc(mp)}"><img src="${MAP_IMG(mp)}" alt="" loading="lazy" onerror="this.remove()"><span>${esc(cap(mp))}</span></div><span class="sub">${x.n} ${x.n === 1 ? "Map" : "Maps"}</span></td>
-      <td class="num">${x.rounds}</td><td class="num">${rateCell(x.pistol)}</td><td class="num">${rateCell(x.fk, false)}</td><td class="num">${x.thrifty ? rateCell(x.thrifty) : '<span class="sub">–</span>'}</td>
+      <td class="num">${x.rounds}</td><td class="num">${rateCell(x.pistol)}</td><td class="num">${rateCell(x.fk, false)}</td><td class="num">${x.thrifty ? rateCell(x.thrifty) : '<span class="sub">–</span>'}</td><td class="num" title="${x.op?.[1] ? `${x.op[0]} von ${x.op[1]} Runden mit Operator` : ""}">${x.op?.[1] ? Math.round(100 * x.op[0] / x.op[1]) + "%" : '<span class="sub">–</span>'}</td>
       <td class="c">${siteChips(x.plant, "p")}</td><td class="c">${siteChips(x.retake, "r")}</td>
       <td class="c"><span class="sites">${buys.filter(b => x.buy[b]).map(b => `<span class="buyc ${BUY_CLS[b]}" title="${b}: ${x.buy[b][0]} von ${x.buy[b][1]} Runden gewonnen"><b class="reco ${BUY_CLS[b]}">${{Eco: "E", "Semi-Eco": "SE", "Semi-Buy": "SB", "Full Buy": "FB"}[b]}</b>${Math.round(100 * x.buy[b][0] / x.buy[b][1])}%</span>`).join("")}</span></td></tr>`).join("")}</tbody></table></div>`;
 }
@@ -2705,17 +2819,32 @@ function keyRoles(players){
   const plSum = all.reduce((a, p) => a + (p.pl || 0), 0);
   const pl = [...ps].sort((a, b) => (b.pl || 0) - (a.pl || 0))[0];
   const en = [...ps].sort((a, b) => (b.fk + b.fd) / b.r - (a.fk + a.fd) / a.r)[0];
+  const opR = p => Object.entries(p.wb || {}).reduce((a, [w, c]) => a + (wName(w) === "Operator" ? c : 0), 0);
+  const op = [...ps].sort((a, b) => opR(b) - opR(a))[0], opN = op ? opR(op) : 0;
   return {
+    op: op && opN >= 3 && opN >= 0.08 * op.r ? op.name.toLowerCase() : null,
     planter: pl && pl.pl && pl.pl >= 0.25 * plSum ? pl.name.toLowerCase() : null,
     entry: en && en.fk + en.fd >= 3 ? en.name.toLowerCase() : null,
-    tip: {planter: pl ? `Haupt-Planter: ${pl.pl} von ${plSum} Plants des Teams` : "", entry: en ? `Entry-Fragger: an ${Math.round(100 * (en.fk + en.fd) / en.r)} % der Runden im ersten Duell (${en.fk} First Kills, ${en.fd} First Deaths)` : ""},
+    tip: {op: op ? `Operator-Spieler: in ${opN} von ${op.r} Runden mit Operator (${Math.round(100 * opN / op.r)} %)` : "", planter: pl ? `Haupt-Planter: ${pl.pl} von ${plSum} Plants des Teams` : "", entry: en ? `Entry-Fragger: an ${Math.round(100 * (en.fk + en.fd) / en.r)} % der Runden im ersten Duell (${en.fk} First Kills, ${en.fd} First Deaths)` : ""},
   };
 }
 function roleIcons(name, roles){
   if(!roles || !name) return "";
   const k = String(name).toLowerCase();
   return (roles.planter === k ? `<i class="ric ric-plant" title="${esc(roles.tip.planter)}"></i>` : "")
-    + (roles.entry === k ? `<i class="ric ric-entry" title="${esc(roles.tip.entry)}"></i>` : "");
+    + (roles.entry === k ? `<i class="ric ric-entry" title="${esc(roles.tip.entry)}"></i>` : "")
+    + (roles.op === k ? `<i class="ric ric-op" title="${esc(roles.tip.op)}"></i>` : "");
+}
+// kompakte Badges je Kategorie (Teamseite): 1vX, 1vX mit Spike, 3K+ (3K und 4K), ACE – Details im Tooltip
+function badgeCompact(cl = [], mk = [], cs = []){
+  const sum = a => (a || []).reduce((x, y) => x + y, 0);
+  const det = (a, f) => (a || []).map((v, j) => v ? f(v, j) : "").filter(Boolean).join(" · ");
+  const b = [], n1 = sum(cl), n2 = sum(cs), n3 = (mk[1] || 0) + (mk[2] || 0), n5 = mk[3] || 0;
+  if(n1) b.push(`<span class="pbadge cl" title="Gewonnene Clutches: ${det(cl, (v, j) => `1v${j + 1} ×${v}`)}">1vX${n1 > 1 ? ` ×${n1}` : ""}</span>`);
+  if(n2) b.push(`<span class="pbadge cs" title="Spike-Clutches (gestorben, Spike explodiert): ${det(cs, (v, j) => `1v${j + 1} ×${v}`)}"><i class="rico rico-D"></i>1vX${n2 > 1 ? ` ×${n2}` : ""}</span>`);
+  if(n3) b.push(`<span class="pbadge mk" title="3K ×${mk[1] || 0} · 4K ×${mk[2] || 0}">3K+${n3 > 1 ? ` ×${n3}` : ""}</span>`);
+  if(n5) b.push(`<span class="pbadge mk ace" title="${n5}× alle 5 Gegner in einer Runde">ACE${n5 > 1 ? ` ×${n5}` : ""}</span>`);
+  return b.length ? `<div class="pbadges">${b.join("")}</div>` : "";
 }
 // Rundendaten-Werte eines Spielers (Team-Zusammenfassung opl.hd)
 const hdPlayer = (T, name) => T?.opl?.hd?.players?.[String(name || "").toLowerCase()] || null;
@@ -2725,7 +2854,38 @@ const buyType = (v, pistol) => pistol ? "Pistol" : v < 5000 ? "Eco" : v < 10000 
 const isThrifty = (r, i) => i !== 0 && i !== 12 && r.w && r.eco[2 - r.w] > 0 && r.eco[r.w - 1] <= 0.45 * r.eco[2 - r.w];
 const BUY_CLS = {"Pistol": "bp", "Eco": "be", "Semi-Eco": "bse", "Semi-Buy": "bsb", "Full Buy": "bf"};
 const RES_IC = {E: ["☠", "Elimination"], D: ["💥", "Spike gezündet"], F: ["✂", "Spike entschärft"], T: ["⏱", "Zeit abgelaufen"]};
+// Runden-Tooltip im Rundenverlauf: eigene Box mit Waffen-Icons (Daten je Runde in RTIP, Index im data-rt)
+let RTIP = [];
+const wIcon = (w, cls = "") => { const n = wName(w), ic = WEAPON[String(n).toLowerCase()]?.icon; return ic ? `<img class="${cls}" src="${esc(ic)}" alt="${esc(n)}" title="${esc(n)}">` : `<span class="wtxt">${esc(n)}</span>`; };
+function roundTipHtml(x){
+  const {r, i, ta, tb, nameA, nameB, atkA, pistol} = x, wA = r.w === ta;
+  const side = (wA === atkA) ? "Angriff" : "Verteidigung", [, resTxt] = RES_IC[r.r] || RES_IC.T;
+  const team = (t, nm) => { const v = r.eco[t - 1], bt = buyType(v, pistol);
+    return `<div class="rtt-team ${t === ta ? "a" : "b"}"><div class="rtt-th"><b>${esc(nm)}</b><span class="reco ${BUY_CLS[bt]}">${(v / 1000).toFixed(1).replace(".", ",")}</span><span class="sub">${bt}</span></div>
+      ${r.wp ? `<div class="rtt-w">${(r.wp[t - 1] || []).map(w => wIcon(w)).join("") || '<span class="sub">–</span>'}</div>` : ""}</div>`; };
+  return `<div class="rtt-h"><span>${x.map ? esc(x.map) + " · " : ""}Runde ${i + 1}</span><span class="rtt-win ${wA ? "a" : "b"}"><i class="rico rico-${r.r || "T"}"></i>${esc(wA ? nameA : nameB)}</span></div>
+    <div class="sub">${side} · ${resTxt}${isThrifty(r, i) ? ' · <b class="thrb static">$</b>Thrifty' : ""}</div>
+    ${r.fb ? `<div class="rtt-l"><span class="sub">First Blood</span> ${esc(r.fb[0] || "?")} ${r.fb[2] ? wIcon(r.fb[2], "fbw") : "→"} ${esc(r.fb[1] || "?")}</div>` : ""}
+    ${r.pl ? `<div class="rtt-l"><span class="sub">Plant</span> <span class="site"><b>${esc(r.pl.s)}</b></span> ${esc(r.pl.by || "")} <span class="sub">${Math.floor(r.pl.t / 60)}:${String(r.pl.t % 60).padStart(2, "0")}</span>${r.df ? ` · <span class="sub">Defuse</span> ${esc(r.df.by || "")}` : ""}</div>` : ""}
+    ${team(ta, nameA)}${team(tb, nameB)}`;
+}
+(() => {
+  const box = document.createElement("div"); box.id = "rtip"; document.body.appendChild(box);
+  const hide = () => { box.style.display = "none"; };
+  document.addEventListener("mouseover", e => {
+    const c = e.target.closest?.(".rcol[data-rt]");
+    if(!c){ hide(); return; }
+    const x = RTIP[+c.dataset.rt]; if(!x) return;
+    box.innerHTML = roundTipHtml(x); box.style.display = "block";
+    const r = c.getBoundingClientRect(), bw = box.offsetWidth, bh = box.offsetHeight;
+    let left = Math.min(Math.max(8, r.left + r.width / 2 - bw / 2), innerWidth - bw - 8), top = r.bottom + 8;
+    if(top + bh > innerHeight - 8) top = r.top - bh - 8;
+    box.style.left = left + "px"; box.style.top = top + "px";
+  });
+  document.addEventListener("scroll", hide, true);
+})();
 function renderMatch(A, mtA, B, m, H = null){
+  RTIP = [];
   const nameA = A.name || mtA?.name, nameB = m.opp?.name || B?.name || "Gegner";
   const agIc = a => { const ic = AGENT_ICONS[(a || "").toLowerCase()]; return ic ? `<img class="agic" src="${esc(ic)}" alt="${esc(a)}" title="${esc(a)}">` : `<span class="sub">${esc(a || "–")}</span>`; };
   const ta = H && String(H.t2?.id) === String(A.id) ? 2 : 1, tb = 3 - ta;   // Team-Nummer von A/B in den Rundendaten
@@ -2753,7 +2913,8 @@ function renderMatch(A, mtA, B, m, H = null){
       const w = r.nr || 1;
       x.n++; x.nr += w; x.k += r.k; x.d += r.d; x.a += r.a; x.agents.push(r.agent);
       if(r.nr){ x.acs += r.acs * w; x.adr += r.adr * w; x.hs += r.hs * w; x.kast += r.kast * w; x.fk += r.fk; x.fd += r.fd; x.pl += r.pl; x.df += r.df;
-        r.mk.forEach((v, j) => x.mk[j] += v); r.cl.forEach((v, j) => x.cl[j] += v); (r.cs || []).forEach((v, j) => x.cs[j] += v); }
+        r.mk.forEach((v, j) => x.mk[j] += v); r.cl.forEach((v, j) => x.cl[j] += v); (r.cs || []).forEach((v, j) => x.cs[j] += v);
+        x.wb ??= {}; for(const [w, c] of Object.entries(r.wb || {})) x.wb[w] = (x.wb[w] || 0) + c; }
       else { x.hd = false; x.acs += r.acs * w; x.fb += r.fb; x.econ += r.econ; x.plants += r.plants; x.defuses += r.defuses; }
     }
     return Object.values(g).map(x => ({...x, acs: Math.round(x.acs / x.nr), adr: Math.round(x.adr / x.nr), hs: Math.round(x.hs / x.nr), kast: Math.round(x.kast / x.nr),
@@ -2763,7 +2924,7 @@ function renderMatch(A, mtA, B, m, H = null){
   const badges = r => r.nr ? badgeHtml(r.cl, r.mk, r.cs) : "";
   const board = (rows, name, logo, won, mvp) => {
     const hd = rows.length && rows.every(r => r.nr);
-    const roles = hd ? keyRoles(rows.map(r => ({name: r.name, pl: r.pl, fk: r.fk, fd: r.fd, r: r.nr}))) : null;
+    const roles = hd ? keyRoles(rows.map(r => ({name: r.name, pl: r.pl, fk: r.fk, fd: r.fd, r: r.nr, wb: r.wb}))) : null;
     const head = hd
       ? `<th class="num">ACS</th><th class="num">K</th><th class="num">D</th><th class="num">A</th><th class="num">+/-</th><th class="num" title="Schaden pro Runde">ADR</th><th class="num opt" title="Anteil Kopftreffer">HS%</th><th class="num opt" title="Runden mit Kill, Assist, überlebt oder getradet">KAST</th><th class="num opt" title="First Kills / First Deaths">FK/FD</th>`
       : `<th class="num">ACS</th><th class="num">K</th><th class="num">D</th><th class="num">A</th><th class="num">+/-</th><th class="num opt">K/D</th><th class="num opt">FB</th><th class="num opt">Econ</th><th class="num opt" title="Plants/Defuses">P/D</th>`;
@@ -2790,11 +2951,9 @@ function renderMatch(A, mtA, B, m, H = null){
       const atkA = r.a1 == null ? null : (ta === 1 ? r.a1 : !r.a1);
       const pistol = i === 0 || i === half;
       const ecoA = r.eco[ta - 1], ecoB = r.eco[tb - 1];
-      const t = [`Runde ${i + 1}: ${r.w === ta ? nameA : nameB} (${(r.w === ta) === atkA ? "Angriff" : "Verteidigung"}) · ${(RES_IC[r.r] || RES_IC.T)[1]}`,
-        r.fb ? `First Blood: ${r.fb[0]} → ${r.fb[1]}` : "", r.pl ? `Plant ${r.pl.s} durch ${r.pl.by} (${Math.floor(r.pl.t / 60)}:${String(r.pl.t % 60).padStart(2, "0")})` : "",
-        r.df ? `Defuse durch ${r.df.by}` : "", isThrifty(r, i) ? "Thrifty: mit höchstens 45 % des gegnerischen Loadouts gewonnen" : "", `${nameA}: ${ecoA.toLocaleString("de-DE")} (${buyType(ecoA, pistol)}) · ${nameB}: ${ecoB.toLocaleString("de-DE")} (${buyType(ecoB, pistol)})`].filter(Boolean).join("\n");
+      const rt = RTIP.push({r, i, map: gs.length > 1 ? cap(g.map) : "", ta, tb, nameA, nameB, atkA, pistol}) - 1;
       const msep = gi > 0 && i === 0;
-      return `<div class="rcol${msep ? " msep" : i === half || (i >= 24 && i % 2 === 0) ? " sep" : ""}" title="${esc((gs.length > 1 ? cap(g.map) + " · " : "") + t)}"><div class="rn">${i === 0 && gs.length > 1 ? `<b>${esc(cap(g.map).slice(0, 3))}</b>` : i + 1}</div>${cell(r, i, ta)}${cell(r, i, tb)}
+      return `<div class="rcol${msep ? " msep" : i === half || (i >= 24 && i % 2 === 0) ? " sep" : ""}" data-rt="${rt}"><div class="rn">${i === 0 && gs.length > 1 ? `<b>${esc(cap(g.map).slice(0, 3))}</b>` : i + 1}</div>${cell(r, i, ta)}${cell(r, i, tb)}
         ${[ecoA, ecoB].map(v => `<div class="reco ${BUY_CLS[buyType(v, pistol)]}">${(v / 1000).toFixed(v < 9950 ? 1 : 0).replace(".", ",")}</div>`).join("")}</div>`;
     };
     return `<div class="rtl${gs.length > 1 ? " multi" : ""}"><div class="rtlh"><span></span><span class="a">${esc(nameA)}</span><span class="b">${esc(nameB)}</span><span class="la" title="Loadout ${esc(nameA)} in Tsd. Credits">Loadout</span><span class="lb" title="Loadout ${esc(nameB)} in Tsd. Credits">Loadout</span></div><div class="rtlr">${gs.map((g, gi) => g.rounds.map((r, i) => col(r, i, gi, g)).join("")).join("")}</div></div>
@@ -2875,7 +3034,7 @@ function renderMatch(A, mtA, B, m, H = null){
     </div>
     ${veto ? `<div class="sechead"><h3>Veto ${tip(`Rot = ${nameA}, blau = ${nameB}, gestrichelt = Decider.`)}</h3></div><div class="vsteps">${veto}</div>` : ""}
     ${panes.length ? `<div class="sechead"><h3>Scoreboard ${tip(games.length
-        ? "Aus den Riot-Matchdaten (HenrikDev), sortiert nach ACS. „Gesamt“ = Summe bzw. Ø über alle Maps. Badges: gewonnene Clutches (1vX, lila mit Spike-Symbol = gestorben, aber Spike explodiert) und Multikills ab 3 Kills in einer Runde. Gelber Spike = Haupt-Planter, rote Pfeile = Entry-Fragger. Rundenverlauf: Symbol = Ausgang, Balken = Loadout-Wert; Details beim Hovern."
+        ? "Aus den Riot-Matchdaten (HenrikDev), sortiert nach ACS. „Gesamt“ = Summe bzw. Ø über alle Maps. Badges: gewonnene Clutches (1vX, lila mit Spike-Symbol = gestorben, aber Spike explodiert) und Multikills ab 3 Kills in einer Runde. Gelber Spike = Haupt-Planter, rote Pfeile = Entry-Fragger, blaues Fadenkreuz = Operator-Spieler. Rundenverlauf: Symbol = Ausgang, Balken = Loadout-Wert; Details beim Hovern."
         : "Pro Map aus den OPL-Stats beider Teams, sortiert nach ACS. „Gesamt“ = Summe bzw. Ø über alle Maps. MVP = höchster ACS. Für dieses Match gibt es (noch) keine Rundendaten.")}</h3>
       <div class="seg sbtabs">${tabs.map((t, i) => `<button class="${i ? "" : "on"}" data-sb="${i}">${esc(t)}</button>`).join("")}</div></div>
     ${panes.map((p, i) => `<div class="sbpane" data-sb="${i}"${i ? " hidden" : ""}>
@@ -2902,6 +3061,7 @@ document.addEventListener("click", e => {
 
 // ================================================================== Verlauf: alle gespielten Matches der Liga mit Suche
 let histShown = false, histQ = "";
+const histOpt = Object.assign({sort: "new", hideFF: false}, store.get("histOpt") || {});
 function showHistory(push = true){
   if(!league) return;
   ++current; curTeam = null; metaShown = false; mapShown = null; brShown = null; agShown = null; histShown = true;
@@ -2917,11 +3077,19 @@ function renderHistory(){
   $("#detail").innerHTML = `${crumbs([{label: "Verlauf"}])}
     <h2 class="ptitle">Verlauf</h2>
     <div class="hsearch"><input id="histq" type="search" placeholder="Suchen: Team, Map, Spieler, Runde …" value="${esc(histQ)}" autocomplete="off" aria-label="Matches durchsuchen">
-      <span class="sub" id="histn"></span></div>
+      <span class="sub" id="histn"></span>
+      <button class="ghost tiny hgear" id="histgear" title="Sortierung und Filter" aria-expanded="false"><i class="ic ic-gear"></i></button></div>
+    <div class="hopts" id="histopts" hidden>
+      <label>Sortierung <select id="histsort">${[["new", "Neueste zuerst"], ["old", "Älteste zuerst"], ["close", "Knappste zuerst"], ["rounds", "Meiste Runden zuerst"]].map(([k, l]) => `<option value="${k}"${histOpt.sort === k ? " selected" : ""}>${l}</option>`).join("")}</select></label>
+      <label class="kotoggle"><input type="checkbox" id="histff"${histOpt.hideFF ? " checked" : ""}> Kampflose Siege und Freilose ausblenden</label></div>
     <div id="histlist"></div>`;
   $("#back").onclick = () => showDetail(false);
   const inp = $("#histq");
   inp.oninput = () => { histQ = inp.value; drawHistory(); };
+  const save = () => { store.set("histOpt", histOpt); drawHistory(); };
+  $("#histgear").onclick = () => { const o = $("#histopts"); o.hidden = !o.hidden; $("#histgear").setAttribute("aria-expanded", String(!o.hidden)); $("#histgear").classList.toggle("on", !o.hidden); };
+  $("#histsort").onchange = e => { histOpt.sort = e.target.value; save(); };
+  $("#histff").onchange = e => { histOpt.hideFF = e.target.checked; save(); };
   drawHistory();
   if(!isMobile()) inp.focus();
 }
@@ -2929,7 +3097,13 @@ function drawHistory(){
   const H = league.history || [];
   const toks = histQ.toLowerCase().split(/\s+/).filter(Boolean);
   const hay = e => [e.t1?.name, e.t2?.name, e.stage, e.bracket, ...e.maps.map(x => x.map), ...(e.players || [])].filter(Boolean).join(" ").toLowerCase();
-  const list = toks.length ? H.filter(e => { const h = hay(e); return toks.every(t => h.includes(t)); }) : H;
+  const rounds = e => e.maps.reduce((a, x) => a + x.s1 + x.s2, 0), diff = e => e.maps.reduce((a, x) => a + Math.abs(x.s1 - x.s2), 0) / (e.maps.length || 1);
+  let list = (toks.length ? H.filter(e => { const h = hay(e); return toks.every(t => h.includes(t)); }) : H)
+    .filter(e => !histOpt.hideFF || e.maps.length);   // kampflos/Freilos = ohne gespielte Map
+  const by = {new: (a, b) => (b.start || 0) - (a.start || 0), old: (a, b) => (a.start || 0) - (b.start || 0),
+    close: (a, b) => (a.maps.length ? diff(a) : 99) - (b.maps.length ? diff(b) : 99), rounds: (a, b) => rounds(b) - rounds(a)}[histOpt.sort] || ((a, b) => 0);
+  list = [...list].sort(by);
+  const byDay = histOpt.sort === "new" || histOpt.sort === "old";   // Tagesüberschriften nur bei Zeit-Sortierung
   $("#histn").textContent = `${list.length} ${list.length === 1 ? "Match" : "Matches"}${toks.length ? ` von ${H.length}` : ""}`;
   if(!H.length){ $("#histlist").innerHTML = '<p class="sub">Noch keine gespielten Matches.</p>'; return; }
   if(!list.length){ $("#histlist").innerHTML = '<p class="sub">Keine Treffer.</p>'; return; }
@@ -2940,16 +3114,16 @@ function drawHistory(){
   let lastDay = null, out = "";
   for(const e of list.slice(0, 300)){
     const d = day(e.start);
-    if(d !== lastDay){ out += `<div class="hday">${esc(d)}</div>`; lastDay = d; }
+    if(byDay && d !== lastDay){ out += `<div class="hday">${esc(d)}</div>`; lastDay = d; }
     const [a, b] = e.score || [];
     const ca = a > b ? "pos-up" : a < b ? "pos-dn" : "", cb = b > a ? "pos-up" : b < a ? "pos-dn" : "";
     const pls = hitPl(e);
     out += `<div class="hrow2" data-mid="${esc(e.id)}" data-t1="${esc(e.t1?.id)}" data-t2="${esc(e.t2?.id)}" title="Match-Übersicht öffnen">
-      <span class="hclock sub">${esc(clock(e.start))}</span>${e.hd ? '<i class="hhd" title="Rundendaten vorhanden: Rundenverlauf, ADR, KAST …"></i>' : ""}
+      <span class="hclock sub" title="${esc(day(e.start))}">${esc(byDay ? clock(e.start) : (e.start ? new Date(e.start * 1000).toLocaleDateString("de-DE", {day: "2-digit", month: "2-digit"}) : ""))}</span>${e.hd ? '<i class="hhd" title="Rundendaten vorhanden: Rundenverlauf, ADR, KAST …"></i>' : ""}
       <span class="ht">${esc(e.t1?.name || "")}${logo(e.t1?.id)}</span>
       <span class="hscore"><b class="${ca}">${esc(a ?? "–")}</b><span class="sub">:</span><b class="${cb}">${esc(b ?? "–")}</b></span>
       <span class="ht r">${logo(e.t2?.id)}${esc(e.t2?.name || "")}</span>
-      <span class="hmaps">${e.maps.map(x => `<span class="hmap" style="--bg:url('${MAP_IMG(x.map)}')">${esc(cap(x.map))} <b>${x.s1}:${x.s2}</b></span>`).join("")}
+      <span class="hmaps">${e.maps.length ? "" : '<span class="ffkind">kampflos / Freilos</span>'}${e.maps.map(x => `<span class="hmap" style="--bg:url('${MAP_IMG(x.map)}')">${esc(cap(x.map))} <b>${x.s1}:${x.s2}</b></span>`).join("")}
         ${e.stage ? `<span class="stage" title="${esc(e.bracket || "")}">${esc(roundName(e.stage))}</span>` : ""}
         ${pls.length ? `<span class="sub">Spieler: ${pls.map(esc).join(", ")}</span>` : ""}</span>
     </div>`;
@@ -2992,6 +3166,7 @@ function renderAgent(a){
   // Spieler mit diesem Agent (Bestenliste: agents = [[Agent, Maps, %], …])
   const pls = (ov.players || []).map(p => { const r = (p.agents || []).find(x => x[0].toLowerCase() === key); return r ? {...p, am: r[1], ap: r[2]} : null; })
     .filter(Boolean).sort((x, y) => y.am - x.am || y.acs - x.acs);
+  const agHd = pls.some(p => Object.keys(p.ags || {}).some(x => x.toLowerCase() === key));
   const teams = {};
   for(const p of pls){ const t = teams[p.team] ??= {id: p.team, name: p.team_name, maps: 0, players: []}; t.maps += p.am; t.players.push(p.name); }
   const teamList = Object.values(teams).sort((x, y) => y.maps - x.maps);
@@ -3015,10 +3190,11 @@ function renderAgent(a){
         <td class="num">${x.c} <span class="sub">/ ${2 * x.s.played}</span></td><td class="num"><span class="bar" style="--w:${x.pct}%"></span>${x.pct}%</td>
         <td class="num">${x.c ? wrc2(x.w, x.c) : '<span class="sub">–</span>'}${x.row && mirrorInfo(x.row) ? ' <span class="sub" title="' + esc(mirrorInfo(x.row).tip) + '">⇄</span>' : ""}</td>
         <td class="num opt">${x.mir || '<span class="sub">0</span>'}</td></tr>`).join("")}</tbody></table></div>
-    <div class="sechead"><h3>Spieler ${tip("Alle Spieler, die " + name + " diese Saison gespielt haben. ACS und K/D gelten für alle Agents des Spielers.")}</h3></div>
-    <div class="lbwrap"><table class="lbtable"><thead><tr><th>Spieler</th><th class="opt">Team</th><th class="num">Maps</th><th class="num">Anteil</th><th class="num">ACS</th><th class="num opt">K/D</th></tr></thead><tbody>${
-      pls.map(p => `<tr><td><span class="pname plink" data-team="${esc(p.team)}" data-key="${esc(p.name.toLowerCase())}">${esc(p.name)}</span></td><td class="opt">${teamLink(p.team, p.team_name)}</td>
-        <td class="num">${p.am}</td><td class="num sub">${p.ap}%</td><td class="num">${p.acs}</td><td class="num opt">${p.kd}</td></tr>`).join("")}</tbody></table></div>
+    <div class="sechead"><h3>Spieler ${tip(`Alle Spieler, die ${name} diese Saison gespielt haben.${agHd ? ` ADR und KAST gelten nur für ${name} (Rundendaten), ACS und K/D für alle Agents des Spielers.` : " ACS und K/D gelten für alle Agents des Spielers."}`)}</h3></div>
+    <div class="lbwrap"><table class="lbtable"><thead><tr><th>Spieler</th><th class="opt">Team</th><th class="num">Maps</th><th class="num">Anteil</th>${agHd ? `<th class="num" title="Schaden pro Runde auf ${esc(name)}">ADR</th><th class="num" title="KAST auf ${esc(name)}">KAST</th>` : ""}<th class="num">ACS</th><th class="num opt">K/D</th></tr></thead><tbody>${
+      pls.map(p => { const a = Object.entries(p.ags || {}).find(([x]) => x.toLowerCase() === key)?.[1];
+        return `<tr><td><span class="pname plink" data-team="${esc(p.team)}" data-key="${esc(p.name.toLowerCase())}">${esc(p.name)}</span></td><td class="opt">${teamLink(p.team, p.team_name)}</td>
+        <td class="num">${p.am}</td><td class="num sub">${p.ap}%</td>${agHd ? (a ? `<td class="num" title="aus ${a[0]} ${a[0] === 1 ? "Map" : "Maps"} mit Rundendaten">${a[1]}</td><td class="num">${a[2]}%</td>` : '<td class="num sub">–</td><td class="num sub">–</td>') : ""}<td class="num">${p.acs}</td><td class="num opt">${p.kd}</td></tr>`; }).join("")}</tbody></table></div>
     <div class="sechead"><h3>Teams ${tip("Wie viele Maps die Spieler eines Teams " + name + " gespielt haben.")}</h3></div>
     <div class="agteams">${teamList.map(t => `<div class="agteam">${(() => { const lg = league.teams.find(x => x.id === String(t.id))?.logo; return lg ? `<img class="aglogo" src="${esc(lg)}" alt="" loading="lazy" onerror="this.remove()">` : '<span class="aglogo"></span>'; })()}${teamLink(t.id, t.name)}<span class="sub">${t.maps} Maps · ${t.players.map(esc).join(", ")}</span></div>`).join("")}</div>
     ${comps.length ? `<div class="sechead"><h3>Häufigste Comps ${tip("Comps mit " + name + " über alle Maps.")}</h3></div>
@@ -3038,6 +3214,30 @@ document.addEventListener("click", e => {
   e.preventDefault(); e.stopPropagation();
   showAgent(a, true);
 }, true);
+
+// ------------------------------------------------------------------ Waffen (Namen/Icons von valorant-api; Rundendaten speichern Namen oder IDs)
+const WEAPON = {};   // Name oder UUID → {name, icon}
+fetch("https://valorant-api.com/v1/weapons").then(r => r.json()).then(j => { for(const w of j.data || []){
+  const x = {name: w.displayName, icon: w.killStreamIcon || w.displayIcon}; WEAPON[w.displayName.toLowerCase()] = x; WEAPON[w.uuid] = x; } }).catch(() => {});
+const AGENT_GUNS = {"856d9a7e": "Headhunter", "39099fb5": "Tour de Force", "95336ae4": "Overdrive"};   // Chamber/Neon, fehlen bei valorant-api
+const wName = k => WEAPON[k]?.name || WEAPON[String(k).toLowerCase()]?.name || AGENT_GUNS[String(k).slice(0, 8)] || k;
+// Waffen zusammenführen (IDs → Namen) und als Balkenliste: Icon, Name, Balken, Anteil
+function weaponMerge(obj){ const o = {}; for(const [k, v] of Object.entries(obj || {})){ const n = wName(k); o[n] = (o[n] || 0) + v; } return o; }
+function weaponBars(obj, max = 7, unit = "Kills"){
+  const es = Object.entries(weaponMerge(obj)).sort((a, b) => b[1] - a[1]);
+  const tot = es.reduce((a, [, v]) => a + v, 0);
+  if(!tot) return '<span class="sub">–</span>';
+  const rest = es.slice(max).reduce((a, [, v]) => a + v, 0);
+  const rows = es.slice(0, max).concat(rest ? [["Sonstige", rest]] : []);
+  return `<div class="wbars">${rows.map(([w, v]) => { const p = Math.round(100 * v / tot), ic = WEAPON[w.toLowerCase()]?.icon;
+    return `<div class="wbar" title="${esc(w)}: ${v} ${unit} (${p} %)"><span class="wic">${ic ? `<img src="${esc(ic)}" alt="">` : ""}</span><span class="wn">${esc(w)}</span>
+      <span class="wbt"><i style="width:${p}%"></i></span><b>${p}%</b></div>`; }).join("")}</div>`;
+}
+// kompakte Kaufliste einer Runde: „Vandal ×2 · Phantom · Operator“
+function buyList(list){
+  const c = {}; for(const w of list || []){ const n = wName(w); c[n] = (c[n] || 0) + 1; }
+  return Object.entries(c).sort((a, b) => b[1] - a[1]).map(([w, n]) => n > 1 ? `${w} ×${n}` : w).join(" · ");
+}
 
 // ------------------------------------------------------------------ Agent-Bilder
 let AGENT_ICONS = {}, AGENT_ROLE = {}, ROLE_ICON = {}, AGENT_ART = {}, AGENT_BY_ICON = {};

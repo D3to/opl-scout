@@ -570,6 +570,7 @@ def _hd_player_fields(opl, name):
     duels = x["fk"] + x["fd"]
     return {"hd_n": x["n"], "adr": x["adr"], "kast": x["kast"], "hs": x["hs"], "fk": x["fk"], "fd": x["fd"],
             "esr": round(100 * x["fk"] / duels) if duels else None,   # Entry Success Rate: gewonnene Erst-Duelle
+            "ags": x.get("ag") or {},   # je Agent: [Maps, ADR, KAST]
             "cl": sum(x["cl"]), "mk": x["mk"]}
 
 
@@ -924,8 +925,25 @@ def bracket_paths(tid, brackets):
 # Map + Endstand + Spielernamen (nicht über die Uhrzeit: Matches werden oft verschoben, OPL-Zeit stimmt dann nicht).
 HD_RESULT = {"Elimination": "E", "Detonate": "D", "Defuse": "F"}   # sonst: Zeit abgelaufen o. Ä. → "T"
 HD_RETRY_H, HD_MAX_TRIES = 20, 7
-HD_VERSION = 2   # erhöhen, wenn hd_condense neue/andere Werte liefert → vorhandene Matches werden einmal neu verdichtet
-# 2: Clutches nur bis Rundenende, Spike-Clutches (cs) getrennt
+HD_VERSION = 3   # erhöhen, wenn hd_condense neue/andere Werte liefert → vorhandene Matches werden einmal neu verdichtet
+# 2: Clutches nur bis Rundenende, Spike-Clutches (cs) getrennt · 3: Waffen (Kills je Waffe, gekaufte Waffen, Kauf je Runde)
+
+
+# Agenten-Waffen ohne Namen in den Riot-Daten (valorant-api führt sie nicht als Waffe)
+AGENT_GUNS = {"856d9a7e": "Headhunter", "39099fb5": "Tour de Force", "95336ae4": "Overdrive"}
+
+
+def _wname(w):
+    """Waffe eines Kills: Name, sonst ID (Frontend löst sie über valorant-api auf); Fähigkeiten/Messer/Spike gruppiert."""
+    w = w or {}
+    t = w.get("type")
+    if t == "Ability":
+        return "Fähigkeit"
+    if t == "Melee":
+        return "Messer"
+    if t == "Bomb":
+        return "Spike"
+    return w.get("name") or AGENT_GUNS.get((w.get("id") or "")[:8]) or w.get("id") or "?"
 
 
 def _hd_names(players):
@@ -967,7 +985,12 @@ def hd_condense(g, side1, side2):
     by_round = {}
     for k in kills:
         by_round.setdefault(k.get("round", 0), []).append(k)
-    ps = {pu: {"k": 0, "fk": 0, "fd": 0, "kast": 0, "mk": [0, 0, 0, 0], "cl": [0, 0, 0, 0, 0], "cs": [0, 0, 0, 0, 0], "pl": 0, "df": 0} for pu in players}
+    ps = {pu: {"k": 0, "fk": 0, "fd": 0, "kast": 0, "mk": [0, 0, 0, 0], "cl": [0, 0, 0, 0, 0], "cs": [0, 0, 0, 0, 0], "pl": 0, "df": 0,
+               "wk": {}, "wb": {}} for pu in players}
+    for k in kills:   # Kills je Waffe (ohne Teamkills)
+        ki, vi = (k.get("killer") or {}).get("puuid"), (k.get("victim") or {}).get("puuid")
+        if ki in ps and team_of.get(ki) != team_of.get(vi):
+            w = _wname(k.get("weapon")); ps[ki]["wk"][w] = ps[ki]["wk"].get(w, 0) + 1
     rounds = []
     for rd in rounds_raw:
         i = rd.get("id", len(rounds))
@@ -1019,13 +1042,20 @@ def hd_condense(g, side1, side2):
                 ps[pu]["kast"] += 1
             n = rk.get(pu, 0)
             if n >= 2: ps[pu]["mk"][min(n, 5) - 2] += 1
-        eco = {1: 0, 2: 0}
+        eco, wp = {1: 0, 2: 0}, {1: [], 2: []}
         for st in rd.get("stats", []):
-            t = team_of.get(st.get("player", {}).get("puuid"))
-            if t: eco[t] += (st.get("economy") or {}).get("loadout_value") or 0
-        r = {"w": w, "a1": atk1, "r": HD_RESULT.get(rd.get("result"), "T"), "eco": [eco[1], eco[2]]}
+            pu = st.get("player", {}).get("puuid"); t = team_of.get(pu)
+            if t:
+                ec = st.get("economy") or {}
+                eco[t] += ec.get("loadout_value") or 0
+                wn = (ec.get("weapon") or {}).get("name") or (ec.get("weapon") or {}).get("id")
+                if wn:
+                    wp[t].append(wn)
+                    if pu in ps: ps[pu]["wb"][wn] = ps[pu]["wb"].get(wn, 0) + 1
+        r = {"w": w, "a1": atk1, "r": HD_RESULT.get(rd.get("result"), "T"), "eco": [eco[1], eco[2]], "wp": [sorted(wp[1]), sorted(wp[2])]}
         if ks:
-            r["fb"] = [players.get(ks[0].get("killer", {}).get("puuid"), {}).get("name"), players.get(ks[0].get("victim", {}).get("puuid"), {}).get("name")]
+            r["fb"] = [players.get(ks[0].get("killer", {}).get("puuid"), {}).get("name"), players.get(ks[0].get("victim", {}).get("puuid"), {}).get("name"),
+                       _wname(ks[0].get("weapon"))]
         if rd.get("plant"):
             pl = rd["plant"]; pu = (pl.get("player") or {}).get("puuid")
             r["pl"] = {"s": pl.get("site"), "by": players.get(pu, {}).get("name"), "t": round((pl.get("round_time_in_ms") or 0) / 1000)}
@@ -1044,6 +1074,7 @@ def hd_condense(g, side1, side2):
             "acs": round((s.get("score") or 0) / nr), "k": s.get("kills", 0), "d": s.get("deaths", 0), "a": s.get("assists", 0),
             "adr": round(((s.get("damage") or {}).get("dealt") or 0) / nr), "hs": round(100 * (s.get("headshots") or 0) / shots) if shots else 0,
             "kast": round(100 * x["kast"] / nr), "fk": x["fk"], "fd": x["fd"], "mk": x["mk"], "cl": x["cl"], "cs": x["cs"], "pl": x["pl"], "df": x["df"],
+            "wk": x["wk"], "wb": x["wb"],
         })
     md = g.get("metadata") or {}
     return {"rid": md.get("match_id"), "map": (md.get("map", {}).get("name") or "").lower(), "start": md.get("started_at"),
@@ -1166,6 +1197,41 @@ def _buy(v, pistol):
     return "Pistol" if pistol else "Eco" if v < 5000 else "Semi-Eco" if v < 10000 else "Semi-Buy" if v < 20000 else "Full Buy"
 
 
+def hd_maps_agg(games):
+    """Liga-weite Rundendaten je Map (unabhängig vom Team): Seitenbalance, Pistol-Folgerunde, Plants je Site
+    mit Siegquote der Angreifer danach, Rundenausgänge, Thrifties."""
+    out = {}
+    for g in games:
+        if not g:
+            continue
+        x = out.setdefault(g["map"], {"n": 0, "rounds": 0, "atk": 0, "pistol_conv": [0, 0], "plant": {}, "res": {}, "thrifty": 0, "wk": {}, "op": [0, 0], "op_ag": {}})
+        x["n"] += 1
+        for p in g.get("players", []):
+            for w, c in (p.get("wk") or {}).items():
+                x["wk"][w] = x["wk"].get(w, 0) + c
+            opr = (p.get("wb") or {}).get("Operator", 0)   # Operator-Runden je Agent
+            if opr and p.get("ag"):
+                x["op_ag"][p["ag"]] = x["op_ag"].get(p["ag"], 0) + opr
+        rs = g["rounds"]
+        for i, r in enumerate(rs):
+            if not r.get("w") or r.get("a1") is None:
+                continue
+            x["rounds"] += 1
+            att = 1 if r["a1"] else 2
+            x["atk"] += r["w"] == att
+            x["res"][r.get("r", "T")] = x["res"].get(r.get("r", "T"), 0) + 1
+            if r.get("pl"):
+                p = x["plant"].setdefault(r["pl"]["s"], [0, 0]); p[1] += 1; p[0] += r["w"] == att
+            if i in (0, 12) and i + 1 < len(rs) and rs[i + 1].get("w"):
+                x["pistol_conv"][1] += 1; x["pistol_conv"][0] += rs[i + 1]["w"] == r["w"]
+            if r.get("wp"):   # Team-Runden mit mind. einem Operator
+                x["op"][1] += 2; x["op"][0] += sum("Operator" in side for side in r["wp"])
+            lw, ll = r["eco"][r["w"] - 1], r["eco"][2 - r["w"]]
+            if i not in (0, 12) and ll and lw <= THRIFTY * ll:
+                x["thrifty"] += 1
+    return out
+
+
 def hd_team_agg(tid, match_ids):
     """Rundendaten aller Matches eines Teams zusammenfassen: je Map (Seiten, Pistol, Plants/Retakes je Site,
     Kaufarten, First Kills) und je Spieler (ADR, KAST, HS%, FK/FD, Multikills, Clutches, Werte je Map für das Form-Diagramm)."""
@@ -1182,7 +1248,7 @@ def hd_team_agg(tid, match_ids):
             if not g:
                 continue
             n_games += 1
-            mp = maps.setdefault(g["map"], {"n": 0, "rounds": 0, "atk": [0, 0], "def": [0, 0], "pistol": [0, 0], "fk": [0, 0], "thrifty": [0, 0], "after_pl": {},
+            mp = maps.setdefault(g["map"], {"n": 0, "rounds": 0, "atk": [0, 0], "def": [0, 0], "pistol": [0, 0], "fk": [0, 0], "thrifty": [0, 0], "after_pl": {}, "op": [0, 0],
                                             "plant": {}, "retake": {}, "buy": {}})
             mp["n"] += 1
             first_team = {p["n"]: p["t"] for p in g["players"]}
@@ -1206,6 +1272,8 @@ def hd_team_agg(tid, match_ids):
                 own, opp = r["eco"][side - 1], r["eco"][2 - side]
                 if i not in (0, 12) and opp and own <= THRIFTY * opp:
                     mp["thrifty"][1] += 1; mp["thrifty"][0] += won
+                if r.get("wp"):
+                    mp["op"][1] += 1; mp["op"][0] += "Operator" in r["wp"][side - 1]
                 bt = _buy(r["eco"][side - 1], i in (0, 12))
                 # Runde nach verlorener Pistol-Runde: Kaufart und Ergebnis (Force oder Eco?)
                 if i in (1, 13) and i - 1 < len(g["rounds"]) and g["rounds"][i - 1]["w"] and g["rounds"][i - 1]["w"] != side:
@@ -1216,19 +1284,26 @@ def hd_team_agg(tid, match_ids):
                 if p["t"] != side or not p.get("n"):
                     continue
                 x = players.setdefault(p["n"].lower(), {"name": p["n"], "n": 0, "r": 0, "k": 0, "d": 0, "a": 0, "dmg": 0, "hs_w": 0, "kast_r": 0,
-                                                        "fk": 0, "fd": 0, "mk": [0, 0, 0, 0], "cl": [0, 0, 0, 0, 0], "cs": [0, 0, 0, 0, 0], "pl": 0, "df": 0, "per": []})
+                                                        "fk": 0, "fd": 0, "mk": [0, 0, 0, 0], "cl": [0, 0, 0, 0, 0], "cs": [0, 0, 0, 0, 0], "pl": 0, "df": 0, "per": [], "ag": {}, "wk": {}, "wb": {}})
                 x["n"] += 1; x["r"] += nr; x["k"] += p["k"]; x["d"] += p["d"]; x["a"] += p["a"]
                 x["dmg"] += p["adr"] * nr; x["hs_w"] += p["hs"] * nr; x["kast_r"] += p["kast"] * nr / 100
                 x["fk"] += p["fk"]; x["fd"] += p["fd"]
                 x["mk"] = [a + b for a, b in zip(x["mk"], p["mk"])]; x["cl"] = [a + b for a, b in zip(x["cl"], p["cl"])]
                 x["cs"] = [a + b for a, b in zip(x["cs"], p.get("cs") or [0] * 5)]; x["pl"] += p.get("pl", 0); x["df"] += p.get("df", 0)
                 x["per"].append([str(mid), g["map"], p["adr"], p["kast"], p["hs"]])   # Form-Diagramm/Verlauf je Map
+                for f in ("wk", "wb"):   # Kills je Waffe, gekaufte Waffen (Runden)
+                    for w, c in (p.get(f) or {}).items():
+                        x[f][w] = x[f].get(w, 0) + c
+                if p.get("ag"):   # je Agent: Maps, Runden, Schaden, KAST-Runden
+                    a = x["ag"].setdefault(p["ag"], [0, 0, 0, 0]); a[0] += 1; a[1] += nr; a[2] += p["adr"] * nr; a[3] += p["kast"] * nr / 100
     out_players = {}
     for k, x in players.items():
         r = x["r"] or 1
         out_players[k] = {"name": x["name"], "n": x["n"], "r": x["r"], "adr": round(x["dmg"] / r), "kast": round(100 * x["kast_r"] / r),
                           "hs": round(x["hs_w"] / r), "fk": x["fk"], "fd": x["fd"], "mk": x["mk"], "cl": x["cl"], "cs": x["cs"],
-                          "pl": x["pl"], "df": x["df"], "per": x["per"]}
+                          "pl": x["pl"], "df": x["df"], "per": x["per"],
+                          "ag": {a: [v[0], round(v[2] / v[1]), round(100 * v[3] / v[1])] for a, v in x["ag"].items() if v[1]},
+                          "wk": x["wk"], "wb": x["wb"]}
     return {"n": n_games, "maps": maps, "players": out_players} if n_games else None
 
 
@@ -1314,6 +1389,11 @@ def export(out, leagues, region, repo, ref, base_cfg):
             summaries[t["id"]] = core.team_summary(t["id"], region, active)
         ko_league = [m for mid, m in bmatch.items() if bmeta[mid]["league"] == lg["id"] and not bmeta[mid]["wildcard"]]
         overview = league_overview(league_matches[lg["id"]] + ko_league, opl_by_team, st["teams"])
+        # Rundendaten je Map der Liga (Gruppenphase + K.-o. dieser Liga, ohne Wildcard)
+        lg_games = [g for m in league_matches[lg["id"]] + ko_league for g in ((core.cache.peek(f"hdm:{m['id']}") or {}).get("games") or []) if g]
+        for mpn, v in hd_maps_agg(lg_games).items():
+            if mpn in overview["maps"]:
+                overview["maps"][mpn]["hd"] = v
         vods = match_vods(league_matches[lg["id"]] + list(bmatch.values()), st.get("title", ""))
         for t in st["teams"]:
             for o in (opl_by_team.get(t["id"]), opl_all_by_team.get(t["id"])):
