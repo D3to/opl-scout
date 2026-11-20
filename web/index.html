@@ -95,6 +95,23 @@
   .sharebtn.ok .ic-link{--m:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12l5 5L20 7'/%3E%3C/svg%3E")}
   .sharebtn{padding:5px 8px;line-height:1} .sharebtn.ok{color:var(--good);border-color:var(--good)}
   /* einheitliche Seitentitel */
+  img[src*="/displayicon"][src*="valorant-api.com/agents/"],image[href*="/displayicon"][href*="valorant-api.com/agents/"]{cursor:pointer}
+  img[src*="/displayicon"][src*="valorant-api.com/agents/"]:hover{filter:brightness(1.2);outline:1px solid var(--mut);outline-offset:1px;border-radius:50%}
+  .aghead{position:relative;display:flex;align-items:flex-end;min-height:150px;border-radius:12px;overflow:hidden;margin-bottom:12px;
+    background:linear-gradient(120deg, color-mix(in srgb, var(--acc) 18%, var(--panel)), var(--panel))}
+  .aghead .agart{position:absolute;right:10px;top:-30px;height:240px;opacity:.9;pointer-events:none}
+  .aghead .agt{position:relative;padding:14px 16px}
+  .aghead h2{margin:0;display:flex;align-items:center;gap:10px;font-size:26px}
+  .aghead h2 img{width:40px;height:40px;cursor:default}
+  .aghead .sub{display:flex;align-items:center;gap:6px;margin-top:4px}
+  .aghead .roleic{width:16px;height:16px}
+  .agteams{display:flex;flex-direction:column;gap:4px}
+  .aglogo{width:24px;height:24px;border-radius:4px;flex:none;align-self:center;display:inline-block}
+  /* Comps auf der Agent-Seite: Map-Bild als Hintergrund, links abgedunkelt für die Lesbarkeit */
+  .mcomp.agcomp{position:relative;background:linear-gradient(90deg, var(--panel) 20%, color-mix(in srgb, var(--panel) 70%, transparent) 60%, color-mix(in srgb, var(--panel) 35%, transparent)), var(--bg) right center/cover no-repeat;min-height:46px}
+  .agcomp .agmap{min-width:80px;font-weight:700;color:var(--txt)}
+  .agteam{display:flex;gap:10px;align-items:baseline;background:var(--panel);border-radius:8px;padding:6px 10px;flex-wrap:wrap}
+  .bar{display:inline-block;width:40px;height:5px;margin-right:6px;border-radius:3px;vertical-align:middle;background:linear-gradient(90deg,var(--acc) var(--w),var(--panel2) var(--w))}
   .ptitle{margin:0 0 4px;font-size:20px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
   .olink{font-size:12px;font-weight:400;color:var(--mut);margin-left:4px}
   .lg-faint,.lg-dash{display:inline-block;width:10px;height:10px;border-radius:50%;border:1.5px solid var(--mut)}
@@ -556,6 +573,7 @@
     .crumbs .bccur select{max-width:150px}
     .crumbs .spacer{display:none}
     .rlbl{display:none}
+    .aghead{min-height:120px} .aghead .agart{height:180px;top:-20px;right:-10px;opacity:.6}
     .prept tr{grid-template-columns:repeat(3,1fr)}
     .prept td.amp{order:3}
   }
@@ -965,7 +983,7 @@ function avgIcon(sm){
 // ------------------------------------------------------------------ Teamansicht
 async function loadTeam(id, silent=false){
   const my = ++current;
-  curTeam = id; lastTeam = id; mapShown = null; brShown = null; setSideTab("table");
+  curTeam = id; lastTeam = id; mapShown = null; brShown = null; agShown = null; setSideTab("table");
   if(!silent) setUrl({l: league.id, t: id});
   const meta_t = league.teams.find(t => t.id === id);
   if(!silent) $("#detail").innerHTML = `<div class="empty"><span class="spin"></span> Lade ${esc(meta_t?.name || "")}…</div>`;
@@ -1354,12 +1372,12 @@ function rolesCompact(T){
 let routing = false;   // während eine URL angewendet wird, keine neuen History-Einträge
 function parseRoute(){
   const q = new URLSearchParams(location.hash.slice(1));
-  return {l: q.get("l"), t: q.get("t"), vs: q.get("vs"), m: q.get("m"), p: q.get("p"), map: q.get("map"), br: q.get("br"), meta: q.has("meta")};
+  return {l: q.get("l"), t: q.get("t"), vs: q.get("vs"), m: q.get("m"), p: q.get("p"), map: q.get("map"), br: q.get("br"), ag: q.get("ag"), meta: q.has("meta")};
 }
 function hashOf(r){
   if(!r.l) return "";
   return "#l=" + encodeURIComponent(r.l) + (r.t ? "&t=" + encodeURIComponent(r.t) : "") + (r.vs ? "&vs=" + encodeURIComponent(r.vs) : "")
-    + (r.vs && r.m ? "&m=" + encodeURIComponent(r.m) : "") + (r.t && r.p && !r.vs ? "&p=" + encodeURIComponent(r.p) : "") + (r.br && !r.t ? "&br=" + encodeURIComponent(r.br) : r.map && !r.t ? "&map=" + encodeURIComponent(r.map) : r.meta && !r.t ? "&meta" : "");
+    + (r.vs && r.m ? "&m=" + encodeURIComponent(r.m) : "") + (r.t && r.p && !r.vs ? "&p=" + encodeURIComponent(r.p) : "") + (r.br && !r.t ? "&br=" + encodeURIComponent(r.br) : r.map && !r.t ? "&map=" + encodeURIComponent(r.map) : r.ag && !r.t ? "&ag=" + encodeURIComponent(r.ag) : r.meta && !r.t ? "&meta" : "");
 }
 function setUrl(r, push = true){
   if(routing) return;
@@ -1392,6 +1410,9 @@ async function applyRoute(r){
     }else if(r.br && (league.brackets || []).some(b => b.event === r.br)){
       showBracket(r.br, false);
       showDetail(true, true);
+    }else if(r.ag){
+      showAgent(r.ag, false);
+      showDetail(true, true);
     }else if(r.map && league.overview?.maps?.[r.map]){
       showMap(r.map, false);
       showDetail(true, true);
@@ -1405,7 +1426,7 @@ async function applyRoute(r){
   }finally{ routing = false; }
   // ungültige Teile der URL (z. B. Team nicht in der Liga) bereinigen
   const want = hashOf({l: league?.id, t: curTeam, vs: r.t === curTeam ? r.vs : null, m: r.m, p: r.t === curTeam ? r.p : null, meta: metaShown && r.meta,
-                       map: !curTeam && mapShown ? mapShown : null, br: !curTeam && brShown ? brShown : null});
+                       map: !curTeam && mapShown ? mapShown : null, br: !curTeam && brShown ? brShown : null, ag: !curTeam && agShown ? agShown : null});
   if(location.hash && want !== location.hash && !(r.t && r.t === curTeam)) history.replaceState(null, "", want || location.pathname);
 }
 const shareBtn = () => `<button class="ghost tiny sharebtn" title="Link zu dieser Ansicht kopieren – z. B. für Discord" aria-label="Link kopieren"><i class="ic ic-link"></i></button>`;
@@ -1646,7 +1667,7 @@ document.addEventListener("click", e => {
   if(el && league?.overview?.maps?.[el.dataset.map]){ e.preventDefault(); showMap(el.dataset.map, true); }
 });
 function showMap(mp, push = true){
-  ++current; curTeam = null; metaShown = false; mapShown = mp; mapPlMin = null; brShown = null;
+  ++current; curTeam = null; metaShown = false; mapShown = mp; mapPlMin = null; brShown = null; agShown = null;
   document.querySelectorAll("tr.team.sel").forEach(x => x.classList.remove("sel"));
   setSideTab("meta");
   if(push) setUrl({l: league.id, map: mp});
@@ -1781,7 +1802,7 @@ let brShown = null;
 function showBracket(ev, push = true){
   const b = (league.brackets || []).find(x => x.event === ev) || league.brackets?.[0];
   if(!b) return;
-  ++current; curTeam = null; metaShown = false; mapShown = null; brShown = b.event;
+  ++current; curTeam = null; metaShown = false; mapShown = null; brShown = b.event; agShown = null;
   document.querySelectorAll("tr.team.sel").forEach(x => x.classList.remove("sel"));
   setSideTab("ko");
   if(push) setUrl({l: league.id, br: b.event});
@@ -1970,7 +1991,7 @@ function sth(st, attr, k, label, cls = "", title = ""){
 }
 function showMeta(push = true){
   if(!league) return;
-  ++current; curTeam = null; metaShown = true; mapShown = null; brShown = null;
+  ++current; curTeam = null; metaShown = true; mapShown = null; brShown = null; agShown = null;
   document.querySelectorAll("tr.team.sel").forEach(x => x.classList.remove("sel"));
   setSideTab(push || !isMobile() ? "meta" : "table");
   if(push) setUrl({l: league.id, meta: 1});
@@ -2385,11 +2406,89 @@ function makeCollapsible(root){
 }
 new MutationObserver(() => makeCollapsible($("#detail"))).observe($("#detail"), {childList: true, subtree: true});
 
+// ================================================================== Agent-Seite (Klick auf ein Agent-Symbol)
+let agShown = null;
+function showAgent(a, push = true){
+  if(!league) return;
+  ++current; curTeam = null; metaShown = false; mapShown = null; brShown = null; agShown = a;
+  document.querySelectorAll("tr.team.sel").forEach(x => x.classList.remove("sel"));
+  setSideTab("meta");
+  if(push) setUrl({l: league.id, ag: a});
+  renderAgent(a);
+  showDetail(true);
+  $("#detail").scrollTop = 0; if(isMobile()) window.scrollTo(0, 0);
+}
+function renderAgent(a){
+  const ov = league.overview || {}, key = a.toLowerCase();
+  const tot = (ov.agents || []).find(x => x[0].toLowerCase() === key);
+  const name = tot?.[0] || a;
+  const role = AGENT_ROLE[key], ric = ROLE_ICON[role];
+  const teamMaps = 2 * (ov.maps_played || 0);
+  // pro Map: [Agent, Team-Maps, Anteil %, gewonnen, Mirror, ohne Mirror n, ohne Mirror gewonnen]
+  const perMap = Object.entries(ov.maps || {}).map(([mp, s]) => {
+    const r = (s.agents || []).find(x => x[0].toLowerCase() === key);
+    return {mp, s, c: r?.[1] || 0, pct: r?.[2] || 0, w: r?.[3] || 0, mir: r?.[4] || 0, row: r};
+  }).filter(x => x.s.played).sort((x, y) => y.c - x.c || y.s.played - x.s.played);
+  const c = perMap.reduce((n, x) => n + x.c, 0), w = perMap.reduce((n, x) => n + x.w, 0), mir = perMap.reduce((n, x) => n + x.mir, 0);
+  const pctC = (v, n) => n ? Math.round(100 * v / n) : null;
+  const wrc2 = (v, n) => n ? `<span class="${v * 2 > n ? "pos-up" : v * 2 < n ? "pos-dn" : ""}">${Math.round(100 * v / n)}%</span>` : '<span class="sub">–</span>';
+  const kpi = (v, l, t = "") => `<div class="kpi" title="${esc(t)}"><div class="v">${v}</div><div class="l">${l}</div></div>`;
+  // Spieler mit diesem Agent (Bestenliste: agents = [[Agent, Maps, %], …])
+  const pls = (ov.players || []).map(p => { const r = (p.agents || []).find(x => x[0].toLowerCase() === key); return r ? {...p, am: r[1], ap: r[2]} : null; })
+    .filter(Boolean).sort((x, y) => y.am - x.am || y.acs - x.acs);
+  const teams = {};
+  for(const p of pls){ const t = teams[p.team] ??= {id: p.team, name: p.team_name, maps: 0, players: []}; t.maps += p.am; t.players.push(p.name); }
+  const teamList = Object.values(teams).sort((x, y) => y.maps - x.maps);
+  // Comps mit diesem Agent über alle Maps
+  const comps = Object.entries(ov.maps || {}).flatMap(([mp, s]) => (s.comps || []).filter(([ags]) => ags.some(x => x.toLowerCase() === key)).map(([ags, n, won]) => ({mp, ags, n, won})))
+    .sort((x, y) => y.n - x.n || y.won - x.won).slice(0, 8);
+  const icon = x => { const ic = AGENT_ICONS[x.toLowerCase()]; return ic ? `<img class="agic" src="${esc(ic)}" alt="${esc(x)}" title="${esc(x)}">` : `<span class="sub">${esc(x)}</span>`; };
+  const others = (ov.agents || []).map(x => x[0]);
+  $("#detail").innerHTML = `
+    ${crumbs([{label: "Liga-Meta", href: hashOf({l: league.id, meta: 1})},
+      {html: `<select id="agsel" aria-label="Agent">${others.map(x => `<option${x.toLowerCase() === key ? " selected" : ""}>${esc(x)}</option>`).join("")}${tot ? "" : `<option selected>${esc(name)}</option>`}</select>`}])}
+    <div class="aghead">${AGENT_ART[key] ? `<img class="agart" src="${esc(AGENT_ART[key])}" alt="" onerror="this.remove()">` : ""}
+      <div class="agt"><h2>${icon(name)}${esc(name)}</h2>${role ? `<div class="sub">${ric ? `<img class="roleic" src="${esc(ric)}" alt="">` : ""}${esc(role)}</div>` : ""}</div></div>
+    ${c ? `<div class="kpis">
+      ${kpi(c, "Team-Maps", `In ${c} von ${teamMaps} Team-Maps gespielt`)}${kpi((pctC(c, teamMaps) ?? 0) + "%", "Pick-Rate", "Anteil aller Team-Maps (jede Map zählt für beide Teams)")}
+      ${kpi(wrc2(w, c), "Winrate", `${w}–${c - w}`)}${kpi((pctC(2 * mir, c) ?? 0) + "%", "Mirror", `${mir} Maps, in denen beide Teams ${name} spielten`)}
+      ${kpi(pls.length, "Spieler")}${kpi(teamList.length, "Teams")}</div>` : `<p class="sub">${esc(name)} wurde in dieser Saison noch nicht gespielt.</p>`}
+    ${c ? `<div class="sechead"><h3>Maps ${tip("Pick-Rate = Anteil der Team-Maps auf dieser Map mit " + name + ". Klick öffnet die Map.")}</h3></div>
+    <div class="lbwrap"><table class="lbtable"><thead><tr><th>Map</th><th class="num">Team-Maps</th><th class="num">Pick-Rate</th><th class="num">Winrate</th><th class="num opt">Mirror</th></tr></thead><tbody>${
+      perMap.map(x => `<tr class="${x.c ? "" : "never"}"><td><span class="tlink maplink" data-map="${esc(x.mp)}"><div class="mapname"><img src="${MAP_IMG(x.mp)}" alt="" loading="lazy" onerror="this.remove()"><span>${esc(cap(x.mp))}</span></div></span></td>
+        <td class="num">${x.c} <span class="sub">/ ${2 * x.s.played}</span></td><td class="num"><span class="bar" style="--w:${x.pct}%"></span>${x.pct}%</td>
+        <td class="num">${x.c ? wrc2(x.w, x.c) : '<span class="sub">–</span>'}${x.row && mirrorInfo(x.row) ? ' <span class="sub" title="' + esc(mirrorInfo(x.row).tip) + '">⇄</span>' : ""}</td>
+        <td class="num opt">${x.mir || '<span class="sub">0</span>'}</td></tr>`).join("")}</tbody></table></div>
+    <div class="sechead"><h3>Spieler ${tip("Alle Spieler, die " + name + " diese Saison gespielt haben. ACS und K/D gelten für alle Agents des Spielers.")}</h3></div>
+    <div class="lbwrap"><table class="lbtable"><thead><tr><th>Spieler</th><th class="opt">Team</th><th class="num">Maps</th><th class="num">Anteil</th><th class="num">ACS</th><th class="num opt">K/D</th></tr></thead><tbody>${
+      pls.map(p => `<tr><td><span class="pname plink" data-team="${esc(p.team)}" data-key="${esc(p.name.toLowerCase())}">${esc(p.name)}</span></td><td class="opt">${teamLink(p.team, p.team_name)}</td>
+        <td class="num">${p.am}</td><td class="num sub">${p.ap}%</td><td class="num">${p.acs}</td><td class="num opt">${p.kd}</td></tr>`).join("")}</tbody></table></div>
+    <div class="sechead"><h3>Teams ${tip("Wie viele Maps die Spieler eines Teams " + name + " gespielt haben.")}</h3></div>
+    <div class="agteams">${teamList.map(t => `<div class="agteam">${(() => { const lg = league.teams.find(x => x.id === String(t.id))?.logo; return lg ? `<img class="aglogo" src="${esc(lg)}" alt="" loading="lazy" onerror="this.remove()">` : '<span class="aglogo"></span>'; })()}${teamLink(t.id, t.name)}<span class="sub">${t.maps} Maps · ${t.players.map(esc).join(", ")}</span></div>`).join("")}</div>
+    ${comps.length ? `<div class="sechead"><h3>Häufigste Comps ${tip("Comps mit " + name + " über alle Maps.")}</h3></div>
+    <div class="mcomps2 agcomps">${comps.map(x => `<div class="mcomp agcomp" style="--bg:url('${MAP_IMG(x.mp)}')"><span class="tlink maplink agmap" data-map="${esc(x.mp)}" title="Map öffnen">${esc(cap(x.mp))}</span><div class="comp">${x.ags.map(icon).join("")}</div>
+      <span class="sub">${x.n}× gespielt</span> <b>${x.won}–${x.n - x.won}</b></div>`).join("")}</div>` : ""}` : ""}`;
+  $("#back").onclick = () => showDetail(false);
+  $("#agsel").onchange = e => showAgent(e.target.value, true);
+  document.querySelectorAll("#detail .maplink").forEach(el => el.onclick = () => showMap(el.dataset.map, true));
+  document.querySelectorAll("#detail .plink[data-key]").forEach(el => el.onclick = () => openPlayerById(el.dataset.team, el.dataset.key));
+}
+// Jedes Agent-Symbol (img/SVG-image mit dem Icon von valorant-api) öffnet die Agent-Seite
+document.addEventListener("click", e => {
+  const el = e.target.closest?.("img, image");
+  if(!el || el.closest(".aghead") || !league) return;
+  const a = AGENT_BY_ICON[el.getAttribute("src") || el.getAttribute("href") || ""];
+  if(!a) return;
+  e.preventDefault(); e.stopPropagation();
+  showAgent(a, true);
+}, true);
+
 // ------------------------------------------------------------------ Agent-Bilder
-let AGENT_ICONS = {}, AGENT_ROLE = {}, ROLE_ICON = {};
+let AGENT_ICONS = {}, AGENT_ROLE = {}, ROLE_ICON = {}, AGENT_ART = {}, AGENT_BY_ICON = {};
 const agentsReady = fetch("https://valorant-api.com/v1/agents?isPlayableCharacter=true")
   .then(r => r.json()).then(j => { for(const a of j.data || []){
-    AGENT_ICONS[a.displayName.toLowerCase()] = a.displayIcon;
+    AGENT_ICONS[a.displayName.toLowerCase()] = a.displayIcon; AGENT_BY_ICON[a.displayIcon] = a.displayName;
+    AGENT_ART[a.displayName.toLowerCase()] = a.fullPortraitV2 || a.fullPortrait || a.bustPortrait;
     if(a.role){ AGENT_ROLE[a.displayName.toLowerCase()] = a.role.displayName; ROLE_ICON[a.role.displayName] = a.role.displayIcon; }
   } })
   .catch(() => {});
