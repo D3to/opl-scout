@@ -281,6 +281,25 @@
   .sidetabs button:hover{color:var(--txt)}
   .sidetabs button.on{color:var(--txt);border-bottom-color:var(--acc)}
   .sidetabs button:disabled{opacity:.4;cursor:default}
+  #phasebar:empty{display:none}
+  #phasebar{display:flex;align-items:center;gap:8px;padding:8px;border-bottom:1px solid var(--line);background:var(--panel)}
+  .seg{display:flex;flex:1;background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:2px;gap:2px}
+  .seg button{flex:1;background:none;color:var(--mut);border:0;border-radius:6px;padding:5px 8px;font-size:13px;font-weight:600}
+  .seg button.on{background:var(--panel);color:var(--txt);box-shadow:0 1px 3px rgba(0,0,0,.25)}
+  .demotag{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--warn);border:1px dashed var(--warn);border-radius:4px;padding:2px 5px}
+  .zsym{margin-left:auto;font-size:12px;font-weight:700;color:var(--zc,var(--mut));padding-left:6px}
+  .ptable td,.stable td{vertical-align:middle}
+  .pst{font-size:12px;color:var(--mut);margin:2px 0 0 32px;white-space:normal}
+  .pst b{color:var(--txt);font-weight:600}
+  tr.psec td{background:var(--panel2);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--mut);padding:6px 10px}
+  tr.psec.live td{color:var(--warn)} tr.psec.done td{color:var(--good)} tr.psec.out td{color:var(--bad)}
+  tr.team.pnone{opacity:.5} tr.team.pnone:hover{opacity:.85}
+  tr.team.plive td:first-child{box-shadow:inset 3px 0 0 var(--warn)}
+  .evtag{font-size:10px;padding:0 5px;border-radius:3px;background:var(--panel2);color:var(--mut);margin-right:6px}
+  .sres{font-size:12px;font-weight:600;white-space:normal;line-height:1.25;display:inline-block}
+  .stable td,.stable th{padding-left:5px;padding-right:5px}
+  .sres small{display:block;font-weight:400;color:var(--mut);font-size:11px;margin-left:14px}
+  .sres.win{color:var(--good)} .sres.po{color:var(--zpo)} .sres.safe{color:var(--zsafe)} .sres.down{color:var(--zdown)} .sres.rel,.sres.live{color:var(--zrel)}
   .sidetabs button.sidegear{flex:0 0 40px;padding:9px 0;color:var(--mut)}
   body.tools-open .sidetabs button.sidegear{color:var(--acc)}
   /* Filter/Sortierung nur bei offenem ⚙ (Admin-Hinweise bleiben sichtbar) */
@@ -597,6 +616,7 @@
       <button id="leaguerefresh" style="display:none" title="Startet die GitHub Action für diese Liga (Kader + Stats aller Teams)">⟳ Liga aktualisieren</button>
       <div id="admininfo"></div>
     </div>
+    <div id="phasebar"></div>
     <div id="teamlist"><div class="empty"><span class="spin"></span> Lade Daten…</div></div>
   </div>
   <div id="splitter" title="Ziehen, um die Breite zu ändern (Doppelklick = Standard)"></div>
@@ -761,10 +781,153 @@ function zoneLegend(){
   if(!zs.length) return "";
   let from = 1;
   return `<div class="zlegend">${zs.map(z => { const rng = from === z.to ? `${z.to}` : `${from}–${z.to}`; from = z.to + 1;
-    return `<span class="zn-${esc(z.key)}"><i></i>${esc(z.label)} <span class="sub">(${rng}${league.teams.some(t => t.group) ? " je Gruppe" : ""})</span></span>`; }).join("")}</div>`;
+    return `<span class="zn-${esc(z.key)}"><i></i>${gsDone() && ZONE_SYM[z.key] ? ZONE_SYM[z.key] + " " : ""}${esc(z.label)} <span class="sub">(${rng}${league.teams.some(t => t.group) ? " je Gruppe" : ""})</span></span>`; }).join("")}</div>`;
+}
+// ================================================================== Seitenleiste nach der Gruppenphase
+// Ansichten: Gruppenphase (Tabelle, nach Ende als „Endstand“) | Playoffs (Status im Bracket) | Bilanz (Saisonende).
+// Demo ohne echte Daten: ?demo=playoffs (Playoffs laufen) oder ?demo=ende (Saison vorbei).
+const DEMO = new URLSearchParams(location.search).get("demo");
+const leagueNo = () => parseInt(league?.name) || 1;
+const phaseChoice = {};   // Liga-ID → gewählte Ansicht (nur diese Sitzung)
+// Demo: Bracket-Stand aus den Tabellenzonen erfinden (deterministisch)
+function demoPaths(){
+  const end = DEMO === "ende", day = d => Math.floor(Date.now() / 1000 / 86400 + d) * 86400 + 17 * 3600;
+  const byZone = k => league.teams.filter(t => zoneOf(t)?.key === k).sort((a, b) => num(a.rank) - num(b.rank) || String(a.group).localeCompare(String(b.group)));
+  const n = leagueNo(), out = {};
+  const poLabel = n === 1 ? "Playoffs 1. Liga" : n === 2 ? "Playoffs 1./2. Liga" : "Playoffs 2./3. Liga";
+  const relLabel = n === 1 ? "Playoffs 1./2. Liga" : "Playoffs 2./3. Liga";
+  const P = (t, label, state, round, opp, d, rec) => (out[t.id] = [{label, event: "demo-" + label, state, round, opp: opp?.name, opp_id: opp?.id, start: d ? day(d) : null, demo: rec}]);
+  const po = byZone("po"), rel = byZone("rel");
+  po.forEach((t, i) => {
+    if(end) P(t, poLabel, i === 0 ? "champion" : i === 1 ? "out" : "out", i === 0 ? "UB Grand Final" : i === 1 ? "UB Grand Final" : i < 4 ? "LB Final K.O." : i < 6 ? "LB Semifinal Drop" : "LB Quarterfinal K.O.", po[i ^ 1], 0,
+      i === 0 ? [4, 0] : i === 1 ? [3, 2] : i < 4 ? [2, 2] : [1, 2]);
+    else if(i < 2) P(t, poLabel, "next", "UB Final", po[i ^ 1], 3, [2, 0]);
+    else if(i < 4) P(t, poLabel, "next", "LB Semifinal Drop", po[i ^ 1], 2, [1, 1]);
+    else P(t, poLabel, "out", i % 2 ? "LB Quarterfinal K.O." : "LB Semifinal K.O.", po[i ^ 1], 0, [i % 2 ? 0 : 1, 2]);
+  });
+  const half = Math.ceil(rel.length / 2);
+  rel.forEach((t, i) => {
+    if(i < half) P(t, relLabel, "qualified", "UB Semifinal", rel[rel.length - 1 - i], 0, [2, 0]);
+    else if(i === half && !end) P(t, relLabel, "next", "LB Final K.O.", rel[i + 1] || rel[0], 4, [1, 1]);
+    else P(t, relLabel, "out", "LB Semifinal K.O.", rel[i - 1], 0, [i === half ? 1 : 0, 2]);
+  });
+  return out;
+}
+// K.-o.-Stand je Team (ohne Wildcardturnier)
+function koPaths(){
+  if(DEMO) return demoPaths();
+  const out = {};
+  for(const [id, ps] of Object.entries(league.paths || {})){ const k = ps.filter(p => !p.wildcard); if(k.length) out[id] = k; }
+  return out;
+}
+const gsDone = () => !!DEMO || !!league.gs_done;
+function phases(){
+  const P = koPaths(), any = Object.keys(P).length > 0;
+  const running = Object.values(P).some(ps => ps.some(p => p.state === "next" || p.state === "waiting"));
+  const over = gsDone() && any && !running;
+  return {P, any, running, over};
+}
+// Saisonergebnis eines Teams aus Zone + K.-o.-Stand: [Rangfolge, Symbol, Text, Klasse]
+function seasonResult(t, ps){
+  const z = zoneOf(t)?.key, n = leagueNo();
+  const p = ps?.[ps.length - 1], st = p?.state, won = st === "qualified" || st === "champion";
+  if(p && (st === "next" || st === "waiting")) return [5, "▶", "läuft noch", "live"];
+  if(z === "po" && p){
+    if(n === 1) return st === "champion" ? [0, "🏆", "Meister", "win"] : [2, "✓", `Playoffs · ${roundName(p.round)}`, "po", `Playoffs, ausgeschieden im ${roundName(p.round)}`];
+    return won ? [1, "⬆", "Aufstieg", "win"] : [2, "✓", `Playoffs · ${roundName(p.round)}`, "po", `Playoffs, ausgeschieden im ${roundName(p.round)}`];
+  }
+  if(z === "rel" && p) return won ? [4, "⇅", "Relegation ✓", "safe", "Relegation gewonnen – Klassenerhalt"] : [7, "↓", "Abstieg (Rel.)", "down", "Relegation verloren – Abstieg"];
+  if(z === "safe") return [3, "●", "Klassenerhalt", "safe"];
+  if(z === "down") return [8, "✗", "Abstieg", "down"];
+  if(z === "rel") return [6, "⇅", "Relegation", "rel"];
+  return [6, "●", "Verbleib in der Liga", "safe"];
+}
+// Bilanz der K.-o.-Matches aus den Brackets dieser Liga (Demo: erfunden)
+function koRecord(tid, ps){
+  if(DEMO) return (ps || []).reduce((a, p) => [a[0] + (p.demo?.[0] || 0), a[1] + (p.demo?.[1] || 0)], [0, 0]);
+  let w = 0, l = 0;
+  for(const b of league.brackets || []) if(!b.template && !/Wildcard/i.test(b.label)) for(const r of b.rounds || []) for(const x of r.matches){
+    const me = x.teams?.find(t => t.id === tid); if(!me || x.state !== "closed") continue;
+    if(me.cls?.includes("winner")) w++; else if(me.cls?.includes("loser")) l++;
+  }
+  return [w, l];
+}
+const fmtDay = t => new Date(t * 1000).toLocaleString("de-DE", {weekday: "short", day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit"});
+function teamRow(t, inner, cls = ""){
+  return `<tr class="team ${cls}${t.id === curTeam ? " sel" : ""}" data-id="${esc(t.id)}"><td class="c">${avgIcon(league.summaries[t.id])}</td>
+    <td><div class="tn"><img src="${esc(t.logo)}" alt="">${esc(t.name)}</div>${inner}</td></tr>`;
+}
+function renderPlayoffList(P){
+  const multi = new Set(Object.values(P).flat().map(p => p.label)).size > 1;
+  // Etikett aus Sicht des Teams: Tabellenzone Playoffs → „Playoffs“, Relegationszone → „Relegation“
+  const evShort = (p, t) => multi ? `<span class="evtag" title="${esc(p.label)}">${zoneOf(t)?.key === "rel" ? "Relegation" : "Playoffs"}</span>` : "";
+  const groups = {live: [], done: [], out: [], none: []};
+  for(const t of league.teams){
+    const ps = P[t.id];
+    if(!ps){ groups.none.push(t); continue; }
+    const p = ps.find(x => x.state === "next" || x.state === "waiting") || ps[ps.length - 1];
+    (p.state === "next" || p.state === "waiting" ? groups.live : p.state === "out" ? groups.out : groups.done).push([t, p]);
+  }
+  groups.live.sort((a, b) => (a[1].start || 9e9) - (b[1].start || 9e9));
+  const sec = (title, cls, rows) => rows.length ? `<tr class="psec ${cls}"><td colspan="2">${title} <span class="sub">${rows.length}</span></td></tr>${rows.join("")}` : "";
+  const live = groups.live.map(([t, p]) => teamRow(t, `<div class="pst">${evShort(p, t)}<b>${esc(roundName(p.state === "waiting" ? (p.win || p.lose)?.round || p.round : p.round))}</b>${p.opp && p.state === "next" ? ` vs ${esc(p.opp)}` : ""}${p.start ? ` · ${esc(fmtDay(p.start))}` : ""}</div>`, "plive"));
+  const done = groups.done.map(([t, p]) => teamRow(t, `<div class="pst">${evShort(p, t)}<span class="pos-up">${p.state === "champion" ? (leagueNo() === 1 ? "🏆 Meister" : "🏆 Turniersieg") : zoneOf(t)?.key === "rel" ? "✓ Klassenerhalt" : leagueNo() > 1 ? "⬆ Aufstieg" : "✓ Qualifiziert"}</span></div>`, "pdone"));
+  const out = groups.out.map(([t, p]) => teamRow(t, `<div class="pst">${evShort(p, t)}<span class="pos-dn">✗ raus</span> im ${esc(roundName(p.round))}${p.opp ? ` gegen ${esc(p.opp)}` : ""}</div>`, "pout"));
+  const none = groups.none.sort((a, b) => num(a.rank) - num(b.rank)).map(t => teamRow(t, `<div class="pst">${esc(zoneOf(t)?.label || "ohne K.-o.-Runde")}</div>`, "pnone"));
+  return `<table class="ptable"><tbody>${sec("▶ Im Rennen", "live", live)}${sec("✓ Qualifiziert / aufgestiegen", "done", done)}${sec("✗ Ausgeschieden", "out", out)}${sec("Ohne K.-o.-Runde", "none", none)}</tbody></table>`;
+}
+let sumSort = {k: "res", dir: 1};
+function renderSeasonSummary(P){
+  const bo2 = (league.overview?.bo || 2) === 2;
+  const rows = league.teams.map(t => {
+    const s = t.stats || {}, [kw, kl] = koRecord(t.id, P[t.id]);
+    const res = seasonResult(t, P[t.id]);
+    const played = num(s.played) || 0, w = num(s.wins) || 0, d = num(s.draws) || 0, l = num(s.losses) || 0;
+    const mwr = bo2 && played ? Math.round(100 * (2 * w + d) / (2 * played)) : null;
+    return {t, res, w: w + kw, d, l: l + kl, mwr, elo: league.summaries[t.id]?.[metric]?.elo ?? null};
+  });
+  const val = {res: r => r.res[0] * 100 + num(r.t.rank), mwr: r => -(r.mwr ?? -1), elo: r => -(r.elo ?? 0)};
+  rows.sort((a, b) => (val[sumSort.k](a) - val[sumSort.k](b)) * sumSort.dir);
+  const th = (k, l, cls = "", tipT = "") => `<th class="sortable ${cls}" data-sk="${k}" title="${esc(tipT || "Sortieren")}">${l}${sumSort.k === k ? `<span class="arrow">${sumSort.dir > 0 ? "▼" : "▲"}</span>` : ""}</th>`;
+  return `<table class="stable"><thead><tr>${th("elo", "Ø", "c", METRICS[metric].tip)}<th>Team</th>${th("res", "Ergebnis")}<th class="num" title="Siege–Unentschieden–Niederlagen aus Gruppenphase und K.-o.-Runden">S-U-N</th>${th("mwr", "Map-WR", "num", "Anteil gewonnener Maps in der Gruppenphase")}</tr></thead><tbody>${
+    rows.map(r => `<tr class="team${r.t.id === curTeam ? " sel" : ""}" data-id="${esc(r.t.id)}"><td class="c">${avgIcon(league.summaries[r.t.id])}</td>
+      <td><div class="tn"><img src="${esc(r.t.logo)}" alt="">${esc(r.t.name)}</div></td>
+      <td><span class="sres ${r.res[3]}" title="${esc(r.res[4] || r.res[2])}">${r.res[1]} ${esc(r.res[2].split(" · ")[0])}${r.res[2].includes(" · ") ? `<small>${esc(r.res[2].split(" · ")[1])}</small>` : ""}</span></td>
+      <td class="num">${r.w}-${r.d}-${r.l}</td><td class="num">${r.mwr == null ? '<span class="sub">–</span>' : r.mwr + "%"}</td></tr>`).join("")}</tbody></table>`;
+}
+// Zonen nach der Gruppenphase als Ergebnis-Symbole
+const ZONE_SYM = {po: "✓", safe: "●", rel: "⇅", down: "✗"};
+function bindTeamRows(){
+  document.querySelectorAll("#teamlist tr.team").forEach(tr => tr.onclick = () => {
+    document.querySelectorAll("tr.team.sel").forEach(x => x.classList.remove("sel"));
+    tr.classList.add("sel");
+    metaShown = false; setSideTab("table");
+    loadTeam(tr.dataset.id);
+    showDetail(true);
+  });
 }
 function renderTeams(){
   if(!league) return;
+  const ph = phases();
+  const avail = ["gs", ...(ph.any ? ["po"] : []), ...(ph.over ? ["sum"] : [])];
+  let view = phaseChoice[league.id];
+  if(!avail.includes(view)) view = ph.over ? "sum" : ph.running ? "po" : "gs";   // springt automatisch, sobald die Playoffs laufen
+  const lbl = {gs: gsDone() ? "Endstand" : "Gruppenphase", po: "Playoffs", sum: "Bilanz"};
+  $("#phasebar").innerHTML = avail.length > 1 || gsDone()
+    ? `${DEMO ? '<span class="demotag" title="Beispiel mit erfundenen K.-o.-Ergebnissen">Demo</span>' : ""}<div class="seg">${avail.map(v => `<button class="${v === view ? "on" : ""}" data-ph="${v}">${lbl[v]}</button>`).join("")}</div>`
+    : "";
+  document.body.classList.toggle("phase-alt", view !== "gs");
+  document.querySelectorAll("#phasebar button").forEach(b => b.onclick = () => { phaseChoice[league.id] = b.dataset.ph; renderTeams(); });
+  if(view === "po"){ $("#teamlist").innerHTML = renderPlayoffList(ph.P); bindTeamRows(); return; }
+  if(view === "sum"){
+    $("#teamlist").innerHTML = renderSeasonSummary(ph.P); bindTeamRows();
+    document.querySelectorAll("#teamlist th[data-sk]").forEach(h => h.onclick = () => { const k = h.dataset.sk; sumSort = sumSort.k === k ? {k, dir: -sumSort.dir} : {k, dir: 1}; renderTeams(); });
+    return;
+  }
+  renderTable();
+}
+
+function renderTable(){
   const cols = league.columns;
   const teams = [...league.teams].sort((a,b) => {
     const va = sortVal(a), vb = sortVal(b);
@@ -780,16 +943,10 @@ function renderTeams(){
     cols.map(c => th(c, esc(SHORT[c]||c), "num" + (OPT_COLS.has(c) ? " opt" : ""), LONG[c]||c)).join("")}</tr></thead><tbody>${
     teams.map((t, i) => `<tr class="team${zoneOf(t) ? " zn-" + zoneOf(t).key : ""}${sortKey === "rank" && teams[i + 1] && teams[i + 1].group !== t.group ? " grpend" : ""}${t.id===curTeam?" sel":""}" title="${esc(zoneOf(t)?.label || "")}" data-id="${esc(t.id)}"><td>${t.group ? `<span class="grp" title="Gruppe ${esc(t.group)}">${esc(t.group)}</span>` : ""}${esc(t.rank)}${moveHtml(t)}</td>
       <td class="c">${avgIcon(league.summaries[t.id])}</td>
-      <td><div class="tn"><img src="${esc(t.logo)}" alt="">${esc(t.name)}</div></td>
+      <td><div class="tn"><img src="${esc(t.logo)}" alt="">${esc(t.name)}${gsDone() && zoneOf(t) ? `<span class="zsym" title="${esc(zoneOf(t).label)}">${ZONE_SYM[zoneOf(t).key] || ""}</span>` : ""}</div></td>
       ${cols.map(c=>`<td class="num${OPT_COLS.has(c) ? " opt" : ""}">${esc(t.stats[c])}</td>`).join("")}</tr>`).join("")}</tbody></table>${zoneLegend()}`;
   document.querySelectorAll("#teamlist th.sortable").forEach(h => h.onclick = () => setSort(h.dataset.k, true));
-  document.querySelectorAll("tr.team").forEach(tr => tr.onclick = () => {
-    document.querySelectorAll("tr.team.sel").forEach(x=>x.classList.remove("sel"));
-    tr.classList.add("sel");
-    metaShown = false; setSideTab("table");
-    loadTeam(tr.dataset.id);
-    showDetail(true);
-  });
+  bindTeamRows();
 }
 function setSort(k, toggle){
   if(toggle && k === sortKey) sortDir = -sortDir;

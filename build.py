@@ -1008,8 +1008,18 @@ def export(out, leagues, region, repo, ref, base_cfg):
         log(f"  {lg['name']}: {len(vods)} Matches mit VOD")
         prev = rank_history(lg, st, gs_by_team)   # Tabelle: nur Gruppenphase
         movement = {"md": prev["md"], "src": prev["src"], "ranks": prev["ranks"]} if prev else None
+        # Seitenleiste nach der Gruppenphase: Stand jedes Teams in den K.-o.-Runden (Termin des nächsten Matches dazu)
+        lpaths = {}
+        for t in st["teams"]:
+            ps = [{**p, "start": (bmatch.get(p["match"]) or {}).get("start"),
+                   "wildcard": bmeta.get(p["match"], {}).get("wildcard", False)} for p in paths_by_team.get(t["id"], [])]
+            if ps:
+                lpaths[t["id"]] = ps
+        gms = league_matches[lg["id"]]
+        gs_done = bool(gms) and all(m.get("state") == "closed" for m in gms)
         (data / f"league-{lg['id']}.json").write_text(json.dumps(
             {**st, "id": lg["id"], "name": lg["name"], "summaries": summaries, "overview": overview, "movement": movement, "brackets": brackets_out + template_for(lg),
+             "paths": lpaths, "gs_done": gs_done,
              "updated": time.time() - (core.cache.age("standing:" + lg["url"]) or 0)},
             ensure_ascii=False, separators=(",", ":")))
         meta_leagues.append({"id": lg["id"], "name": lg["name"], "url": lg["url"], "title": st["title"],
