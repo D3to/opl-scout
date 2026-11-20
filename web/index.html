@@ -456,7 +456,7 @@
   .mmb,.sbmap{flex:1;min-width:140px;display:flex;justify-content:space-between;align-items:center;padding:10px 14px;border-radius:10px;color:#fff;text-shadow:0 1px 3px #000;
     background:linear-gradient(90deg, rgba(0,0,0,.7), rgba(0,0,0,.3)), var(--bg) center/cover no-repeat;font-size:15px}
   .mmb b,.sbmap span{font-size:18px} .mmb .pos-up,.sbmap .pos-up{color:#5ff0a8} .mmb .pos-dn,.sbmap .pos-dn{color:#ff8a8a}
-  .sbmap{margin-bottom:8px}
+  .sbmap{margin-bottom:8px;border:1px solid transparent}   /* gleiche Höhe wie die Σ-Kachel mit Rahmen */
   .sbmaps{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px} .sbmaps .sbmap{margin-bottom:0}
   .sbmap.sbsum{background:var(--panel);border:1px solid var(--line);color:var(--txt);text-shadow:none}
   .sbmap.sbsum .pos-up{color:var(--good)} .sbmap.sbsum .pos-dn{color:var(--bad)}
@@ -476,6 +476,51 @@
   .sbt th.num,.sbt td.num{text-align:center;padding-left:4px;padding-right:4px}
   .sbt th.c,.sbt td.c{text-align:left} .sbt tr.mvp td{background:color-mix(in srgb, var(--cap) 8%, transparent)}
   .sbt .agic{width:24px;height:24px}
+  /* Name + Badges in einer Zeile: jede Zeile gleich hoch, Badges rechts neben dem Namen */
+  .pcell{display:flex;align-items:center;gap:6px;min-width:0;white-space:nowrap}
+  .pcell .pname{overflow:hidden;text-overflow:ellipsis;min-width:40px;flex:0 1 auto}
+  .pbadges{display:flex;flex-wrap:nowrap;gap:3px;flex:none}
+  .pbadge{font-size:10px;font-weight:700;padding:0 5px;border-radius:3px;line-height:15px;white-space:nowrap}
+  .pbadge.cl{color:var(--info);background:var(--infobg)} .pbadge.mk{color:var(--warn);background:var(--warnbg)}
+  .pbadge.ace{color:#fff;background:var(--acc)}
+  .sbt th:first-child{width:34%}
+  /* Rundenverlauf */
+  .rtl{display:flex;gap:6px;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:8px 10px;margin-bottom:8px;overflow-x:auto}
+  .rtlh{display:grid;grid-template-rows:14px 22px 22px 17px 17px;gap:2px;font-size:11px;align-items:center;white-space:nowrap;flex:0 0 110px;min-width:0}
+  .rtlh span{overflow:hidden;text-overflow:ellipsis} .rtlh .la,.rtlh .lb{font-size:10px;padding-left:8px;border-left:3px solid var(--acc);color:var(--mut)} .rtlh .lb{border-left-color:var(--link)} .rtlh .a{color:var(--acc);font-weight:600} .rtlh .b{color:var(--link);font-weight:600}
+  .rtlr{display:flex;gap:2px;flex:1}
+  .rcol{display:grid;grid-template-rows:14px 22px 22px 17px 17px;gap:2px;flex:1 1 0;min-width:15px;max-width:36px;cursor:default}
+  .rtl.multi .reco{font-size:8.5px;letter-spacing:-.3px;padding:0}
+  .rcol.sep{margin-left:8px}
+  .rcol.msep{margin-left:10px;padding-left:8px;border-left:2px solid var(--line)}
+  .rn b{font-size:9px;color:var(--txt);font-weight:700}
+  .rn{font-size:9px;color:var(--mut);text-align:center}
+  .rcell{border-radius:4px;background:var(--panel2);display:flex;align-items:center;justify-content:center;font-size:12px;line-height:1}
+  .rcell.on.a{background:color-mix(in srgb, var(--acc) 30%, transparent);box-shadow:inset 0 0 0 1px var(--acc)}
+  .rcell.on.b{background:color-mix(in srgb, var(--link) 30%, transparent);box-shadow:inset 0 0 0 1px var(--link)}
+  /* Loadout je Runde: Wert in Tsd. Credits, Farbe = Kaufart */
+  .reco{display:flex;align-items:center;justify-content:center;border-radius:3px;font-size:9.5px;font-weight:700;font-variant-numeric:tabular-nums;line-height:1;padding:0 2px}
+  .reco.bp{background:color-mix(in srgb, var(--np) 22%, transparent);color:var(--np)}
+  .reco.be{background:var(--panel2);color:var(--mut)}
+  .reco.bse{background:color-mix(in srgb, var(--warn) 14%, transparent);color:var(--warn)}
+  .reco.bsb{background:color-mix(in srgb, var(--zrel) 22%, transparent);color:var(--zrel)}
+  .reco.bf{background:color-mix(in srgb, var(--good) 22%, transparent);color:var(--good)}
+  .rleg .reco{display:inline-flex;min-width:26px;height:15px}
+  .rlegsep{margin-left:10px;color:var(--txt)}
+  .rcol:hover .rcell{filter:brightness(1.3)}
+  .ri{display:inline-block;width:14px;height:14px;background:currentColor;-webkit-mask:var(--m) center/contain no-repeat;mask:var(--m) center/contain no-repeat}
+  .ri-E{--m:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='black' fill-rule='evenodd' d='M12 2C6.5 2 3 5.8 3 10.5c0 2.6 1.1 4.4 3 5.6V19a1 1 0 0 0 1 1h1.5v-2h2v2h3v-2h2v2H17a1 1 0 0 0 1-1v-2.9c1.9-1.2 3-3 3-5.6C21 5.8 17.5 2 12 2zM8.5 9a2 2 0 1 1 0 4 2 2 0 0 1 0-4zm7 0a2 2 0 1 1 0 4 2 2 0 0 1 0-4zM12 13.2l1.3 2.3h-2.6z'/%3E%3C/svg%3E")} .ri-D{--m:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='black' d='M12 6l4 6-4 6-4-6z'/%3E%3Cpath stroke='black' stroke-width='2' stroke-linecap='round' d='M12 1v2.5M12 20.5V23M1 12h2.5M20.5 12H23M4.2 4.2l1.8 1.8M18 18l1.8 1.8M4.2 19.8L6 18M18 6l1.8-1.8'/%3E%3C/svg%3E")} .ri-F{--m:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='none' stroke='black' stroke-width='2.2' stroke-linejoin='round' d='M12 2.5l6.5 9.5-6.5 9.5-6.5-9.5z'/%3E%3Cpath fill='none' stroke='black' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round' d='M8.8 12.2l2.2 2.2 4.2-4.6'/%3E%3C/svg%3E")} .ri-T{--m:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='black' d='M6 2h12v2h-1v3.2c0 1.5-.8 2.9-2.1 3.7L13.4 12l1.5 1.1c1.3.8 2.1 2.2 2.1 3.7V20h1v2H6v-2h1v-3.2c0-1.5.8-2.9 2.1-3.7l1.5-1.1-1.5-1.1C7.8 10.1 7 8.7 7 7.2V4H6zm3 2v3.2c0 .8.4 1.5 1.1 2L12 10.6l1.9-1.4c.7-.5 1.1-1.2 1.1-2V4zm3 9.4l-1.9 1.4c-.7.5-1.1 1.2-1.1 2V20h6v-3.2c0-.8-.4-1.5-1.1-2z'/%3E%3C/svg%3E")}
+  .rcell.on.a{color:var(--acc)} .rcell.on.b{color:var(--link)}
+  .rleg{display:flex;gap:14px;flex-wrap:wrap;font-size:11px;color:var(--mut);margin:-2px 0 8px 2px}
+  .rleg span{display:inline-flex;align-items:center;gap:4px}
+  .tfacts{margin-bottom:8px;background:var(--panel);border:1px solid var(--line);border-radius:10px;overflow:auto}
+  .sites{display:inline-flex;align-items:center;gap:4px;flex-wrap:wrap;justify-content:center}
+  .site{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:600;padding:1px 7px 1px 1px;border-radius:999px;background:var(--panel2);color:var(--txt);font-variant-numeric:tabular-nums}
+  .site b{display:inline-flex;align-items:center;justify-content:center;width:17px;height:17px;border-radius:50%;background:var(--line);font-size:10px}
+  .site.g{background:color-mix(in srgb, var(--good) 15%, transparent)} .site.g b{background:var(--good);color:#06120c}
+  .site.r{background:color-mix(in srgb, var(--bad) 15%, transparent)} .site.r b{background:var(--bad);color:#fff}
+  .sq{font-size:12px;font-weight:700;margin-left:4px}
+  .tfacts .sbt{table-layout:auto;min-width:0} .tfacts .sbt th:first-child{width:auto} .tfacts td:first-child{color:var(--mut)}
   @media (max-width:900px){ .mhero{grid-template-columns:1fr;text-align:center} .mht,.mht.r{justify-content:center;flex-direction:row} }
   .mhead{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
   .mhead .opp{font-weight:600;flex:1}
@@ -2458,10 +2503,12 @@ async function openMatch(A, mtA, mid, my = ++current){
   setUrl({l: league.id, t: curTeam, mt: mid});
   const m = (A.opl?.matches || []).find(x => x.id === String(mid));
   if(!m){ $("#detail").innerHTML = '<div class="empty">Match nicht gefunden.</div>'; return; }
-  let B = null;
-  if(m.opp?.id && Number(m.opp.id) > 0) try{ B = await getJSON(`data/team-${m.opp.id}.json?t=${meta.generated}`); }catch(e){}
+  let B = null, H = null;
+  await Promise.all([
+    m.opp?.id && Number(m.opp.id) > 0 ? getJSON(`data/team-${m.opp.id}.json?t=${meta.generated}`).then(x => B = x).catch(() => {}) : null,
+    m.hd ? getJSON(`data/match-${m.id}.json?t=${meta.generated}`).then(x => H = x).catch(() => {}) : null]);
   if(my !== current) return;
-  renderMatch(A, mtA, B, m);
+  renderMatch(A, mtA, B, m, H);
   showDetail(true);
   $("#detail").scrollTop = 0; if(isMobile()) window.scrollTo(0, 0);
 }
@@ -2469,58 +2516,171 @@ function teamLogo(id){
   const t = league.teams.find(x => x.id === String(id));
   return t?.logo || "";
 }
-function renderMatch(A, mtA, B, m){
+// Kaufart aus dem Loadout-Wert eines Teams (Summe der 5 Spieler)
+const buyType = (v, pistol) => pistol ? "Pistol" : v < 5000 ? "Eco" : v < 10000 ? "Semi-Eco" : v < 20000 ? "Semi-Buy" : "Full Buy";
+const BUY_CLS = {"Pistol": "bp", "Eco": "be", "Semi-Eco": "bse", "Semi-Buy": "bsb", "Full Buy": "bf"};
+const RES_IC = {E: ["☠", "Elimination"], D: ["💥", "Spike gezündet"], F: ["✂", "Spike entschärft"], T: ["⏱", "Zeit abgelaufen"]};
+function renderMatch(A, mtA, B, m, H = null){
   const nameA = A.name || mtA?.name, nameB = m.opp?.name || B?.name || "Gegner";
   const agIc = a => { const ic = AGENT_ICONS[(a || "").toLowerCase()]; return ic ? `<img class="agic" src="${esc(ic)}" alt="${esc(a)}" title="${esc(a)}">` : `<span class="sub">${esc(a || "–")}</span>`; };
-  // Spielerzeilen einer Map (Index i, falls dieselbe Map zweimal vorkommt)
-  const rowsFor = (T, mp, i) => T ? Object.values(T.opl?.players || {}).map(p => {
-    const hs = (p.history || []).filter(h => h.m === String(m.id) && h.map === mp);
-    const h = hs[Math.min(i, hs.length - 1)];
-    return h ? {name: p.name, team: T.id, ...h} : null;
-  }).filter(Boolean).sort((x, y) => y.acs - x.acs) : [];
+  const ta = H && String(H.t2?.id) === String(A.id) ? 2 : 1, tb = 3 - ta;   // Team-Nummer von A/B in den Rundendaten
+  const bId = m.opp?.id;
   const nth = (mp, idx) => m.maps.slice(0, idx).filter(x => x.map === mp).length;
-  const total = (rows) => {   // über alle Maps summiert
-    const g = {};
-    for(const r of rows){ const x = g[r.name] ??= {name: r.name, team: r.team, n: 0, acs: 0, k: 0, d: 0, a: 0, fb: 0, econ: 0, plants: 0, defuses: 0, agents: []};
-      x.n++; x.acs += r.acs; x.k += r.k; x.d += r.d; x.a += r.a; x.fb += r.fb; x.econ += r.econ; x.plants += r.plants; x.defuses += r.defuses; x.agents.push(r.agent); }
-    return Object.values(g).map(x => ({...x, acs: Math.round(x.acs / x.n), econ: Math.round(x.econ / x.n)})).sort((x, y) => y.acs - x.acs);
+  // Rundendaten der i-ten Map (nur wenn Map passt)
+  const hdOf = i => { const g = H?.maps?.[i]; return g && g.map === m.maps[i].map ? g : null; };
+  // Spielerzeilen: Rundendaten (genauer), sonst OPL-Historie
+  const rowsFor = (T, side, i) => {
+    const g = hdOf(i);
+    if(g) return g.players.filter(p => p.t === (side === "A" ? ta : tb)).map(p => ({...p, name: p.n, agent: p.ag, team: side === "A" ? A.id : bId, nr: g.rounds.length}))
+      .sort((x, y) => y.acs - x.acs);
+    const mp = m.maps[i].map, k = nth(mp, i);
+    return T ? Object.values(T.opl?.players || {}).map(p => {
+      const hs = (p.history || []).filter(h => h.m === String(m.id) && h.map === mp);
+      const h = hs[Math.min(k, hs.length - 1)];
+      return h ? {name: p.name, team: T.id, ...h} : null;
+    }).filter(Boolean).sort((x, y) => y.acs - x.acs) : [];
   };
-  const board = (rows, name, logo, won, mvp) => `<div class="sbteam${won ? " won" : ""}"><div class="sbh">${logo ? `<img src="${esc(logo)}" alt="">` : ""}<b>${esc(name)}</b></div>
-    ${rows.length ? `<table class="sbt"><thead><tr><th>Spieler</th><th class="c">Agent</th><th class="num">ACS</th><th class="num">K</th><th class="num">D</th><th class="num">A</th><th class="num">+/-</th><th class="num opt">K/D</th><th class="num opt">FB</th><th class="num opt">Econ</th><th class="num opt" title="Plants/Defuses">P/D</th></tr></thead><tbody>${
+  const total = rows => {   // über alle Maps: Summen, Raten nach Runden gewichtet
+    const g = {};
+    for(const r of rows){
+      const x = g[r.name.toLowerCase()] ??= {name: r.name, team: r.team, n: 0, nr: 0, acs: 0, k: 0, d: 0, a: 0, fb: 0, econ: 0, plants: 0, defuses: 0, agents: [],
+        adr: 0, hs: 0, kast: 0, fk: 0, fd: 0, mk: [0, 0, 0, 0], cl: [0, 0, 0, 0, 0], pl: 0, df: 0, hd: true};
+      const w = r.nr || 1;
+      x.n++; x.nr += w; x.k += r.k; x.d += r.d; x.a += r.a; x.agents.push(r.agent);
+      if(r.nr){ x.acs += r.acs * w; x.adr += r.adr * w; x.hs += r.hs * w; x.kast += r.kast * w; x.fk += r.fk; x.fd += r.fd; x.pl += r.pl; x.df += r.df;
+        r.mk.forEach((v, j) => x.mk[j] += v); r.cl.forEach((v, j) => x.cl[j] += v); }
+      else { x.hd = false; x.acs += r.acs * w; x.fb += r.fb; x.econ += r.econ; x.plants += r.plants; x.defuses += r.defuses; }
+    }
+    return Object.values(g).map(x => ({...x, acs: Math.round(x.acs / x.nr), adr: Math.round(x.adr / x.nr), hs: Math.round(x.hs / x.nr), kast: Math.round(x.kast / x.nr),
+      econ: Math.round(x.econ / x.n), nr: x.hd ? x.nr : 0})).sort((x, y) => y.acs - x.acs);
+  };
+  // Badges wie bei tracker.gg: Clutches (1v1 …) und Multikills ab 3K
+  const badges = r => {
+    if(!r.nr) return "";
+    const b = [];
+    r.cl.forEach((v, j) => { if(v) b.push(`<span class="pbadge cl" title="${v}× Clutch 1 gegen ${j + 1} gewonnen">1v${j + 1}${v > 1 ? ` ×${v}` : ""}</span>`); });
+    r.mk.forEach((v, j) => { if(v && j >= 1) b.push(`<span class="pbadge mk${j === 3 ? " ace" : ""}" title="${v}× ${j + 2} Kills in einer Runde">${j === 3 ? "ACE" : `${j + 2}K`}${v > 1 ? ` ×${v}` : ""}</span>`); });
+    return b.length ? `<div class="pbadges">${b.join("")}</div>` : "";
+  };
+  const board = (rows, name, logo, won, mvp) => {
+    const hd = rows.length && rows.every(r => r.nr);
+    const head = hd
+      ? `<th class="num">ACS</th><th class="num">K</th><th class="num">D</th><th class="num">A</th><th class="num">+/-</th><th class="num" title="Schaden pro Runde">ADR</th><th class="num opt" title="Anteil Kopftreffer">HS%</th><th class="num opt" title="Runden mit Kill, Assist, überlebt oder getradet">KAST</th><th class="num opt" title="First Kills / First Deaths">FK/FD</th>`
+      : `<th class="num">ACS</th><th class="num">K</th><th class="num">D</th><th class="num">A</th><th class="num">+/-</th><th class="num opt">K/D</th><th class="num opt">FB</th><th class="num opt">Econ</th><th class="num opt" title="Plants/Defuses">P/D</th>`;
+    return `<div class="sbteam${won ? " won" : ""}"><div class="sbh">${logo ? `<img src="${esc(logo)}" alt="">` : ""}<b>${esc(name)}</b></div>
+    ${rows.length ? `<table class="sbt"><thead><tr><th>Spieler</th><th class="c">Agent</th>${head}</tr></thead><tbody>${
       rows.map(r => { const pm = r.k - r.d;
-        return `<tr${r.name === mvp ? ' class="mvp"' : ""}><td><span class="pname plink" data-team="${esc(r.team)}" data-key="${esc(r.name.toLowerCase())}">${esc(r.name)}</span>${r.name === mvp ? ' <span class="star" title="Höchster ACS im Match">MVP</span>' : ""}</td>
-        <td class="c">${(r.agents || [r.agent]).map(agIc).join("")}</td><td class="num"><b>${r.acs}</b></td><td class="num">${r.k}</td><td class="num">${r.d}</td><td class="num">${r.a}</td>
-        <td class="num ${pm > 0 ? "pos-up" : pm < 0 ? "pos-dn" : ""}">${pm > 0 ? "+" : ""}${pm}</td><td class="num opt">${r.d ? (r.k / r.d).toFixed(2) : r.k}</td>
-        <td class="num opt">${r.fb}</td><td class="num opt">${r.econ}</td><td class="num opt">${r.plants}/${r.defuses}</td></tr>`; }).join("")}</tbody></table>`
+        const cells = hd
+          ? `<td class="num">${r.adr}</td><td class="num opt">${r.hs}%</td><td class="num opt">${r.kast}%</td><td class="num opt">${r.fk}/${r.fd}</td>`
+          : `<td class="num opt">${r.d ? (r.k / r.d).toFixed(2) : r.k}</td><td class="num opt">${r.fb}</td><td class="num opt">${r.econ}</td><td class="num opt">${r.plants}/${r.defuses}</td>`;
+        return `<tr${r.name === mvp ? ' class="mvp"' : ""}><td><div class="pcell"><span class="pname plink" data-team="${esc(r.team)}" data-key="${esc(r.name.toLowerCase())}" title="${esc(r.name)}">${esc(r.name)}</span>${r.name === mvp ? '<span class="star" title="Höchster ACS im Match">MVP</span>' : ""}${badges(r)}</div></td>
+        <td class="c">${[...new Set(r.agents || [r.agent])].map(agIc).join("")}</td><td class="num"><b>${r.acs}</b></td><td class="num">${r.k}</td><td class="num">${r.d}</td><td class="num">${r.a}</td>
+        <td class="num ${pm > 0 ? "pos-up" : pm < 0 ? "pos-dn" : ""}">${pm > 0 ? "+" : ""}${pm}</td>${cells}</tr>`; }).join("")}</tbody></table>`
       : '<p class="sub">Keine Spielerdaten.</p>'}</div>`;
-  const allA = m.maps.flatMap((x, i) => rowsFor(A, x.map, nth(x.map, i))), allB = m.maps.flatMap((x, i) => rowsFor(B, x.map, nth(x.map, i)));
+  };
+  // Rundenverlauf einer Map: obere Reihe Runden von A, untere von B, darunter Loadout beider Teams
+  // gs = eine Map oder (Gesamt) alle Maps hintereinander – gleiche Höhe, damit beim Reiterwechsel nichts springt
+  const timeline = gs => {
+    const half = 12;
+    const cell = (r, i, side) => {
+      const mine = r.w === side, [ic, txt] = RES_IC[r.r] || RES_IC.T;
+      return `<div class="rcell${mine ? " on " + (side === ta ? "a" : "b") : ""}">${mine ? `<i class="ri ri-${r.r || "T"}"></i>` : ""}</div>`;
+    };
+    const col = (r, i, gi, g) => {
+      const atkA = r.a1 == null ? null : (ta === 1 ? r.a1 : !r.a1);
+      const pistol = i === 0 || i === half;
+      const ecoA = r.eco[ta - 1], ecoB = r.eco[tb - 1];
+      const t = [`Runde ${i + 1}: ${r.w === ta ? nameA : nameB} (${(r.w === ta) === atkA ? "Angriff" : "Verteidigung"}) · ${(RES_IC[r.r] || RES_IC.T)[1]}`,
+        r.fb ? `First Blood: ${r.fb[0]} → ${r.fb[1]}` : "", r.pl ? `Plant ${r.pl.s} durch ${r.pl.by} (${Math.floor(r.pl.t / 60)}:${String(r.pl.t % 60).padStart(2, "0")})` : "",
+        r.df ? `Defuse durch ${r.df.by}` : "", `${nameA}: ${ecoA.toLocaleString("de-DE")} (${buyType(ecoA, pistol)}) · ${nameB}: ${ecoB.toLocaleString("de-DE")} (${buyType(ecoB, pistol)})`].filter(Boolean).join("\n");
+      const msep = gi > 0 && i === 0;
+      return `<div class="rcol${msep ? " msep" : i === half || (i >= 24 && i % 2 === 0) ? " sep" : ""}" title="${esc((gs.length > 1 ? cap(g.map) + " · " : "") + t)}"><div class="rn">${i === 0 && gs.length > 1 ? `<b>${esc(cap(g.map).slice(0, 3))}</b>` : i + 1}</div>${cell(r, i, ta)}${cell(r, i, tb)}
+        ${[ecoA, ecoB].map(v => `<div class="reco ${BUY_CLS[buyType(v, pistol)]}">${(v / 1000).toFixed(v < 9950 ? 1 : 0).replace(".", ",")}</div>`).join("")}</div>`;
+    };
+    return `<div class="rtl${gs.length > 1 ? " multi" : ""}"><div class="rtlh"><span></span><span class="a">${esc(nameA)}</span><span class="b">${esc(nameB)}</span><span class="la" title="Loadout ${esc(nameA)} in Tsd. Credits">Loadout</span><span class="lb" title="Loadout ${esc(nameB)} in Tsd. Credits">Loadout</span></div><div class="rtlr">${gs.map((g, gi) => g.rounds.map((r, i) => col(r, i, gi, g)).join("")).join("")}</div></div>
+      <div class="rleg"><span><i class="ri ri-E"></i>Elimination</span><span><i class="ri ri-D"></i>Spike gezündet</span><span><i class="ri ri-F"></i>Entschärft</span><span><i class="ri ri-T"></i>Zeit abgelaufen</span>
+        <span class="rlegsep">Loadout (Tsd. Credits):</span>${["Pistol", "Eco", "Semi-Eco", "Semi-Buy", "Full Buy"].map(b => `<span><b class="reco ${BUY_CLS[b]}">${{Pistol: "P", Eco: "<5", "Semi-Eco": "5–10", "Semi-Buy": "10–20", "Full Buy": "20+"}[b]}</b>${b}</span>`).join("")}</div>`;
+  };
+  // Kennzahlen aus den Rundendaten (pro Team): Pistol, Angriff/Verteidigung, Plant-Sites, First Kills
+  const teamFacts = games => {
+    const f = side => {
+      let pw = 0, pn = 0, aw = 0, an = 0, dw = 0, dn = 0, fk = 0, n = 0;
+      const plant = {}, retake = {};   // je Site: {n, w} – Plants als Angreifer (danach gewonnen) / Plants des Gegners (Retake gewonnen)
+      for(const g of games) g.rounds.forEach((r, i) => {
+        n++;
+        const atk = r.a1 == null ? null : ((side === 1) === r.a1);
+        if(i === 0 || i === 12){ pn++; if(r.w === side) pw++; }
+        if(atk === true){ an++; if(r.w === side) aw++;
+          if(r.pl){ const x = plant[r.pl.s] ??= {n: 0, w: 0}; x.n++; if(r.w === side) x.w++; } }
+        if(atk === false){ dn++; if(r.w === side) dw++;
+          if(r.pl){ const x = retake[r.pl.s] ??= {n: 0, w: 0}; x.n++; if(r.w === side) x.w++; } }
+        if(r.fb){ const p = g.players.find(x => x.n === r.fb[0]); if(p?.t === side) fk++; }
+      });
+      const pct = (a, b) => b ? Math.round(100 * a / b) + "%" : "–";
+      const r = (a, b) => b ? a / b : null;   // Rohwerte für den Farbvergleich
+      const sum = o => Object.values(o).reduce((s, x) => [s[0] + x.w, s[1] + x.n], [0, 0]);
+      const [pW, pN] = sum(plant), [rW, rN] = sum(retake);
+      return {pistol: `${pw}/${pn}`, atk: `${pct(aw, an)} (${aw}/${an})`, def: `${pct(dw, dn)} (${dw}/${dn})`, fk: pct(fk, n),
+        plant, retake, pW, pN, rW, rN,
+        v: {pistol: r(pw, pn), atk: r(aw, an), def: r(dw, dn), fk: r(fk, n), post: r(pW, pN), ret: r(rW, rN)}};
+    };
+    const a = f(ta), b = f(tb);
+    // besserer Wert grün, schlechterer rot (gleich oder ohne Vergleich: neutral)
+    const cmp = (k, x, y) => x.v?.[k] == null || y.v?.[k] == null || x.v[k] === y.v[k] ? "" : x.v[k] > y.v[k] ? "pos-up" : "pos-dn";
+    const row = (l, k, t) => `<tr><td title="${esc(t || "")}">${l}</td><td class="num ${cmp(k, a, b)}">${a[k]}</td><td class="num ${cmp(k, b, a)}">${b[k]}</td></tr>`;
+    // Site-Chips: Buchstabe + gewonnen/gesamt, Farbe nach Quote; dahinter die Gesamtquote (farbig im Teamvergleich)
+    const chips = (o, kind) => {
+      const es = Object.entries(o).sort((x, y) => x[0].localeCompare(y[0]));
+      if(!es.length) return '<span class="sub">–</span>';
+      return es.map(([st, x]) => { const q = x.w / x.n;
+        return `<span class="site ${q > .5 ? "g" : q < .5 ? "r" : ""}" title="${kind === "p" ? `Site ${st}: ${x.n}× geplantet, danach ${x.w}× gewonnen` : `Site ${st}: Gegner ${x.n}× geplantet, ${x.w}× zurückerobert`}"><b>${esc(st)}</b>${x.w}/${x.n}</span>`; }).join("");
+    };
+    const siteRow = (l, kind, k, t) => {
+      const cell = (x, y) => { const [w, n] = kind === "p" ? [x.pW, x.pN] : [x.rW, x.rN];
+        return `<td class="num"><div class="sites">${chips(kind === "p" ? x.plant : x.retake, kind)}${n ? `<span class="sq ${cmp(k, x, y)}">${Math.round(100 * w / n)}%</span>` : ""}</div></td>`; };
+      return `<tr><td title="${esc(t)}">${l}</td>${cell(a, b)}${cell(b, a)}</tr>`;
+    };
+    return `<div class="tfacts"><table class="sbt"><thead><tr><th></th><th class="num">${esc(nameA)}</th><th class="num">${esc(nameB)}</th></tr></thead><tbody>
+      ${row("Pistol-Runden", "pistol")}${row("Angriff gewonnen", "atk")}${row("Verteidigung gewonnen", "def")}${row("First Kills", "fk", "Anteil der Runden, in denen das Team den ersten Kill hatte")}
+      ${siteRow("Plants (Angriff)", "p", "post", "Je Site: Runden nach eigenem Plant gewonnen / Plants. Dahinter die Quote über alle Sites.")}
+      ${siteRow("Retakes (Verteidigung)", "r", "ret", "Je Site: Runden nach gegnerischem Plant noch gewonnen (Retake oder Defuse) / Plants des Gegners. Dahinter die Quote über alle Sites.")}</tbody></table></div>`;
+  };
+  const allA = m.maps.flatMap((x, i) => rowsFor(A, "A", i)), allB = m.maps.flatMap((x, i) => rowsFor(B, "B", i));
   const mvpOf = (ra, rb) => [...ra, ...rb].sort((x, y) => y.acs - x.acs)[0]?.name;
   const tabs = m.maps.length > 1 ? ["Gesamt", ...m.maps.map(x => cap(x.map))] : m.maps.map(x => cap(x.map));
-  const panes = m.maps.length > 1 ? [{ra: total(allA), rb: total(allB), us: m.score?.[0], them: m.score?.[1], all: true,
+  const games = m.maps.map((x, i) => hdOf(i)).filter(Boolean);
+  const panes = m.maps.length > 1 ? [{ra: total(allA), rb: total(allB), us: m.score?.[0], them: m.score?.[1], all: true, games,
     rounds: [m.maps.reduce((n, x) => n + x.us, 0), m.maps.reduce((n, x) => n + x.them, 0)]}] : [];
-  m.maps.forEach((x, i) => panes.push({ra: rowsFor(A, x.map, nth(x.map, i)), rb: rowsFor(B, x.map, nth(x.map, i)), us: x.us, them: x.them, map: x.map}));
+  m.maps.forEach((x, i) => panes.push({ra: rowsFor(A, "A", i), rb: rowsFor(B, "B", i), us: x.us, them: x.them, map: x.map, g: hdOf(i)}));
   const veto = (m.veto || []).map((v, i) => `<div class="vstep ${v.action === "pick" ? "pick" : v.action} ${v.by === "self" ? "A" : v.by === "opp" ? "B" : "dec"}"><span class="vn">${i + 1}</span>
     <img src="${MAP_IMG(v.map)}" alt="" onerror="this.remove()"><span class="vm">${esc(cap(v.map))}</span><span class="vw">${v.action === "ban" ? "Ban" : v.by ? "Pick" : "Decider"}</span></div>`).join("");
   const date = m.start ? new Date(m.start * 1000).toLocaleString("de-DE", {weekday: "short", day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit"}) + " Uhr" : "";
+  const played = games[0]?.start ? new Date(games[0].start) : null;
+  const moved = played && m.start && Math.abs(played / 1000 - m.start) > 3 * 3600;
   const res = m.score ? m.score : [m.maps.filter(x => x.us > x.them).length, m.maps.filter(x => x.us < x.them).length];
   const cls = {W: "w", L: "l", D: "d"}[m.outcome] || "d";
   $("#detail").innerHTML = `
     ${crumbs([{label: nameA, href: hashOf({l: league.id, t: String(A.id)})}, {label: `vs ${nameB}`}])}
     <div class="mhero">
       <div class="mht">${teamLogo(A.id) ? `<img src="${esc(teamLogo(A.id))}" alt="">` : ""}<b>${esc(nameA)}</b></div>
-      <div class="mhs"><div class="mscore ${cls}">${res[0]} : ${res[1]}</div><div class="sub">${esc(date)}</div>
+      <div class="mhs"><div class="mscore ${cls}">${res[0]} : ${res[1]}</div>
+        <div class="sub">${moved ? `gespielt ${esc(played.toLocaleString("de-DE", {weekday: "short", day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit"}))} Uhr <span title="Laut OPL angesetzt: ${esc(date)}">(verlegt)</span>` : esc(date)}</div>
         <div class="sub">${esc((/BO\d/i.exec(m.format || "") || [""])[0])}${m.stage ? ` · ${esc(roundName(m.stage))}` : ""}${m.bracket ? ` · ${esc(m.bracket)}` : ""}</div>
         <div class="mhl">${vodLinks(m)}<a class="sub" href="https://www.opleague.pro/match/${esc(m.id)}" target="_blank" rel="noopener">OPL ↗</a></div></div>
-      <div class="mht r">${teamLogo(m.opp?.id) ? `<img src="${esc(teamLogo(m.opp.id))}" alt="">` : ""}<b>${teamLink(m.opp?.id, nameB)}</b></div>
+      <div class="mht r">${teamLogo(bId) ? `<img src="${esc(teamLogo(bId))}" alt="">` : ""}<b>${teamLink(bId, nameB)}</b></div>
     </div>
     ${veto ? `<div class="sechead"><h3>Veto ${tip(`Rot = ${nameA}, blau = ${nameB}, gestrichelt = Decider.`)}</h3></div><div class="vsteps">${veto}</div>` : ""}
-    ${panes.length ? `<div class="sechead"><h3>Scoreboard ${tip("Pro Map aus den OPL-Stats beider Teams, sortiert nach ACS. „Gesamt“ = Summe bzw. Ø über alle Maps. MVP = höchster ACS.")}</h3>
+    ${panes.length ? `<div class="sechead"><h3>Scoreboard ${tip(games.length
+        ? "Aus den Riot-Matchdaten (HenrikDev), sortiert nach ACS. „Gesamt“ = Summe bzw. Ø über alle Maps. Badges: gewonnene Clutches (1vX) und Multikills ab 3 Kills in einer Runde. Rundenverlauf: Symbol = Ausgang, Balken = Loadout-Wert; Details beim Hovern."
+        : "Pro Map aus den OPL-Stats beider Teams, sortiert nach ACS. „Gesamt“ = Summe bzw. Ø über alle Maps. MVP = höchster ACS. Für dieses Match gibt es (noch) keine Rundendaten.")}</h3>
       <div class="seg sbtabs">${tabs.map((t, i) => `<button class="${i ? "" : "on"}" data-sb="${i}">${esc(t)}</button>`).join("")}</div></div>
     ${panes.map((p, i) => `<div class="sbpane" data-sb="${i}"${i ? " hidden" : ""}>
       ${p.all ? `<div class="sbmaps">${m.maps.map(x => `<div class="sbmap" style="--bg:url('${MAP_IMG(x.map)}')"><b>${esc(cap(x.map))}</b><span class="${x.us > x.them ? "pos-up" : x.us < x.them ? "pos-dn" : ""}">${x.us} : ${x.them}</span></div>`).join("")}
         <div class="sbmap sbsum" title="Runden über alle Maps"><b>Σ</b><span class="${p.rounds[0] > p.rounds[1] ? "pos-up" : p.rounds[0] < p.rounds[1] ? "pos-dn" : ""}">${p.rounds[0]} : ${p.rounds[1]}</span></div></div>` : ""}
       ${p.map ? `<div class="sbmap" style="--bg:url('${MAP_IMG(p.map)}')"><b>${esc(cap(p.map))}</b><span class="${p.us > p.them ? "pos-up" : p.us < p.them ? "pos-dn" : ""}">${p.us} : ${p.them}</span></div>` : ""}
-      <div class="sboards">${board(p.ra, nameA, teamLogo(A.id), p.us > p.them, mvpOf(p.ra, p.rb))}${board(p.rb, nameB, teamLogo(m.opp?.id), p.them > p.us, mvpOf(p.ra, p.rb))}</div></div>`).join("")}`
+      ${p.g ? timeline([p.g]) : p.all && p.games.length ? timeline(p.games) : ""}
+      ${(p.all ? p.games : p.g ? [p.g] : []).length ? teamFacts(p.all ? p.games : [p.g]) : ""}
+      <div class="sboards">${board(p.ra, nameA, teamLogo(A.id), p.us > p.them, mvpOf(p.ra, p.rb))}${board(p.rb, nameB, teamLogo(bId), p.them > p.us, mvpOf(p.ra, p.rb))}</div></div>`).join("")}`
       : '<p class="sub">Für dieses Match gibt es keine Map-Ergebnisse.</p>'}`;
   $("#back").onclick = () => showDetail(false);
   document.querySelectorAll(".sbtabs button").forEach(b => b.onclick = () => {

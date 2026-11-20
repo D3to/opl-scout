@@ -14,6 +14,7 @@ Zustand (Cache + zusätzlich hinzugefügte Ligen) liegt in --state (Standard: .s
 in der GitHub Action ist das der Branch `data`.
 """
 import argparse
+import calendar
 import json
 import os
 import re
@@ -906,6 +907,224 @@ def bracket_paths(tid, brackets):
     return out
 
 
+# --------------------------------------------------------------------------- Rundendaten (HenrikDev, Custom-Games)
+# OPL-Matches werden als Custom-Games gespielt und stehen in der Riot-Historie der Spieler. Zuordnung über
+# Map + Endstand + Spielernamen (nicht über die Uhrzeit: Matches werden oft verschoben, OPL-Zeit stimmt dann nicht).
+HD_RESULT = {"Elimination": "E", "Detonate": "D", "Defuse": "F"}   # sonst: Zeit abgelaufen o. Ä. → "T"
+HD_RETRY_H, HD_MAX_TRIES = 20, 7
+
+
+def _hd_names(players):
+    return {(p.get("name") or "").strip().lower() for p in players if p.get("name")}
+
+
+def _hd_side_map(g, names1, names2):
+    """Welche Riot-Seite (Red/Blue) war OPL-Team 1? → (side1, side2) oder None."""
+    sides = {}
+    for p in g.get("players", []):
+        sides.setdefault(p.get("team_id"), set()).add((p.get("name") or "").strip().lower())
+    for s1, s2 in (("Red", "Blue"), ("Blue", "Red")):
+        a, b = sides.get(s1, set()), sides.get(s2, set())
+        if len(a & names1) >= 3 and (not names2 or len(b & names2) >= 3):
+            return s1, s2
+    return None
+
+
+def _hd_fits(g, mp, names1, names2):
+    """Passt das Riot-Spiel zur OPL-Map (Map-Name, Endstand, Spieler)? → (side1, side2) oder None."""
+    md = g.get("metadata") or {}
+    if (md.get("map", {}).get("name") or "").lower() != mp["map"]:
+        return None
+    sm = _hd_side_map(g, names1, names2)
+    if not sm:
+        return None
+    won = {t["team_id"]: (t.get("rounds") or {}).get("won") for t in g.get("teams", [])}
+    return sm if (won.get(sm[0]), won.get(sm[1])) == (mp["s1"], mp["s2"]) else None
+
+
+def hd_condense(g, side1, side2):
+    """Riot-Spiel → kompakte Rundendaten aus Sicht der OPL-Teams 1/2 (ohne Positionen)."""
+    tnum = {side1: 1, side2: 2}
+    players = {p["puuid"]: p for p in g.get("players", [])}
+    team_of = {pu: tnum.get(p.get("team_id")) for pu, p in players.items()}
+    rounds_raw = g.get("rounds", [])
+    nr = len(rounds_raw) or 1
+    kills = sorted(g.get("kills", []), key=lambda k: (k.get("round", 0), k.get("time_in_round_in_ms", 0)))
+    by_round = {}
+    for k in kills:
+        by_round.setdefault(k.get("round", 0), []).append(k)
+    ps = {pu: {"k": 0, "fk": 0, "fd": 0, "kast": 0, "mk": [0, 0, 0, 0], "cl": [0, 0, 0, 0, 0], "pl": 0, "df": 0} for pu in players}
+    rounds = []
+    for rd in rounds_raw:
+        i = rd.get("id", len(rounds))
+        ks = by_round.get(i, [])
+        w = tnum.get(rd.get("winning_team"))
+        role = rd.get("winning_team_role")
+        atk1 = (w == 1) == (role == "Attacker") if w else None
+        # Kills pro Spieler, First Kill/Death, KAST, Clutch
+        rk, assisted, died, traded = {}, set(), {}, set()
+        for k in ks:
+            ki, vi = k.get("killer", {}).get("puuid"), k.get("victim", {}).get("puuid")
+            if ki and team_of.get(ki) != team_of.get(vi):
+                rk[ki] = rk.get(ki, 0) + 1
+            for a in k.get("assistants") or []:
+                assisted.add(a.get("assistant_puuid") or a.get("puuid"))
+            if vi:
+                died[vi] = (ki, k.get("time_in_round_in_ms", 0))
+        for vi, (ki, t) in died.items():   # Trade: Killer des Opfers stirbt innerhalb von 5 s
+            if ki in died and 0 <= died[ki][1] - t <= 5000:
+                traded.add(vi)
+        if ks:
+            f = ks[0]
+            fk, fd = f.get("killer", {}).get("puuid"), f.get("victim", {}).get("puuid")
+            if fk in ps: ps[fk]["fk"] += 1
+            if fd in ps: ps[fd]["fd"] += 1
+        alive = {1: {pu for pu, t in team_of.items() if t == 1}, 2: {pu for pu, t in team_of.items() if t == 2}}
+        clutch = {}
+        for k in ks:
+            vi = k.get("victim", {}).get("puuid")
+            for t in (1, 2):
+                alive[t].discard(vi)
+            for t, o in ((1, 2), (2, 1)):
+                if t not in clutch and len(alive[t]) == 1 and alive[o]:
+                    clutch[t] = (next(iter(alive[t])), len(alive[o]))
+        if w in clutch:
+            pu, n = clutch[w]
+            if pu in ps and 1 <= n <= 5: ps[pu]["cl"][n - 1] += 1
+        for pu in players:
+            if rk.get(pu, 0) or pu in assisted or pu not in died or pu in traded:
+                ps[pu]["kast"] += 1
+            n = rk.get(pu, 0)
+            if n >= 2: ps[pu]["mk"][min(n, 5) - 2] += 1
+        eco = {1: 0, 2: 0}
+        for st in rd.get("stats", []):
+            t = team_of.get(st.get("player", {}).get("puuid"))
+            if t: eco[t] += (st.get("economy") or {}).get("loadout_value") or 0
+        r = {"w": w, "a1": atk1, "r": HD_RESULT.get(rd.get("result"), "T"), "eco": [eco[1], eco[2]]}
+        if ks:
+            r["fb"] = [players.get(ks[0].get("killer", {}).get("puuid"), {}).get("name"), players.get(ks[0].get("victim", {}).get("puuid"), {}).get("name")]
+        if rd.get("plant"):
+            pl = rd["plant"]; pu = (pl.get("player") or {}).get("puuid")
+            r["pl"] = {"s": pl.get("site"), "by": players.get(pu, {}).get("name"), "t": round((pl.get("round_time_in_ms") or 0) / 1000)}
+            if pu in ps: ps[pu]["pl"] += 1
+        if rd.get("defuse"):
+            dfu = rd["defuse"]; pu = (dfu.get("player") or {}).get("puuid")
+            r["df"] = {"by": players.get(pu, {}).get("name")}
+            if pu in ps: ps[pu]["df"] += 1
+        rounds.append(r)
+    out_players = []
+    for pu, p in players.items():
+        s, x = p.get("stats") or {}, ps[pu]
+        shots = (s.get("headshots") or 0) + (s.get("bodyshots") or 0) + (s.get("legshots") or 0)
+        out_players.append({
+            "n": p.get("name"), "tag": p.get("tag"), "t": team_of.get(pu), "ag": (p.get("agent") or {}).get("name"),
+            "acs": round((s.get("score") or 0) / nr), "k": s.get("kills", 0), "d": s.get("deaths", 0), "a": s.get("assists", 0),
+            "adr": round(((s.get("damage") or {}).get("dealt") or 0) / nr), "hs": round(100 * (s.get("headshots") or 0) / shots) if shots else 0,
+            "kast": round(100 * x["kast"] / nr), "fk": x["fk"], "fd": x["fd"], "mk": x["mk"], "cl": x["cl"], "pl": x["pl"], "df": x["df"],
+        })
+    md = g.get("metadata") or {}
+    return {"rid": md.get("match_id"), "map": (md.get("map", {}).get("name") or "").lower(), "start": md.get("started_at"),
+            "len": round((md.get("game_length_in_ms") or 0) / 1000), "rounds": rounds,
+            "players": sorted(out_players, key=lambda p: (p["t"] or 9, -p["acs"]))}
+
+
+def hd_match(m, region, budget):
+    """Rundendaten zu einem fertigen OPL-Match suchen. budget = [verbleibende Anfragen]. Ergebnis im Cache `hdm:<id>`."""
+    key = f"hdm:{m['id']}"
+    old = core.cache.peek(key) or {}
+    if old.get("done") or old.get("tries", 0) >= HD_MAX_TRIES:
+        return old
+    if old.get("last") and time.time() - old["last"] < HD_RETRY_H * 3600:
+        return old
+    maps = [mp for mp in m.get("maps", []) if mp.get("players")]
+    if not maps:
+        return old
+    names1 = set().union(*[_hd_names([p for p in mp["players"] if p["team"] == 1]) for mp in maps])
+    names2 = set().union(*[_hd_names([p for p in mp["players"] if p["team"] == 2]) for mp in maps])
+    # Spieler mit Riot-ID (Kader aus dem Cache), abwechselnd aus beiden Teams
+    ids = []
+    for tk, names in (("t1", names1), ("t2", names2)):
+        team = core.cache.peek(f"team:{m[tk]['id']}") or {}
+        ids.append([x["riot_id"] for x in team.get("members", []) if x.get("riot_id") and x["riot_id"].split("#")[0].strip().lower() in names])
+    order = [x for pair in zip(ids[0] + [None] * 3, ids[1] + [None] * 3) for x in pair if x][:4]
+    found = old.get("games") or [None] * len(maps)
+    if len(found) != len(maps):
+        found = [None] * len(maps)
+    used = {g["rid"] for g in found if g}
+    start = m.get("start") or 0
+
+    def consider(g):
+        for i, mp in enumerate(maps):
+            if found[i]:
+                continue
+            sm = _hd_fits(g, mp, names1, names2)
+            rid = (g.get("metadata") or {}).get("match_id")
+            if sm and rid not in used:
+                found[i] = hd_condense(g, *sm); used.add(rid)
+                return
+
+    def ts(s):
+        try:
+            return calendar.timegm(time.strptime(s[:19], "%Y-%m-%dT%H:%M:%S"))
+        except Exception:
+            return 0
+    for rid in order:
+        if all(found) or budget[0] <= 0:
+            break
+        name, tag = rid.split("#", 1)
+        try:
+            budget[0] -= 1
+            d = core.henrik(f"/valorant/v4/matches/{region}/pc/{core.q(name)}/{core.q(tag)}?mode=custom&size=10")
+            # bei mehreren Kandidaten gewinnt das Spiel, das zeitlich am nächsten am OPL-Termin liegt
+            for g in sorted(d.get("data") or [], key=lambda g: abs(ts((g.get("metadata") or {}).get("started_at") or "") - start)):
+                consider(g)
+            if all(found) or budget[0] <= 0:
+                break
+            # ältere Spiele: gespeicherte Historie durchsuchen, passende per Match-ID nachladen
+            budget[0] -= 1
+            sm_list = core.henrik(f"/valorant/v1/stored-matches/{region}/{core.q(name)}/{core.q(tag)}?mode=custom&size=40").get("data") or []
+            for x in sorted(sm_list, key=lambda x: abs(ts(x["meta"].get("started_at") or "") - start)):
+                if all(found) or budget[0] <= 0:
+                    break
+                mid, mname = x["meta"].get("id"), (x["meta"].get("map", {}).get("name") or "").lower()
+                sc = {x["teams"].get("red"), x["teams"].get("blue")}
+                if mid in used or not any(not found[i] and mp["map"] == mname and {mp["s1"], mp["s2"]} == sc for i, mp in enumerate(maps)):
+                    continue
+                budget[0] -= 1
+                g = core.henrik(f"/valorant/v4/match/{region}/{mid}").get("data") or {}
+                consider(g)
+        except core.HenrikError as e:
+            log(f"  Rundendaten {m['id']}: {name}#{tag}: {e}")
+    res = {"games": found, "done": all(found), "tries": old.get("tries", 0) + 1, "last": time.time()}
+    core.cache.set(key, res)
+    return res
+
+
+def fetch_round_data(leagues, region, budget_n):
+    """Für fertige OPL-Matches (Liga + K.-o.) ohne Rundendaten: suchen, höchstens budget_n Anfragen."""
+    budget = [budget_n]
+    mids = []
+    for lg in leagues:
+        mids += core.cache.peek(f"league_matches:{lg['id']}") or []
+        for d in core.cache.peek(f"league_brackets:{lg['id']}") or []:
+            b = core.cache.peek("bracket:" + d["url"]) or {}
+            mids += [x["id"] for r in b.get("rounds", []) for x in r["matches"]]
+    todo = []
+    for mid in dict.fromkeys(mids):
+        m = core.cache.peek(f"match:{mid}")
+        if m and m.get("state") == "closed" and m.get("maps") and not (core.cache.peek(f"hdm:{mid}") or {}).get("done"):
+            todo.append(m)
+    todo.sort(key=lambda m: -(m.get("start") or 0))   # neueste zuerst (ältere fallen aus der kurzen Historie)
+    n0 = sum(1 for _ in todo)
+    done = 0
+    for m in todo:
+        if budget[0] <= 0:
+            break
+        if hd_match(m, region, budget).get("done"):
+            done += 1
+    log(f"Rundendaten: {done} von {n0} offenen Matches gefunden ({budget_n - budget[0]} Anfragen)")
+
+
 def export(out, leagues, region, repo, ref, base_cfg):
     data = out / "data"
     data.mkdir(parents=True, exist_ok=True)
@@ -974,6 +1193,8 @@ def export(out, leagues, region, repo, ref, base_cfg):
             for e in opl["matches"]:
                 if e["id"] in bmeta:
                     e.update({k: v for k, v in bmeta[e["id"]].items() if k != "league"})
+                if any((core.cache.peek(f"hdm:{e['id']}") or {}).get("games") or []):
+                    e["hd"] = 1   # Rundendaten vorhanden → Match-Seite lädt data/match-<id>.json
             paths_by_team[t["id"]] = [{**p, "league": bracket_league.get(p["event"])} for p in bracket_paths(t["id"], all_brackets)]
             # aktive Spieler = mind. ein Ligaspiel; ohne gespielte Matches → OPL-Position
             active = set(opl["players"]) if opl["maps_played"] else None
@@ -1027,6 +1248,18 @@ def export(out, leagues, region, repo, ref, base_cfg):
         team_ids.update(t["id"] for t in st["teams"])
         team_league.update({t["id"]: lg["id"] for t in st["teams"]})
 
+
+    # Rundendaten je Match (eigene Datei, wird erst auf der Match-Seite geladen)
+    n_hd = 0
+    for key in [k for k in list(core.cache.data) if k.startswith("hdm:")]:
+        v = core.cache.peek(key) or {}
+        if any(v.get("games") or []):
+            mid = key[4:]
+            m = core.cache.peek(f"match:{mid}") or {}
+            (data / f"match-{mid}.json").write_text(json.dumps(
+                {"id": mid, "t1": m.get("t1"), "t2": m.get("t2"), "maps": v["games"]}, ensure_ascii=False, separators=(",", ":")))
+            n_hd += 1
+    log(f"Rundendaten: {n_hd} Matches exportiert")
 
     rank_times = []
     for tid in team_ids:
@@ -1084,6 +1317,7 @@ def main():
     p.add_argument("--budget-minutes", type=float, default=30, help="max. Zeit für Spieler-Updates")
     p.add_argument("--stats-max-age", type=float, default=50, help="Stats älter als X min neu laden")
     p.add_argument("--export-only", action="store_true")
+    p.add_argument("--round-requests", type=int, default=0, help="max. HenrikDev-Anfragen für Rundendaten (OPL-Matches als Custom-Games)")
     p.add_argument("--matches-only", action="store_true", help="nur OPL-Matches crawlen (keine API-Anfragen)")
     p.add_argument("--skip-opl", action="store_true",
                    help="OPL nicht abfragen (Standings/Kader/Matches aus dem Cache), nur Ranked-Stats aktualisieren")
@@ -1156,6 +1390,12 @@ def main():
                         riot_ids += [m["riot_id"] for m in team["members"] if m.get("riot_id")]
                     if not a.skip_opl:
                         crawl_matches(lg)
+                    core.cache.save()
+                if has_key and a.round_requests > 0:
+                    try:   # vor den Rang-Updates: Custom-Games fallen schnell aus der kurzen Riot-Historie
+                        fetch_round_data(sel, region, a.round_requests)
+                    except Exception as e:
+                        log(f"Rundendaten fehlgeschlagen: {e}")
                     core.cache.save()
                 if has_key:
                     refresh_players(riot_ids, region, deadline, max_age=a.stats_max_age * 60)

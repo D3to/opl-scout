@@ -30,9 +30,18 @@ Läuft als statische Seite auf **GitHub Pages**. Eine **GitHub Action** aktualis
 GitHub Action (stündlich :17, oder manuell)
   ├─ OPLeague: Standings + Kader + Riot-IDs
   ├─ HenrikDev-API: Rang & Stats (älteste zuerst, max. 30 min pro Lauf)
+  ├─ HenrikDev-API: Rundendaten fertiger OPL-Matches (Custom-Games, siehe unten)
   ├─ Zustand (Cache) → Branch `data`  (immer nur 1 Commit, keine wachsende Historie)
   └─ statische Seite + JSON → GitHub Pages
 ```
+
+**Rundendaten (Match-Übersicht):** OPL-Matches werden als Custom-Games gespielt und stehen in der
+Riot-Historie der Spieler. Der Export sucht sie über HenrikDev (`v4/matches …?mode=custom`, für ältere
+Spiele `v1/stored-matches` + `v4/match`) und ordnet sie über **Map, Endstand und Spielernamen** zu – nicht über
+die Uhrzeit, weil Matches oft verschoben werden. Gespeichert wird eine verdichtete Fassung (Rundenverlauf,
+Loadout, Plants, ADR, HS%, KAST, First Kills, Multikills, Clutches) als `data/match-<id>.json`.
+Anfragen pro Lauf: täglich 40, stündlich 8, manuell 250 (`--round-requests`). Nicht gefundene Matches werden
+einmal am Tag erneut gesucht, höchstens 7-mal.
 
 **Manuelle Updates** auf der Seite (Button „Login“):
 

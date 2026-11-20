@@ -76,11 +76,11 @@ jobs:
           if [ "$EVENT" = "push" ]; then
             ARGS+=(--matches-only)                        # Code-Änderung: OPL-Matches nachladen + neu bauen (keine API)
           elif [ "$IN_MODE" = "daily" ] || { [ "$EVENT" = "schedule" ] && [ "$CRON" = "0 22 * * *" ]; }; then
-            ARGS+=(--budget-minutes 30)                   # täglicher OPL-Crawl: Standings, Kader, Riot-IDs, Matches
+            ARGS+=(--budget-minutes 30 --round-requests 40)   # täglicher OPL-Crawl: Standings, Kader, Riot-IDs, Matches + Rundendaten
           elif [ "$IN_MODE" = "hourly" ] || [ "$EVENT" = "schedule" ]; then
-            ARGS+=(--budget-minutes 30 --skip-opl)        # stündlich: nur Ranked-Stats
+            ARGS+=(--budget-minutes 30 --skip-opl --round-requests 8)   # stündlich: Ranked-Stats + ein paar Rundendaten
           else
-            ARGS+=(--budget-minutes 40 --league "${IN_LEAGUE:-all}")
+            ARGS+=(--budget-minutes 40 --league "${IN_LEAGUE:-all}" --round-requests 250)
             [ -n "$IN_TEAM" ] && ARGS+=(--team "$IN_TEAM")
             [ -n "$IN_ADD" ] && ARGS+=(--add-league "$IN_ADD" --add-league-name "$IN_ADD_NAME")
           fi
