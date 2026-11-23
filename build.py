@@ -925,7 +925,7 @@ def bracket_paths(tid, brackets):
 # Map + Endstand + Spielernamen (nicht über die Uhrzeit: Matches werden oft verschoben, OPL-Zeit stimmt dann nicht).
 HD_RESULT = {"Elimination": "E", "Detonate": "D", "Defuse": "F"}   # sonst: Zeit abgelaufen o. Ä. → "T"
 HD_RETRY_H, HD_MAX_TRIES = 20, 7
-HD_VERSION = 3   # erhöhen, wenn hd_condense neue/andere Werte liefert → vorhandene Matches werden einmal neu verdichtet
+HD_VERSION = 4   # 2 = Clutch-Fix + cs, 3 = Waffen, 4 = Clutches bei Wiederbelebung nicht werten
 # 2: Clutches nur bis Rundenende, Spike-Clutches (cs) getrennt · 3: Waffen (Kills je Waffe, gekaufte Waffen, Kauf je Runde)
 
 
@@ -1032,7 +1032,15 @@ def hd_condense(g, side1, side2):
             for t, o in ((1, 2), (2, 1)):
                 if t not in clutch and len(alive[t]) == 1 and alive[o]:
                     clutch[t] = (next(iter(alive[t])), len(alive[o]))
-        if w in clutch:
+        # Wiederbelebung (Sage, Clove …): Spieler stirbt ein zweites Mal oder holt > 10 s nach seinem Tod noch Kills
+        # → Alive-Zählung stimmt nicht, Clutch für dieses Team nicht werten
+        dead_t, revived = {}, set()
+        for k in ks:
+            ki, vi, tm = k.get("killer", {}).get("puuid"), k.get("victim", {}).get("puuid"), k.get("time_in_round_in_ms", 0)
+            if ki in dead_t and tm - dead_t[ki] > 10000: revived.add(ki)
+            if vi in dead_t: revived.add(vi)
+            if vi: dead_t[vi] = tm
+        if w in clutch and not any(team_of.get(pu) == w for pu in revived):
             pu, n = clutch[w]
             # überlebt → gewonnener 1vX; gestorben, Runde trotzdem gewonnen (Spike explodiert) → eigene Zählung „Spike-Clutch“
             if pu in ps and 1 <= n <= 5:

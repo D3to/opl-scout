@@ -263,6 +263,7 @@
   .vstep .vw{display:block;font-size:11px;padding:3px 6px;color:var(--mut);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .vstep.pick .vw,.vstep.decider .vw{color:var(--txt)}
   .vstep.A .vw{color:var(--acc)} .vstep.B .vw{color:var(--link)} .vstep.decider .vw{color:var(--warn)}
+  .vstep.undo{cursor:pointer} .vstep.undo:hover{opacity:.75} .vstep.undo:hover .vw::after{content:" ✕"}
   .vstep.todo{border-style:dashed;background:transparent;min-height:82px}
   .vstep.todo .vw{position:absolute;bottom:0}
   .vstep.todo.now{border-color:var(--txt)}
@@ -2476,7 +2477,7 @@ function simulateVeto(pA, pB, pool, seq, firstIsA){
 }
 // Veto-Simulator: Nutzer wählt für beide Teams; Vorschlag für A = Empfehlung, für B = erwartetes Verhalten
 let prepSim = {key: "", picks: []};
-let simAuto = store.get("simAuto") !== false;   // Gegner-Schritte automatisch (Standard an)
+let simAuto = store.get("simAuto") !== false, simHold = false;   // Gegner-Schritte automatisch (Standard an)
 function simScore(pA, pB, mp, act, actorA){
   if(!actorA){ const x = pB.get(mp), y = pA.get(mp);   // Gegner: Gewohnheit wie in simulateVeto
     return act === "ban" ? 2 * x.ban + 0.8 * (y.str - x.str) + 0.4 * y.pick - 1.0 * x.pick : 2 * x.pick + (x.str - y.str) - 1.5 * x.ban; }
@@ -2500,7 +2501,7 @@ function simHtml(pA, pB, pool, seq, firstIsA, nameA, nameB){
   const total = steps.length + (next ? seq.length - next.i : 0);
   const slots = Array.from({length: total}, (_, i) => {
     const s = steps[i];
-    if(s) return `<div class="vstep ${s.act} ${s.actor || "dec"}"><span class="vn">${i + 1}</span><img src="${MAP_IMG(s.map)}" alt="" onerror="this.remove()"><span class="vm">${esc(cap(s.map))}</span>
+    if(s) return `<div class="vstep ${s.act} ${s.actor || "dec"}${s.act !== "decider" ? " undo" : ""}" data-i="${i}"${s.act !== "decider" ? ' title="Klicken: Map wieder rausnehmen (ab diesem Schritt neu)"' : ""}><span class="vn">${i + 1}</span><img src="${MAP_IMG(s.map)}" alt="" onerror="this.remove()"><span class="vm">${esc(cap(s.map))}</span>
       <span class="vw" title="${s.act === "decider" ? "Decider" : `${s.act === "ban" ? "Ban" : "Pick"} ${esc(s.actor === "A" ? nameA : nameB)}`}">${s.act === "decider" ? "Decider" : s.act === "ban" ? "Ban" : "Pick"}</span></div>`;
     const act = seq[i], aA = (i % 2 === 0) === firstIsA;
     return `<div class="vstep todo ${aA ? "A" : "B"}${next && i === next.i ? " now" : ""}"><span class="vn">${i + 1}</span><span class="vw" title="${act === "ban" ? "Ban" : "Pick"} ${esc(aA ? nameA : nameB)}">${act === "ban" ? "Ban" : "Pick"}</span></div>`;
@@ -2722,10 +2723,14 @@ function renderPrep(A, mtA, B, mtB, entry){
   const drawSim = () => {
     const box = $("#vsim"); if(!box) return;
     if(!pool.length){ box.innerHTML = '<span class="sub">Zu wenig Daten.</span>'; return; }
-    if(simAuto){ let r; while((r = simRun(pool, seq, firstIsA, prepSim.picks)).next && !r.next.actorA) fillNext(r); }
+    if(simAuto && !simHold){ let r; while((r = simRun(pool, seq, firstIsA, prepSim.picks)).next && !r.next.actorA) fillNext(r); }
+    simHold = false;
     box.innerHTML = simHtml(pA, pB, pool, seq, firstIsA, nameA, nameB);
     box.querySelectorAll(".simt").forEach(b => b.onclick = () => { prepSim.picks.push(b.dataset.mp); drawSim(); });
-    box.querySelector("#simautoopp").onchange = e => { simAuto = e.target.checked; store.set("simAuto", simAuto); drawSim(); };
+    box.querySelectorAll(".vstep.undo").forEach(el => el.onclick = () => { prepSim.picks.length = +el.dataset.i; simHold = simAuto; drawSim(); });
+    box.querySelector("#simautoopp").onchange = e => { simAuto = e.target.checked; store.set("simAuto", simAuto);
+      if(!prepSim.picks.some((_, i) => (i % 2 === 0) === firstIsA)) prepSim.picks = [];   // nur von vorn, solange erst automatische Gegner-Schritte drin sind
+      drawSim(); };
     box.querySelector("#simundo").onclick = () => {
       if(simAuto){   // bis einschließlich zur letzten eigenen Wahl zurück (Gegner-Schritte folgen ja automatisch)
         while(prepSim.picks.length){ const i = prepSim.picks.length - 1; prepSim.picks.pop(); if((i % 2 === 0) === firstIsA) break; }
