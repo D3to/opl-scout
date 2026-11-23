@@ -126,6 +126,9 @@ Der Key für lokale Läufe steht in `.env` (`HENRIKDEV_API_KEY=…`). `.env` wir
 Die Standard-Ligen stehen in [`config/leagues.json`](config/leagues.json). Weitere Ligen kann ein Admin
 auf der Seite hinzufügen: Standing-URL ins Feld oben eintragen → *Öffnen* (landet im Branch `data`).
 
+Die Stadt je Team steht in [`web/cities.json`](web/cities.json) (Schlüssel = OPL-Team-ID). OPL liefert keine
+Ortsangabe, die Liste wird von Hand gepflegt: `city: null` = unbekannt, `"unsicher": true` = aus dem Namen geraten.
+
 ## Grenzen
 
 - Der kostenlose HenrikDev-Key erlaubt 30 Anfragen/min (2 pro Spieler). Alle ~500 Spieler der

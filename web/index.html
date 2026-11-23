@@ -123,6 +123,7 @@
   .th img{width:48px;height:48px;border-radius:8px}
   .th h2{margin:0}
   .th a{color:var(--mut);font-size:13px}
+  .th .city{margin-left:10px;color:var(--mut);font-size:13px}
   .summary{color:var(--mut);margin:0 0 16px}
   .schips{display:flex;flex-wrap:wrap;gap:6px;margin:4px 0 14px}
   .schip{display:inline-flex;align-items:baseline;gap:6px;background:var(--panel);border:1px solid var(--line);border-radius:999px;padding:3px 11px;font-size:13px}
@@ -894,6 +895,9 @@ const OPT_COLS = new Set(["played","draws","lives","tiebreaker"]);   // am Handy
 const SHORT = {sun:"S-U-N",played:"Sp",wins:"S",draws:"U",losses:"N",points:"Pkt",lives:"Leben",tiebreaker:"TB","round dif":"RD"};
 const LONG = {sun:"Siege-Unentschieden-Niederlagen",played:"Spiele",wins:"Siege",draws:"Unentschieden",losses:"Niederlagen",points:"Punkte",lives:"Leben",tiebreaker:"Tiebreaker","round dif":"Rundendifferenz"};
 
+let CITIES = null;   // Stadt je Team-ID (web/cities.json, von Hand gepflegt)
+const cityOf = id => CITIES?.[String(id)]?.city || "";
+const cityHtml = id => { const c = CITIES?.[String(id)]; return c?.city ? `<span class="city" title="${c.unsicher ? "Stadt vermutet (aus dem Teamnamen)" : "Stadt der Hochschule"}">📍 ${esc(c.city)}${c.unsicher ? "?" : ""}</span>` : ""; };
 let meta = null, league = null, curTeam = null, current = 0;
 const metric = "top5";   // Seitenleiste zeigt nur noch den Ø der Top 5
 let sortKey = "rank", sortDir = 1;
@@ -911,6 +915,7 @@ function showNotice(h){ const w=$("#notice"); w.innerHTML=h; w.style.display=h?"
 // ------------------------------------------------------------------ Daten
 async function loadMeta(){
   meta = await getJSON("data/meta.json?t=" + Date.now());
+  if(!CITIES) CITIES = await getJSON("cities.json?t=" + meta.generated).catch(() => ({}));
   const next = new Date(); next.setMinutes(meta.schedule_minute ?? 17, 0, 0);
   if(next <= new Date()) next.setHours(next.getHours() + 1);
   // Zeitangabe immer mit Datum (beide Zeilen gleich)
@@ -1286,7 +1291,7 @@ function renderTeam(team, mt){
   $("#detail").innerHTML = `
     ${crumbs([{label: team.name || mt?.name}], `${refreshButton(`Ranked-Stand: ${fmtTime(oldest)}${newest - oldest > 300 ? `, teils neuer (bis ${fmtTime(newest)})` : ""}`)}<span id="teamstatus" class="sub"></span>`)}
     <div class="th"><img src="${esc(mt?.logo||"")}" alt=""><div><h2>${esc(team.name||mt?.name)}</h2>
-      <a href="${esc(mt?.url||"")}" target="_blank" rel="noopener">OPL ↗</a></div>
+      <a href="${esc(mt?.url||"")}" target="_blank" rel="noopener">OPL ↗</a>${cityHtml(mt?.id || team.id)}</div>
       <div class="avgs${avgPeak ? " peak" : ""}" id="avgs" title="Klicken: zwischen aktuellem Rang und Peak umschalten">
       ${(() => { const L = avgPeak ? peaks : elos;
         return avgBox((avgPeak ? "Peak · " : "") + "Ø Top 5", byOpl ? "Ø der 5 besten Spieler mit Ligaspiel" : "Ø der 5 besten Player + Captain", L.filter(e=>e.core).map(e=>e.elo).sort((a,b)=>b-a).slice(0,5), "", avgPeak); })()}
@@ -2639,7 +2644,7 @@ function renderPrep(A, mtA, B, mtB, entry){
   const date = entry?.start ? new Date(entry.start * 1000).toLocaleString("de-DE", {weekday: "short", day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit"}) + " Uhr" : "";
   const sumA = league.summaries[mtA?.id]?.top5, sumB = league.summaries[mtB?.id]?.top5;
   const tcell = (mt, sm, name) => `<div class="pteam"><img src="${esc(mt?.logo || "")}" alt=""><div><b>${esc(name)}</b>
-    <div class="sub">${mt?.group ? `Gr. ${esc(mt.group)} · ` : ""}Platz ${esc(mt?.rank ?? "–")}</div>
+    <div class="sub">${mt?.group ? `Gr. ${esc(mt.group)} · ` : ""}Platz ${esc(mt?.rank ?? "–")}${cityOf(mt?.id) ? ` · ${esc(cityOf(mt?.id))}` : ""}</div>
     ${sm ? `<div class="rank"><img src="${RANK_ICON(sm.tier)}" alt=""><span class="sub">Top 5: ${esc(TIERS[sm.tier])} · ${sm.elo}</span></div>` : ""}</div></div>`;
 
   // Map-Vergleich (mit Angriff/Verteidigung aus den Rundendaten, falls vorhanden)

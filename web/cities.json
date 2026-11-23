@@ -1,0 +1,271 @@
+{
+ "_hinweis": "Stadt je OPL-Team-ID. city = null → unbekannt, bitte ergänzen. \"unsicher\": true → geraten, bitte prüfen. name nur zur Orientierung.",
+ "12659": {
+  "name": "404 University-Esports Dresden Mittens",
+  "city": "Dresden"
+ },
+ "14277": {
+  "name": "AIX BaoBao",
+  "city": "Aachen"
+ },
+ "5341": {
+  "name": "AIX eSports",
+  "city": "Aachen"
+ },
+ "14236": {
+  "name": "AIXtasy",
+  "city": "Aachen"
+ },
+ "11675": {
+  "name": "BB Fortress",
+  "city": "Berlin/Brandenburg"
+ },
+ "14320": {
+  "name": "BeK Orcas",
+  "city": "Kiel"
+ },
+ "10211": {
+  "name": "BieleBieleBiele",
+  "city": "Bielefeld"
+ },
+ "14317": {
+  "name": "DG Enerates",
+  "city": "Düsseldorf"
+ },
+ "14330": {
+  "name": "DG exmatrikulierte",
+  "city": "Düsseldorf"
+ },
+ "5650": {
+  "name": "DG Vortex",
+  "city": "Düsseldorf"
+ },
+ "14312": {
+  "name": "Duality Mannheim",
+  "city": "Mannheim"
+ },
+ "7608": {
+  "name": "eSports Erlangen",
+  "city": "Erlangen"
+ },
+ "10421": {
+  "name": "Essen Gaming",
+  "city": "Essen"
+ },
+ "5440": {
+  "name": "EVD Athene",
+  "city": "Darmstadt"
+ },
+ "8996": {
+  "name": "FLUFF",
+  "city": "Flensburg"
+ },
+ "12922": {
+  "name": "Haikle Angelenheit",
+  "city": "Hamburg"
+ },
+ "5807": {
+  "name": "Hamburg University",
+  "city": "Hamburg"
+ },
+ "12745": {
+  "name": "Hamburg University 2",
+  "city": "Hamburg"
+ },
+ "14324": {
+  "name": "HGI Astelic",
+  "city": "Ingolstadt"
+ },
+ "5384": {
+  "name": "HGI Black",
+  "city": "Ingolstadt"
+ },
+ "12888": {
+  "name": "HHaiyat",
+  "city": "Hamburg"
+ },
+ "5638": {
+  "name": "HNU Recon",
+  "city": "Neu-Ulm"
+ },
+ "14319": {
+  "name": "HsGL Luebecker Lurkers",
+  "city": "Lübeck"
+ },
+ "9123": {
+  "name": "HSK Demon",
+  "city": "Kempten"
+ },
+ "9116": {
+  "name": "HSMW Esports Celestials",
+  "city": "Mittweida"
+ },
+ "7463": {
+  "name": "HSMW Esports Menace",
+  "city": "Mittweida"
+ },
+ "11781": {
+  "name": "HSMW Esports Mythics",
+  "city": "Mittweida"
+ },
+ "14276": {
+  "name": "Ilmenau Titans",
+  "city": "Ilmenau"
+ },
+ "10431": {
+  "name": "KIT SC Finanzamt",
+  "city": "Karlsruhe"
+ },
+ "12382": {
+  "name": "KIT SC Fireflies",
+  "city": "Karlsruhe"
+ },
+ "5609": {
+  "name": "KIT SC HNELLEBRILLE",
+  "city": "Karlsruhe"
+ },
+ "10429": {
+  "name": "KIT SC UFFED",
+  "city": "Karlsruhe"
+ },
+ "12729": {
+  "name": "LR OSK Army",
+  "city": "Regensburg"
+ },
+ "14268": {
+  "name": "LR Touch Grass",
+  "city": "Regensburg"
+ },
+ "5330": {
+  "name": "LUNA Augsburg",
+  "city": "Augsburg"
+ },
+ "11697": {
+  "name": "LUNA LooneyTunes",
+  "city": "Augsburg"
+ },
+ "14298": {
+  "name": "LUNA NOX",
+  "city": "Augsburg"
+ },
+ "7749": {
+  "name": "LUNA Umbara",
+  "city": "Augsburg"
+ },
+ "8867": {
+  "name": "Munich eSports 1",
+  "city": "München"
+ },
+ "5790": {
+  "name": "Munich eSports 2",
+  "city": "München"
+ },
+ "9063": {
+  "name": "OSGG FlamingOS",
+  "city": "Osnabrück"
+ },
+ "14008": {
+  "name": "Otterly Lost BeK",
+  "city": "Kiel"
+ },
+ "5645": {
+  "name": "OVGU Esports e.V.",
+  "city": "Magdeburg"
+ },
+ "5611": {
+  "name": "Paderborn E-Sports",
+  "city": "Paderborn"
+ },
+ "5516": {
+  "name": "Rhine Dragons",
+  "city": "Sankt Augustin"
+ },
+ "7605": {
+  "name": "RUB Buffalos A",
+  "city": "Bochum"
+ },
+ "11688": {
+  "name": "RUB Buffalos B",
+  "city": "Bochum"
+ },
+ "12873": {
+  "name": "RUB Buffalos C",
+  "city": "Bochum"
+ },
+ "14305": {
+  "name": "RUB Buffalos D",
+  "city": "Bochum"
+ },
+ "12688": {
+  "name": "Saarland Honkers",
+  "city": "Saarbrücken"
+ },
+ "9019": {
+  "name": "Saarland Hooters",
+  "city": "Saarbrücken"
+ },
+ "13992": {
+  "name": "Saarland swallows",
+  "city": "Saarbrücken"
+ },
+ "12689": {
+  "name": "Saarland Woodpeckers",
+  "city": "Saarbrücken"
+ },
+ "11835": {
+  "name": "Sparrows Ulm",
+  "city": "Ulm"
+ },
+ "5643": {
+  "name": "TryHitMe",
+  "city": "Gießen"
+ },
+ "5513": {
+  "name": "Tut Tut Mannheim",
+  "city": "Mannheim"
+ },
+ "5340": {
+  "name": "UED Fortnite",
+  "city": "Dortmund"
+ },
+ "6933": {
+  "name": "UEH Team 2",
+  "city": "Hannover"
+ },
+ "6986": {
+  "name": "UEH Washed",
+  "city": "Hannover"
+ },
+ "14297": {
+  "name": "UKG Dizzy Bandits",
+  "city": "Kassel"
+ },
+ "12799": {
+  "name": "UKG washedbears",
+  "city": "Kassel"
+ },
+ "14323": {
+  "name": "UniversityMainz",
+  "city": "Mainz"
+ },
+ "5449": {
+  "name": "Wuppertal eSports Bergbanditen",
+  "city": "Wuppertal"
+ },
+ "10422": {
+  "name": "LUMA",
+  "city": null
+ },
+ "14315": {
+  "name": "randomTeamname",
+  "city": null
+ },
+ "14328": {
+  "name": "T3",
+  "city": null
+ },
+ "14313": {
+  "name": "TheHeadshotMatters",
+  "city": null
+ }
+}
