@@ -60,7 +60,7 @@ steht „verlegt“ an der Match-Übersicht). Gespeichert wird eine verdichtete 
 | ESR | Entry Success Rate: gewonnene Erst-Duelle der Runde (First Kills ÷ (First Kills + First Deaths)) |
 | Clutch 1vX | letzter Spieler gewinnt die Runde und überlebt; Kills nach Rundenende zählen nicht |
 | Spike-Clutch | letzter Spieler stirbt, Runde wird durch die Spike-Explosion gewonnen (eigener lila Badge) |
-| Thrifty | Runde mit höchstens 45 % des gegnerischen Loadouts gewonnen (ohne Pistol-Runden) |
+| Thrifty | Runde mit mindestens 12.500 weniger Loadout als der Gegner gewonnen – dieselbe Grenze wie Riots Thrifty-Einblendung (aus 188 Maps abgeleitet) |
 | Kaufarten | Team-Loadout: Eco < 5.000, Semi-Eco < 10.000, Semi-Buy < 20.000, Full Buy ab 20.000; Pistol-Runden 1 und 13 |
 | Haupt-Planter | meiste Plants im Team (mind. 25 % der Plants) |
 | Entry-Fragger | meiste Erst-Duelle pro Runde (Stammspieler, mind. 3) |

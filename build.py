@@ -925,7 +925,7 @@ def bracket_paths(tid, brackets):
 # Map + Endstand + Spielernamen (nicht über die Uhrzeit: Matches werden oft verschoben, OPL-Zeit stimmt dann nicht).
 HD_RESULT = {"Elimination": "E", "Detonate": "D", "Defuse": "F"}   # sonst: Zeit abgelaufen o. Ä. → "T"
 HD_RETRY_H, HD_MAX_TRIES = 20, 7
-HD_VERSION = 4   # 2 = Clutch-Fix + cs, 3 = Waffen, 4 = Clutches bei Wiederbelebung nicht werten
+HD_VERSION = 5   # 2 = Clutch-Fix + cs, 3 = Waffen, 4 = Clutches bei Wiederbelebung nicht werten, 5 = Riots Thrifty-Zeremonie
 # 2: Clutches nur bis Rundenende, Spike-Clutches (cs) getrennt · 3: Waffen (Kills je Waffe, gekaufte Waffen, Kauf je Runde)
 
 
@@ -1061,6 +1061,8 @@ def hd_condense(g, side1, side2):
                     wp[t].append(wn)
                     if pu in ps: ps[pu]["wb"][wn] = ps[pu]["wb"].get(wn, 0) + 1
         r = {"w": w, "a1": atk1, "r": HD_RESULT.get(rd.get("result"), "T"), "eco": [eco[1], eco[2]], "wp": [sorted(wp[1]), sorted(wp[2])]}
+        if rd.get("ceremony") == "CeremonyThrifty" and w:
+            r["th"] = 1   # Riots eigene Thrifty-Zeremonie (nur eine Zeremonie pro Runde – Clutch/Ace verdrängen sie)
         if ks:
             r["fb"] = [players.get(ks[0].get("killer", {}).get("puuid"), {}).get("name"), players.get(ks[0].get("victim", {}).get("puuid"), {}).get("name"),
                        _wname(ks[0].get("weapon"))]
@@ -1198,7 +1200,7 @@ def fetch_round_data(leagues, region, budget_n):
     log(f"Rundendaten: {done} von {n0} offenen Matches gefunden ({budget_n - budget[0]} Anfragen)")
 
 
-THRIFTY = 0.45   # Runde mit höchstens 45 % des gegnerischen Loadouts gewonnen = Thrifty (passt zu Riots Zeremonie)
+THRIFTY = 12500   # Thrifty = Runde gewonnen mit mind. 12.500 weniger Loadout als der Gegner – aus 188 Maps gegen Riots Zeremonie geprüft (trennt 107 Thrifties von 2405 normalen Runden fehlerfrei)
 
 
 def _buy(v, pistol):
@@ -1235,7 +1237,7 @@ def hd_maps_agg(games):
             if r.get("wp"):   # Team-Runden mit mind. einem Operator
                 x["op"][1] += 2; x["op"][0] += sum("Operator" in side for side in r["wp"])
             lw, ll = r["eco"][r["w"] - 1], r["eco"][2 - r["w"]]
-            if i not in (0, 12) and ll and lw <= THRIFTY * ll:
+            if r.get("th") or ll - lw >= THRIFTY:
                 x["thrifty"] += 1
     return out
 
@@ -1276,9 +1278,9 @@ def hd_team_agg(tid, match_ids):
                         x = mp["retake"].setdefault(r["pl"]["s"], [0, 0]); x[1] += 1; x[0] += won
                 if r.get("fb"):
                     mp["fk"][1] += 1; mp["fk"][0] += first_team.get(r["fb"][0]) == side
-                # Thrifty-Chance: eigenes Loadout höchstens 45 % des gegnerischen (wie Riots „Thrifty“), ohne Pistol-Runden
+                # Thrifty-Chance: eigenes Loadout mind. 12.500 unter dem gegnerischen (wie Riots „Thrifty“)
                 own, opp = r["eco"][side - 1], r["eco"][2 - side]
-                if i not in (0, 12) and opp and own <= THRIFTY * opp:
+                if (r.get("th") and won) or opp - own >= THRIFTY:
                     mp["thrifty"][1] += 1; mp["thrifty"][0] += won
                 if r.get("wp"):
                     mp["op"][1] += 1; mp["op"][0] += "Operator" in r["wp"][side - 1]

@@ -613,7 +613,7 @@
   .rleg .reco{display:inline-flex;min-width:26px;height:15px}
   .rlegsep{margin-left:10px;color:var(--txt)}
   .rcol:hover .rcell{filter:brightness(1.3)}
-  .rcell{position:relative}
+  .rcell{position:relative} .rcell.thr{z-index:6}   /* eigener Stapel: $ bleibt auch mit Hover-Filter über den Nachbarzellen */
   .thrb{position:absolute;z-index:5;top:-5px;right:-4px;width:12px;height:12px;border-radius:50%;background:var(--warn);color:#2a1c00;font-size:9px;font-weight:800;line-height:12px;text-align:center;box-shadow:0 0 0 1.5px var(--panel)}
   .thrb.static{position:static;display:inline-block;margin-right:2px}
   .rico{display:inline-block;width:14px;height:14px;background:currentColor;-webkit-mask:var(--m) center/contain no-repeat;mask:var(--m) center/contain no-repeat}
@@ -2913,7 +2913,7 @@ function playstyleHtml(o){
   return `<div class="sechead"><h3>Spielweise ${tip(`Aus den Riot-Matchdaten von ${H.n} ${H.n === 1 ? "Map" : "Maps"}${o.maps_played > H.n ? ` (von ${o.maps_played} gespielten)` : ""}. Plants: Runden nach eigenem Plant gewonnen / Plants. Retakes: Runden nach gegnerischem Plant noch gewonnen. Kaufarten: Siegquote nach eigenem Loadout. Ohne Farbe = zu wenig Daten (unter 5 Runden bzw. 3 Plants).`)}</h3></div>
   ${oddWeaponsHtml({opl: o})}
   <div class="scrollx"><table class="maptable pstyle"><thead><tr><th>Map</th><th class="num">Runden</th><th class="num">Pistol</th><th class="num" title="Anteil der Runden mit dem ersten Kill">First Kills</th>
-    <th class="num" title="Runden mit höchstens 45 % des gegnerischen Loadouts: davon gewonnen (Thrifty)">Thrifty</th>
+    <th class="num" title="Runden mit mind. 12.500 weniger Loadout als der Gegner: davon gewonnen">Thrifty</th>
     <th class="num" title="Anteil der Runden, in denen das Team mindestens einen Operator gekauft hat">Operator</th>
     <th class="c">Plants (Angriff)</th><th class="c">Retakes (Verteidigung)</th><th class="c" title="Siegquote nach eigener Kaufart">Kaufarten</th></tr></thead><tbody>${
     rows.map(([mp, x]) => `<tr><td class="mcell"><div class="mapname maplink" data-map="${esc(mp)}"><img src="${MAP_IMG(mp)}" alt="" loading="lazy" onerror="this.remove()"><span>${esc(cap(mp))}</span></div><span class="sub">${x.n} ${x.n === 1 ? "Map" : "Maps"}</span></td>
@@ -2960,8 +2960,9 @@ function badgeCompact(cl = [], mk = [], cs = []){
 const hdPlayer = (T, name) => T?.opl?.hd?.players?.[String(name || "").toLowerCase()] || null;
 // Kaufart aus dem Loadout-Wert eines Teams (Summe der 5 Spieler)
 const buyType = (v, pistol) => pistol ? "Pistol" : v < 5000 ? "Eco" : v < 10000 ? "Semi-Eco" : v < 20000 ? "Semi-Buy" : "Full Buy";
-// Thrifty: Runde mit höchstens 45 % des gegnerischen Loadouts gewonnen (ohne Pistol-Runden)
-const isThrifty = (r, i) => i !== 0 && i !== 12 && r.w && r.eco[2 - r.w] > 0 && r.eco[r.w - 1] <= 0.45 * r.eco[2 - r.w];
+// Thrifty: Runde mit mind. 12.500 weniger Loadout als der Gegner gewonnen (aus Riots Zeremonie abgeleitet) oder von Riot so markiert
+const THRIFTY_DIFF = 12500;
+const isThrifty = (r, i) => !!r.w && (!!r.th || r.eco[2 - r.w] - r.eco[r.w - 1] >= THRIFTY_DIFF);
 const BUY_CLS = {"Pistol": "bp", "Eco": "be", "Semi-Eco": "bse", "Semi-Buy": "bsb", "Full Buy": "bf"};
 const RES_IC = {E: ["☠", "Elimination"], D: ["💥", "Spike gezündet"], F: ["✂", "Spike entschärft"], T: ["⏱", "Zeit abgelaufen"]};
 // Runden-Tooltip im Rundenverlauf: eigene Box mit Waffen-Icons (Daten je Runde in RTIP, Index im data-rt)
@@ -3080,7 +3081,7 @@ function renderMatch(A, mtA, B, m, H = null){
         const atk = r.a1 == null ? null : ((side === 1) === r.a1);
         if(i === 0 || i === 12){ pn++; if(r.w === side) pw++; }
         const own = r.eco[side - 1], opp = r.eco[2 - side];
-        if(i !== 0 && i !== 12 && opp && own <= 0.45 * opp){ tn++; if(r.w === side) tw++; }
+        if((r.th && r.w === side) || opp - own >= THRIFTY_DIFF){ tn++; if(r.w === side) tw++; }
         if(atk === true){ an++; if(r.w === side) aw++;
           if(r.pl){ const x = (plant[g.map] ??= {})[r.pl.s] ??= {n: 0, w: 0}; x.n++; if(r.w === side) x.w++; } }
         if(atk === false){ dn++; if(r.w === side) dw++;
@@ -3114,7 +3115,7 @@ function renderMatch(A, mtA, B, m, H = null){
       return `<tr><td title="${esc(t)}">${l}</td>${cell(a, b)}${cell(b, a)}</tr>`;
     };
     return `<div class="tfacts"><table class="sbt"><thead><tr><th></th><th class="num">${esc(nameA)}</th><th class="num">${esc(nameB)}</th></tr></thead><tbody>
-      ${row("Pistol-Runden", "pistol")}${row("Angriff gewonnen", "atk")}${row("Verteidigung gewonnen", "def")}${row("First Kills", "fk", "Anteil der Runden, in denen das Team den ersten Kill hatte")}${row("Thrifties", "thrifty", "Runden mit höchstens 45 % des gegnerischen Loadouts: davon gewonnen / gespielt")}
+      ${row("Pistol-Runden", "pistol")}${row("Angriff gewonnen", "atk")}${row("Verteidigung gewonnen", "def")}${row("First Kills", "fk", "Anteil der Runden, in denen das Team den ersten Kill hatte")}${row("Thrifties", "thrifty", "Runden mit mind. 12.500 weniger Loadout als der Gegner: davon gewonnen / gespielt")}
       ${siteRow("Plants (Angriff)", "p", "post", "Je Site: Runden nach eigenem Plant gewonnen / Plants. Dahinter die Quote über alle Sites.")}
       ${siteRow("Retakes (Verteidigung)", "r", "ret", "Je Site: Runden nach gegnerischem Plant noch gewonnen (Retake oder Defuse) / Plants des Gegners. Dahinter die Quote über alle Sites.")}</tbody></table></div>`;
   };
