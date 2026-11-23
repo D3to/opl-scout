@@ -1,0 +1,18 @@
+{
+ "_hinweis": "Sperren je Riot-ID. type \"season\" = Rest der Saison (zählt nicht mehr zum Ø-Rang des Teams), \"match\" = die nächsten 'matches' Matches des Teams ab 'since' (Standard 1; läuft automatisch ab, sobald sie gespielt sind). since = Datum JJJJ-MM-TT, note = optionaler Grund.",
+ "bans": [
+  {
+   "riot_id": "Till0l0l0#1312",
+   "type": "season",
+   "since": "2026-11-23",
+   "note": "Regelverstoß"
+  },
+  {
+   "riot_id": "ifnotwinter#161",
+   "type": "match",
+   "since": "2026-11-23",
+   "note": "Regelverstoß",
+   "matches": 3
+  }
+ ]
+}

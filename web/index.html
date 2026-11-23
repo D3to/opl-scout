@@ -123,7 +123,8 @@
   .th img{width:48px;height:48px;border-radius:8px}
   .th h2{margin:0}
   .th a{color:var(--mut);font-size:13px}
-  .th .city{margin-left:10px;color:var(--mut);font-size:13px}
+  .th .city{margin-left:10px;color:var(--mut);font-size:13px;white-space:nowrap}
+  .th .city .pin{width:13px;height:13px;margin-right:3px;vertical-align:-2px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
   .summary{color:var(--mut);margin:0 0 16px}
   .schips{display:flex;flex-wrap:wrap;gap:6px;margin:4px 0 14px}
   .schip{display:inline-flex;align-items:baseline;gap:6px;background:var(--panel);border:1px solid var(--line);border-radius:999px;padding:3px 11px;font-size:13px}
@@ -284,6 +285,15 @@
   .simres .sr{display:grid;grid-template-columns:150px minmax(60px,1fr) 190px;gap:10px;align-items:center;background:var(--panel);border-radius:8px;padding:6px 10px}
   .simres .sr img{width:56px;height:28px;object-fit:cover;border-radius:4px;vertical-align:middle;margin-right:6px}
   .simres .bar{height:8px;border-radius:4px;background:var(--link);overflow:hidden} .simres .bar i{display:block;height:100%;background:var(--acc)}
+  /* Saisonsperre: Zeile rot unterlegt mit Querstreifen */
+  /* Hintergrund an der Zeile (nicht je Zelle): Streifen laufen über Zellgrenzen durch und scrollen mit */
+  tr.sban{background:repeating-linear-gradient(135deg,color-mix(in srgb, var(--bad) 16%, transparent) 0 8px,color-mix(in srgb, var(--bad) 6%, transparent) 8px 16px)}
+  tr.sban td,tr.mban td{background:transparent !important}
+  /* Sperre nächstes Match: ähnlich, aber orange */
+  tr.mban{background:repeating-linear-gradient(135deg,color-mix(in srgb, var(--warn) 16%, transparent) 0 8px,color-mix(in srgb, var(--warn) 5%, transparent) 8px 16px)}
+  .rpl.rban > span:first-child{text-decoration:line-through;text-decoration-color:var(--bad)} .rpl.rban .banned{text-decoration:none}
+  .rbanname{text-decoration-color:var(--bad)} .bnote{margin:6px 0 0}
+  .banned{display:inline-block;margin-left:6px;font-size:11px;font-weight:600;padding:1px 6px;border-radius:4px;color:var(--bad);background:color-mix(in srgb, var(--bad) 14%, transparent);vertical-align:middle;white-space:nowrap}
   .pcomps{display:flex;flex-direction:column;gap:8px}
   .pcomp{display:grid;grid-template-columns:140px 1fr 1fr;gap:10px;align-items:center;background:var(--panel);border-radius:10px;padding:8px 12px}
   .pcm{display:flex;align-items:center;gap:8px} .pcm img{width:56px;height:28px;object-fit:cover;border-radius:4px}
@@ -913,9 +923,27 @@ const OPT_COLS = new Set(["played","draws","lives","tiebreaker"]);   // am Handy
 const SHORT = {sun:"S-U-N",played:"Sp",wins:"S",draws:"U",losses:"N",points:"Pkt",lives:"Leben",tiebreaker:"TB","round dif":"RD"};
 const LONG = {sun:"Siege-Unentschieden-Niederlagen",played:"Spiele",wins:"Siege",draws:"Unentschieden",losses:"Niederlagen",points:"Punkte",lives:"Leben",tiebreaker:"Tiebreaker","round dif":"Rundendifferenz"};
 
+let BANS = null;   // Sperren (web/bans.json, von Hand gepflegt)
+// Aktive Sperre eines Kadermitglieds: {kind: "season"|"match", note, match} oder null.
+// Match-Sperre = die nächsten n Matches des Teams ab 'since'; abgelaufen, sobald alle gespielt sind.
+function banOf(T, m){
+  const rid = (m?.riot_id || "").toLowerCase();
+  const b = rid && (BANS || []).find(x => (x.riot_id || "").toLowerCase() === rid);
+  if(!b) return null;
+  if(b.type === "season") return {kind: "season", note: b.note || ""};
+  const since = Date.parse(b.since + "T00:00:00") / 1000 || 0;
+  const n = Math.max(1, +b.matches || 1);
+  const ms = ((T._full || T).opl?.matches || []).filter(x => (x.start || 0) >= since).sort((a, c) => (a.start || 0) - (c.start || 0)).slice(0, n);
+  const open = ms.filter(x => !(x.maps?.length || x.state === "closed"));
+  const left = n - (ms.length - open.length);   // noch offene Sperr-Spiele
+  if(left <= 0) return null;
+  return {kind: "match", note: b.note || "", match: open[0] || null, left, n};
+}
+const banByName = (T, name) => { const m = findMember(T, (name || "").toLowerCase()); return m ? banOf(T, m) : null; };
+const banHtml = b => !b ? "" : `<span class="banned" title="${esc(b.kind === "season" ? "Für den Rest der Saison gesperrt – zählt nicht zum Ø-Rang" : `Gesperrt für ${b.n === 1 ? "das nächste Match" : `${b.n} Spieltage, noch ${b.left}`}${b.match ? ` – nächstes: vs ${b.match.opp?.name || "?"}${b.match.start ? ", " + fmtDay(b.match.start) : ""}` : ""}`)}${b.note ? " · " + b.note : ""}">${b.kind === "season" ? "Saisonsperre" : b.n === 1 ? "Sperre nächstes Match" : `Sperre noch ${b.left} ${b.left === 1 ? "Spieltag" : "Spieltage"}`}</span>`;
 let CITIES = null;   // Stadt je Team-ID (web/cities.json, von Hand gepflegt)
 const cityOf = id => CITIES?.[String(id)]?.city || "";
-const cityHtml = id => { const c = CITIES?.[String(id)]; return c?.city ? `<span class="city" title="${c.unsicher ? "Stadt vermutet (aus dem Teamnamen)" : "Stadt der Hochschule"}">📍 ${esc(c.city)}${c.unsicher ? "?" : ""}</span>` : ""; };
+const cityHtml = id => { const c = CITIES?.[String(id)]; return c?.city ? `<span class="city" title="${c.unsicher ? "Stadt vermutet (aus dem Teamnamen)" : "Stadt der Hochschule"}"><svg class="pin" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 22s7-7.1 7-12.5A7 7 0 0 0 5 9.5C5 14.9 12 22 12 22z"/><circle cx="12" cy="9.5" r="2.5"/></svg>${esc(c.city)}${c.unsicher ? "?" : ""}</span>` : ""; };
 let meta = null, league = null, curTeam = null, current = 0;
 const metric = "top5";   // Seitenleiste zeigt nur noch den Ø der Top 5
 let sortKey = "rank", sortDir = 1;
@@ -934,6 +962,7 @@ function showNotice(h){ const w=$("#notice"); w.innerHTML=h; w.style.display=h?"
 async function loadMeta(){
   meta = await getJSON("data/meta.json?t=" + Date.now());
   if(!CITIES) CITIES = await getJSON("cities.json?t=" + meta.generated).catch(() => ({}));
+  if(!BANS) BANS = ((await getJSON("bans.json?t=" + meta.generated).catch(() => ({}))).bans || []);
   const next = new Date(); next.setMinutes(meta.schedule_minute ?? 17, 0, 0);
   if(next <= new Date()) next.setHours(next.getHours() + 1);
   // Zeitangabe immer mit Datum (beide Zeilen gleich)
@@ -1239,7 +1268,7 @@ function renderTeam(team, mt){
   const roles = hasHd ? keyRoles(Object.values(team.opl.hd.players)) : null;
   const showRoles = !!(roles && (roles.op || roles.entry || roles.planter));
   const items = members.map((m, idx) => {
-    const head = `<td class="c6"><div><span class="pname plink" data-key="${esc(memberKey(team, m))}" title="Spielerprofil öffnen">${esc(m.opl_name)}</span> ${m.position && m.position !== "Player" ? `<span class="pos ${esc(m.position)} ${act(m)?"":"np"}">${esc(m.position)}</span>` : ""}${roleChip(oplPlayer(team, m))}</div>
+    const head = `<td class="c6"><div><span class="pname plink" data-key="${esc(memberKey(team, m))}" title="Spielerprofil öffnen">${esc(m.opl_name)}</span>${banHtml(banOf(team, m))} ${m.position && m.position !== "Player" ? `<span class="pos ${esc(m.position)} ${act(m)?"":"np"}">${esc(m.position)}</span>` : ""}${roleChip(oplPlayer(team, m))}</div>
       <div class="sub psub">${m.riot_id ? esc(m.riot_id) : "keine Riot-ID hinterlegt"}${statSrc === "opl" && hasHd ? (h => h ? badgeCompact(h.cl, h.mk, h.cs) : "")(hdPlayer(team, oplPlayer(team, m)?.name)) : ""}</div></td>`;
     const NC = statSrc === "opl" ? (hasHd ? 9 : 7) : 6;          // Anzahl Stat-Spalten je Quelle
     const roleTd = showRoles ? `<td class="c rolecol" data-l="Rolle">${roleIcons(oplPlayer(team, m)?.name, roles) || '<span class="sub">–</span>'}</td>` : "";
@@ -1255,8 +1284,9 @@ function renderTeam(team, mt){
       else {
         if(p.updated) times.push(p.updated);
         const c = p.current || {};
-        if(c.elo) elos.push({elo: c.elo, core: act(m)});
-        if(p.peak?.tier > 2) peaks.push({elo: (p.peak.tier - 3) * 100 + 50, core: act(m)});   // Peak als Stufen-Mitte
+        const cnt = act(m) && banOf(team, m)?.kind !== "season";   // Saisonsperre zählt nicht zum Ø-Rang
+        if(c.elo) elos.push({elo: c.elo, core: cnt});
+        if(p.peak?.tier > 2) peaks.push({elo: (p.peak.tier - 3) * 100 + 50, core: cnt});   // Peak als Stufen-Mitte
         const rr = c.rr != null && c.tier > 2 ? ` <span class="sub">${c.rr} RR</span>` : "";
         const lc = c.last_change ? ` <span class="${c.last_change>0?"pos-up":"pos-dn"} sub">${c.last_change>0?"+":""}${c.last_change}</span>` : "";
         const peakSeason = p.peak?.season ? ` <span class="sub">(${esc(p.peak.season)})</span>` : "";
@@ -1288,7 +1318,7 @@ function renderTeam(team, mt){
       }
       body = rankTds + statTds + `<td class="c6">${link}${localTag}${statSrc !== "opl" && p?.matches_error ? `<div class="err" title="${esc(p.matches_error)}">Matches n/a</div>` : ""}</td>`;
     }
-    return {m, idx, active: act(m), v: sortValues(team, m), html: `<tr class="${act(m)?"":"nonplayer"}">${head}${roleTd}${body}</tr>`};
+    return {m, idx, active: act(m), v: sortValues(team, m), html: `<tr class="${act(m)?"":"nonplayer"}${(b => b ? (b.kind === "season" ? " sban" : " mban") : "")(banOf(team, m))}">${head}${roleTd}${body}</tr>`};
   });
   // Sortierung: aktive immer zuerst; innerhalb nach gewählter Spalte, sonst nach Rollen-Tag
   const {k: sk, dir: sd} = playerSort;
@@ -1569,19 +1599,21 @@ function roleChip(p, compact = false){
 function teamRoles(T){
   const o = T.opl || {}, n = o.maps_played || 0;
   const per = {}; for(const [a, c] of o.agents || []){ const ro = AGENT_ROLE[a.toLowerCase()]; if(ro) per[ro] = (per[ro] || 0) + c; }
-  const players = Object.values(o.players || {}).map(p => ({p, r: playerRoles(p)}));
+  const players = Object.values(o.players || {}).map(p => ({p, r: playerRoles(p), ban: banByName(T, p.name)}));
   return ROLES.map(([ro, de]) => {
-    const cov = players.map(({p, r}) => { const x = r.find(y => y[0] === ro); return x && x[2] >= ROLE_MIN ? {name: p.name, maps: x[1], pct: x[2], main: r[0][0] === ro} : null; })
-      .filter(Boolean).sort((a, b) => b.maps - a.maps);
-    // Rolle wirklich gespielt = in mind. 2 Maps (Stand-ins mit einer Map zählen nur halb)
-    const solid = cov.filter(c => c.maps >= 2);
+    const cov = players.map(({p, r, ban}) => { const x = r.find(y => y[0] === ro); return x && x[2] >= ROLE_MIN ? {name: p.name, maps: x[1], pct: x[2], main: r[0][0] === ro, ban} : null; })
+      .filter(Boolean).sort((a, b) => !!a.ban - !!b.ban || b.maps - a.maps);
+    // Rolle wirklich gespielt = in mind. 2 Maps (Stand-ins mit einer Map zählen nur halb); gesperrte Spieler zählen nicht
+    const solid = cov.filter(c => c.maps >= 2 && !c.ban);
     return {ro, de, avg: n ? (per[ro] || 0) / n : 0, cov, depth: solid.length};
   });
 }
 function roleStatus(r){
-  if(!r.cov.length) return {cls: "gap", txt: "keiner", tip: "Kein Spieler spielt diese Rolle regelmäßig"};
-  if(r.depth <= 1) return {cls: "thin", txt: `nur ${r.cov[0].name}`, tip: "Nur ein Spieler deckt diese Rolle regelmäßig ab – fällt er aus, fehlt sie"};
-  return {cls: "ok", txt: `${r.depth} Spieler`, tip: `${r.depth} Spieler mit mind. 2 Maps auf dieser Rolle`};
+  const free = r.cov.filter(c => !c.ban), bn = r.cov.length - free.length;
+  const bt = bn ? ` (${bn} gesperrt)` : "";
+  if(!free.length) return {cls: "gap", txt: "keiner", tip: (bn ? "Alle Spieler dieser Rolle sind gesperrt" : "Kein Spieler spielt diese Rolle regelmäßig")};
+  if(r.depth <= 1) return {cls: "thin", txt: `nur ${free[0].name}`, tip: "Nur ein Spieler deckt diese Rolle regelmäßig ab – fällt er aus, fehlt sie" + bt};
+  return {cls: "ok", txt: `${r.depth} Spieler`, tip: `${r.depth} Spieler mit mind. 2 Maps auf dieser Rolle` + bt};
 }
 function rolesHtml(T){
   if(!T.opl?.maps_played || !Object.keys(AGENT_ROLE).length) return "";
@@ -1591,14 +1623,14 @@ function rolesHtml(T){
   <div class="roles">${rs.map(r => { const st = roleStatus(r);
     return `<div class="role"><div class="rhd">${roleImg(r.ro, "big")}<div><b>${esc(r.de)}</b><div class="sub">Ø ${r.avg.toFixed(1).replace(".", ",")} pro Map</div></div></div>
       <div><span class="rstat ${st.cls}" title="${esc(st.tip)}">${esc(st.txt)}</span></div>
-      ${r.cov.length ? r.cov.map(c => `<div class="rpl${c.maps < 2 ? " thinp" : ""}"><span${c.main ? "" : ' class="sec" title="Nebenrolle"'}>${esc(c.name)}${c.main ? "" : "*"}</span><span class="sub">${c.pct}% · ${c.maps}&nbsp;${c.maps === 1 ? "Map" : "Maps"}</span></div>`).join("")
+      ${r.cov.length ? r.cov.map(c => `<div class="rpl${c.maps < 2 ? " thinp" : ""}${c.ban ? " rban" : ""}"><span${c.main ? "" : ' class="sec" title="Nebenrolle"'}>${esc(c.name)}${c.main ? "" : "*"}${c.ban ? banHtml(c.ban) : ""}</span><span class="sub">${c.pct}% · ${c.maps}&nbsp;${c.maps === 1 ? "Map" : "Maps"}</span></div>`).join("")
         : '<div class="sub">Niemand spielt diese Rolle regelmäßig.</div>'}</div>`; }).join("")}</div>
   <p class="sub">* = Nebenrolle des Spielers. ${flex.length ? `Flex-Spieler (mehrere Rollen ≥ 30%): ${flex.map(p => esc(p.name)).join(", ")}` : ""}</p>`;
 }
 function rolesCompact(T){
   if(!T.opl?.maps_played) return '<p class="sub">Keine Ligaspiele.</p>';
   return teamRoles(T).map(r => { const st = roleStatus(r);
-    return `<div class="pp">${roleImg(r.ro)}<span class="pn"><b>${esc(r.de)}</b> <span class="sub">${r.cov.slice(0, 3).map(c => esc(c.name)).join(", ") || "–"}</span></span>
+    return `<div class="pp">${roleImg(r.ro)}<span class="pn"><b>${esc(r.de)}</b> <span class="sub">${r.cov.slice(0, 3).map(c => c.ban ? `<s class="rbanname">${esc(c.name)}</s> <span class="banned" title="${c.ban.kind === "season" ? "Saisonsperre" : `Sperre noch ${c.ban.left} von ${c.ban.n} Spielen`}">gesperrt</span>` : esc(c.name)).join(", ") || "–"}</span></span>
       <span class="rstat ${st.cls}" title="${esc(st.tip)}">${esc(st.cls === "ok" ? r.depth + "×" : st.cls === "thin" ? "nur 1" : "keiner")}</span></div>`; }).join("");
 }
 
@@ -1818,7 +1850,7 @@ function renderPlayer(team, mt, key){
   $("#detail").innerHTML = `
     ${crumbs([{label: teamName, href: hashOf({l: league.id, t: String(team.id)})}, {label: name}])}
     <div class="phead"><img class="tlogo" src="${esc(mt?.logo || "")}" alt="" onerror="this.remove()"><div>
-      <h2>${esc(name)}${roleChip(agg)}</h2>
+      <h2>${esc(name)}${roleChip(agg)}${banHtml(banOf(team, m))}</h2>
       <div class="sub">${m?.position && m.position !== "Player" ? `<span class="pos ${esc(m.position)}">${esc(m.position)}</span> · ` : ""}<span class="tlink" data-team="${esc(team.id)}">${esc(teamName)}</span>${mt?.rank ? ` · Platz ${esc(mt.rank)}` : ""}
         ${m?.riot_id ? ` · ${esc(m.riot_id)} · <a href="https://tracker.gg/valorant/profile/riot/${encodeURIComponent(m.riot_id)}/overview" target="_blank" rel="noopener">tracker.gg ↗</a>` : ""}</div></div></div>
 
@@ -2628,13 +2660,19 @@ function prepRecs(pA, pB, pool){
   const picks = [...rows].filter(r => !bans.some(b => b.mp === r.mp)).sort((x, y) => y.pick - x.pick).slice(0, 2).map(r => ({...r, why: why(r, "pick")}));
   return {rows, bans, picks};
 }
+// Gesperrte Spieler mit Ligaspielen (fehlen im Spieler-Duell)
+function bannedNote(T){
+  const bs = Object.values(T.opl?.players || {}).map(p => [p, banByName(T, p.name)]).filter(([, b]) => b);
+  return bs.length ? `<p class="sub bnote">Fehlt gesperrt: ${bs.map(([p, b]) => `${esc(p.name)}${banHtml(b)}`).join(", ")}</p>` : "";
+}
 function topPlayers(T){
-  return Object.values(T.opl?.players || {}).sort((a, b) => b.maps - a.maps || b.acs - a.acs).slice(0, 5).map(p => {
+  return Object.values(T.opl?.players || {}).map(p => {
     const m = T.members.find(m => (m.riot_id || "").split("#")[0].toLowerCase() === p.name.toLowerCase()
                                 || (m.opl_name || "").toLowerCase() === p.name.toLowerCase());
     const st = m && m.riot_id ? statsFor(T, m) : null;
-    return {...p, member: m, rank: st?.current};
-  });
+    return {...p, member: m, rank: st?.current, ban: m ? banOf(T, m) : null};
+  }).filter(p => !p.ban)   // gesperrt (Saison oder nächste Spiele): fällt fürs nächste Match aus
+    .sort((a, b) => b.maps - a.maps || b.acs - a.acs).slice(0, 5);
 }
 
 // Alle VODs eines Teams aus dieser Saison (für die Gegner-Analyse)
@@ -2737,7 +2775,7 @@ function renderPrep(A, mtA, B, mtB, entry){
   const maxAcsB = Math.max(0, ...plB.map(p => p.acs)), maxFbB = Math.max(0, ...plB.map(p => p.fb));
   const plList = (pl, mark) => pl.length ? pl.map(p => `<div class="pp plink" data-team="${esc(mark ? B.id : A.id)}" data-key="${esc(p.name.toLowerCase())}" title="Spielerprofil öffnen">
       ${p.rank?.tier > 2 ? `<img class="ri" src="${RANK_ICON(p.rank.tier)}" alt="" title="${esc(p.rank.name || "")}">` : '<span class="ri"></span>'}
-      <span class="pn">${esc(p.member?.opl_name || p.name)}${roleChip(p, true)}${(T => T.opl?.hd ? roleIcons(p.name, keyRoles(Object.values(T.opl.hd.players))) : "")(mark ? B : A)}${(h => h ? badgeHtml(h.cl, h.mk, h.cs) : "")(hdPlayer(mark ? B : A, p.name))}${mark && p.acs === maxAcsB ? ' <span class="star" title="Höchster ACS">★ ACS</span>' : ""}${mark && p.fb === maxFbB && p.fb ? ' <span class="star" title="Meiste First Bloods">★ FB</span>' : ""}</span>
+      <span class="pn">${esc(p.member?.opl_name || p.name)}${banHtml(p.ban)}${roleChip(p, true)}${(T => T.opl?.hd ? roleIcons(p.name, keyRoles(Object.values(T.opl.hd.players))) : "")(mark ? B : A)}${(h => h ? badgeHtml(h.cl, h.mk, h.cs) : "")(hdPlayer(mark ? B : A, p.name))}${mark && p.acs === maxAcsB ? ' <span class="star" title="Höchster ACS">★ ACS</span>' : ""}${mark && p.fb === maxFbB && p.fb ? ' <span class="star" title="Meiste First Bloods">★ FB</span>' : ""}</span>
       <span class="pv">${p.acs}<small>ACS</small></span><span class="pv">${p.kd}<small>K/D</small></span>
       <span class="pv">${p.fb}<small>FB</small></span>${(h => h ? `<span class="pv">${h.adr}<small>ADR</small></span><span class="pv">${h.kast}%<small>KAST</small></span>` : "")(hdPlayer(mark ? B : A, p.name))}${agentIcons(p.agents, false, 2)}</div>`).join("") : '<p class="sub">Keine Ligaspiele.</p>';
 
@@ -2772,7 +2810,7 @@ function renderPrep(A, mtA, B, mtB, entry){
       <th class="c">Vorteil</th><th class="num">${esc(nameB)} W–L</th>${hdAny ? '<th class="num" title="Gewonnene Runden auf Angriff / Verteidigung (Rundendaten)">Angr./Vert.</th>' : ""}<th class="num" title="Picks / Bans des Gegners">Pick/Ban</th></tr></thead><tbody>${mapRows}</tbody></table></div>
 
     <div class="sechead"><h3>Spieler-Duell ${tip(`Je die 5 Spieler mit den meisten Ligamaps. ★ = bester Wert beim Gegner.`)}</h3></div>
-    <div class="duel"><div><h4>${esc(nameA)}</h4>${plList(plA, false)}</div><div><h4>${esc(nameB)}</h4>${plList(plB, true)}</div></div>
+    <div class="duel"><div><h4>${esc(nameA)}</h4>${plList(plA, false)}${bannedNote(A)}</div><div><h4>${esc(nameB)}</h4>${plList(plB, true)}${bannedNote(B)}</div></div>
 
     ${A.opl?.maps_played || B.opl?.maps_played ? `<div class="sechead"><h3>Rollen ${tip(`Aus den Ligamaps: wer welche Rolle spielt und wo ein Team wenig Tiefe hat.`)}</h3></div>
     <div class="duel"><div><h4>${esc(nameA)}</h4>${rolesCompact(A)}</div><div><h4>${esc(nameB)}</h4>${rolesCompact(B)}</div></div>` : ""}

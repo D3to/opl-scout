@@ -130,6 +130,10 @@ auf der Seite hinzufügen: Standing-URL ins Feld oben eintragen → *Öffnen* (l
 Die Stadt je Team steht in [`web/cities.json`](web/cities.json) (Schlüssel = OPL-Team-ID). OPL liefert keine
 Ortsangabe, die Liste wird von Hand gepflegt: `city: null` = unbekannt, `"unsicher": true` = aus dem Namen geraten.
 
+Sperren stehen in [`web/bans.json`](web/bans.json) (Riot-ID, `type` = `season` oder `match`, `since` = Datum). Gesperrte
+Spieler sind auf Teamseite, Profil und in der Vorbereitung markiert. Eine Saisonsperre zählt nicht mehr zum Ø-Rang
+des Teams und fällt aus dem Spieler-Duell. Eine Match-Sperre gilt für die nächsten `matches` Matches ab `since` (Standard 1) und läuft danach ab.
+
 ## Grenzen
 
 - Der kostenlose HenrikDev-Key erlaubt 30 Anfragen/min (2 pro Spieler). Alle ~500 Spieler der

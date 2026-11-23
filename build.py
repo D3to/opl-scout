@@ -448,6 +448,15 @@ def likely_comp(mp, map_comps, players, tagents, meta=None, mlist=None):
     return {"agents": [x["agent"] for x in picks], "players": picks, "src": "predicted"}
 
 
+def season_bans():
+    """Riot-IDs (klein) mit Saisonsperre aus web/bans.json – zählen nicht zum Ø-Rang."""
+    try:
+        bans = json.loads((HERE / "web" / "bans.json").read_text()).get("bans", [])
+    except Exception:
+        return set()
+    return {b["riot_id"].strip().lower() for b in bans if b.get("type") == "season" and b.get("riot_id")}
+
+
 def team_opl(tid, matches, meta=None):
     """Map-Pool, Match-Liste und Liga-Stats der Spieler für ein Team."""
     maps, players, mlist = {}, {}, []
@@ -1402,7 +1411,7 @@ def export(out, leagues, region, repo, ref, base_cfg):
             paths_by_team[t["id"]] = [{**p, "league": bracket_league.get(p["event"])} for p in bracket_paths(t["id"], all_brackets)]
             # aktive Spieler = mind. ein Ligaspiel; ohne gespielte Matches → OPL-Position
             active = set(opl["players"]) if opl["maps_played"] else None
-            summaries[t["id"]] = core.team_summary(t["id"], region, active)
+            summaries[t["id"]] = core.team_summary(t["id"], region, active, season_bans())
         ko_league = [m for mid, m in bmatch.items() if bmeta[mid]["league"] == lg["id"] and not bmeta[mid]["wildcard"]]
         overview = league_overview(league_matches[lg["id"]] + ko_league, opl_by_team, st["teams"])
         # Rundendaten je Map der Liga (Gruppenphase + K.-o. dieser Liga, ohne Wildcard)

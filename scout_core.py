@@ -422,8 +422,8 @@ def is_active(member, active_names):
             or (member.get("opl_name") or "").lower() in active_names)
 
 
-def team_summary(team_id, region, active_names=None):
-    """Ø-Elo aus dem Cache (ohne neue Requests)."""
+def team_summary(team_id, region, active_names=None, banned=()):
+    """Ø-Elo aus dem Cache (ohne neue Requests). banned = Riot-IDs (klein) mit Saisonsperre → nicht aktiv."""
     team = cache.peek(f"team:{team_id}")
     if not team:
         return None
@@ -432,7 +432,7 @@ def team_summary(team_id, region, active_names=None):
     for m in team["members"]:
         if not m.get("riot_id"):
             continue
-        act = is_active(m, active_names)
+        act = is_active(m, active_names) and m["riot_id"].lower() not in banned
         with_id += act
         st = cache.peek(f"stats:{region}:{m['riot_id'].lower()}")
         elo = ((st or {}).get("current") or {}).get("elo")
