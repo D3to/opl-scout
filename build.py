@@ -1101,16 +1101,21 @@ def hd_match(m, region, budget):
         return old
     if not stale and old.get("last") and time.time() - old["last"] < HD_RETRY_H * 3600:
         return old
-    maps = [mp for mp in m.get("maps", []) if mp.get("players")]
+    # alle Maps durchsuchen – auch solche, zu denen OPL keine Spielerstatistik hat (Index passt so zur Match-Seite)
+    maps = [mp for mp in m.get("maps", []) if mp.get("map") and mp.get("s1") is not None]
     if not maps:
         return old
-    names1 = set().union(*[_hd_names([p for p in mp["players"] if p["team"] == 1]) for mp in maps])
-    names2 = set().union(*[_hd_names([p for p in mp["players"] if p["team"] == 2]) for mp in maps])
-    # Spieler mit Riot-ID (Kader aus dem Cache), abwechselnd aus beiden Teams
+    with_pl = [mp for mp in maps if mp.get("players")]
+    names1 = set().union(set(), *[_hd_names([p for p in mp["players"] if p["team"] == 1]) for mp in with_pl])
+    names2 = set().union(set(), *[_hd_names([p for p in mp["players"] if p["team"] == 2]) for mp in with_pl])
+    # Spieler mit Riot-ID (Kader aus dem Cache), abwechselnd aus beiden Teams; ohne OPL-Spielerliste → ganzer Kader
     ids = []
     for tk, names in (("t1", names1), ("t2", names2)):
         team = core.cache.peek(f"team:{m[tk]['id']}") or {}
-        ids.append([x["riot_id"] for x in team.get("members", []) if x.get("riot_id") and x["riot_id"].split("#")[0].strip().lower() in names])
+        roster = [x["riot_id"] for x in team.get("members", []) if x.get("riot_id")]
+        if not names:
+            names.update(r.split("#")[0].strip().lower() for r in roster)
+        ids.append([r for r in roster if r.split("#")[0].strip().lower() in names])
     order = [x for pair in zip(ids[0] + [None] * 3, ids[1] + [None] * 3) for x in pair if x][:4]
     found = (old.get("games") if not stale else None) or [None] * len(maps)
     if len(found) != len(maps):
