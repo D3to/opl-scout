@@ -634,12 +634,14 @@ def opl_match(mid, refresh=False):
     current = old and (old.get("v") == MATCH_PARSER_VERSION or (old.get("state") == "closed" and old.get("v", 0) >= 2))
     if old and not refresh and current:
         age = cache.age(key) or 0
-        if old.get("state") == "closed":
-            if old.get("maps") or age < 6 * 3600:   # ohne Ergebnis-Details: alle 6 h erneut prüfen
-                return old
         start = old.get("start") or 0
-        # Startzeit vorbei oder in < 3 h: stündlich prüfen, sonst alle 12 h
-        limit = 50 * 60 if start < time.time() + 3 * 3600 else 12 * 3600
+        live = start < time.time() < start + 12 * 3600   # läuft gerade / heute gespielt
+        if old.get("state") == "closed":
+            # ohne Ergebnis-Details: alle 6 h erneut prüfen, am Spieltag alle 15 min
+            if old.get("maps") or age < (15 * 60 if live else 6 * 3600):
+                return old
+        # am Spieltag (Start vorbei, < 12 h): alle 15 min; Start in < 3 h: stündlich; sonst alle 12 h
+        limit = 15 * 60 if live else 50 * 60 if start < time.time() + 3 * 3600 else 12 * 3600
         if age < limit:
             return old
     res = parse_match(fetch(f"https://www.opleague.pro/match/{mid}"), mid)

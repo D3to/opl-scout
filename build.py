@@ -1113,7 +1113,9 @@ def hd_match(m, region, budget):
     if not changed:
         if (old.get("done") and not stale) or (not stale and old.get("tries", 0) >= HD_MAX_TRIES):
             return old
-        if not stale and old.get("last") and time.time() - old["last"] < HD_RETRY_H * 3600:
+        # frisches Match (< 36 h): Riot-Daten kommen oft verzögert → schon nach 30 min erneut versuchen
+        fresh = time.time() - (m.get("start") or 0) < 36 * 3600
+        if not stale and old.get("last") and time.time() - old["last"] < (0.5 if fresh else HD_RETRY_H) * 3600:
             return old
     if not maps:
         return old
@@ -1186,7 +1188,9 @@ def hd_match(m, region, budget):
             res["v"] = HD_VERSION   # aufgeben: alte Verdichtung bleibt
         core.cache.set(key, res)
         return res
-    res = {"games": found, "done": all(found), "tries": old.get("tries", 0) + 1, "last": time.time(), "v": HD_VERSION}
+    fresh = time.time() - (m.get("start") or 0) < 36 * 3600
+    # Versuche an frischen Matches zählen nicht gegen HD_MAX_TRIES
+    res = {"games": found, "done": all(found), "tries": old.get("tries", 0) + (0 if fresh and not all(found) else 1), "last": time.time(), "v": HD_VERSION}
     core.cache.set(key, res)
     return res
 

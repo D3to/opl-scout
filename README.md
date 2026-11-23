@@ -33,6 +33,7 @@ GitHub Action (Update data)
   ├─ stündlich :15   HenrikDev: Rang & Ranked-Stats (älteste zuerst, max. 30 min) + bis zu 8 Rundendaten-Anfragen
   ├─ täglich 22:00 UTC  OPLeague: Standings, Kader, Riot-IDs, Matches, Brackets, VODs + bis zu 40 Rundendaten-Anfragen
   ├─ manuell         Liga/Team wie angegeben + bis zu 250 Rundendaten-Anfragen
+  ├─ sonntags 17–1 Uhr  alle 20 min „quick“ (Spieltag: Ergebnisse + Rundendaten; stündlicher Lauf wird dann auch zu quick)
   ├─ manuell „quick“ nur Tabelle, Matches + bis zu 40 Rundendaten-Anfragen (Kader aus dem Cache, keine Ränge) – wenige Minuten
   ├─ Zustand (Cache) → Branch `data` (immer nur 1 Commit)
   └─ statische Seite + JSON → GitHub Pages

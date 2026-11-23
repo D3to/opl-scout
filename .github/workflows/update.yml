@@ -5,6 +5,7 @@ on:
   schedule:
     - cron: "15 * * * *"          # stündlich: nur Rang/Ranked-Stats (HenrikDev), OPL aus dem Cache
     - cron: "0 22 * * *"          # täglich 22:00 UTC = 23:00 Uhr deutscher Winterzeit (Sommerzeit: 0:00 Uhr): OPL komplett
+    - cron: "5,25,45 16-23 * * 0"  # sonntags (Standard-Spieltag) 17–1 Uhr alle 20 min: quick (Ergebnisse + Rundendaten)
     # GitHub startet geplante Läufe oft einige Minuten verspätet
   workflow_dispatch:               # manuell (Webseite/Actions-Tab) oder per externem Cron-Dienst (mode=hourly/daily)
     inputs:
@@ -73,6 +74,11 @@ jobs:
           IN_ADD_NAME: ${{ inputs.add_league_name }}
         run: |
           ARGS=(--state state --out _site)
+          # Sonntagabend (Spieltag): stündlicher Lauf wird zu quick, damit die Warteschlange für die 20-min-Läufe frei bleibt
+          SUN_EVE=$([ "$(date -u +%u)" = "7" ] && [ "$(date -u +%H)" -ge 16 ] && echo 1 || echo 0)
+          if [ "$CRON" = "5,25,45 16-23 * * 0" ] || { [ "$SUN_EVE" = "1" ] && { [ "$IN_MODE" = "hourly" ] || { [ "$EVENT" = "schedule" ] && [ "$CRON" = "15 * * * *" ]; }; }; }; then
+            IN_MODE=quick
+          fi
           if [ "$EVENT" = "push" ]; then
             ARGS+=(--matches-only)                        # Code-Änderung: OPL-Matches nachladen + neu bauen (keine API)
           elif [ "$IN_MODE" = "quick" ]; then
