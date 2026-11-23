@@ -1106,12 +1106,15 @@ def hd_match(m, region, budget):
     key = f"hdm:{m['id']}"
     old = core.cache.peek(key) or {}
     stale = old.get("done") and old.get("v", 1) < HD_VERSION   # gefunden, aber mit älterer Verdichtung
-    if (old.get("done") and not stale) or (not stale and old.get("tries", 0) >= HD_MAX_TRIES):
-        return old
-    if not stale and old.get("last") and time.time() - old["last"] < HD_RETRY_H * 3600:
-        return old
     # alle Maps durchsuchen – auch solche, zu denen OPL keine Spielerstatistik hat (Index passt so zur Match-Seite)
     maps = [mp for mp in m.get("maps", []) if mp.get("map") and mp.get("s1") is not None]
+    # andere Map-Anzahl als beim letzten Versuch (neue Maps bei OPL oder geänderte Suche) → sofort neu suchen
+    changed = not old.get("done") and old.get("games") is not None and len(old["games"]) != len(maps)
+    if not changed:
+        if (old.get("done") and not stale) or (not stale and old.get("tries", 0) >= HD_MAX_TRIES):
+            return old
+        if not stale and old.get("last") and time.time() - old["last"] < HD_RETRY_H * 3600:
+            return old
     if not maps:
         return old
     with_pl = [mp for mp in maps if mp.get("players")]
