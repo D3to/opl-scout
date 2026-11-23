@@ -1563,6 +1563,8 @@ def main():
     p.add_argument("--export-only", action="store_true")
     p.add_argument("--round-requests", type=int, default=0, help="max. HenrikDev-Anfragen für Rundendaten (OPL-Matches als Custom-Games)")
     p.add_argument("--matches-only", action="store_true", help="nur OPL-Matches crawlen (keine API-Anfragen)")
+    p.add_argument("--quick", action="store_true",
+                   help="schnell: Tabelle + Matches + Rundendaten neu, Kader/Riot-IDs aus dem Cache, keine Rang-Updates")
     p.add_argument("--skip-opl", action="store_true",
                    help="OPL nicht abfragen (Standings/Kader/Matches aus dem Cache), nur Ranked-Stats aktualisieren")
     a = p.parse_args()
@@ -1619,13 +1621,14 @@ def main():
                     # --skip-opl (stündlicher Lauf): OPL nur lesen, wenn noch gar nichts im Cache ist
                     st = (core.cache.peek("standing:" + lg["url"]) if a.skip_opl else None) \
                         or core.opl_standings(lg["url"], refresh=True)
-                    log(f"{st['title']}: {len(st['teams'])} Teams" + (" (OPL aus Cache)" if a.skip_opl else ""))
+                    log(f"{st['title']}: {len(st['teams'])} Teams" + (" (OPL aus Cache)" if a.skip_opl else " (Kader aus Cache)" if a.quick else ""))
                     for t in st["teams"]:
-                        team = core.cache.peek(f"team:{t['id']}") if a.skip_opl else None
+                        # --quick: Kader nur laden, wenn das Team neu ist
+                        team = core.cache.peek(f"team:{t['id']}") if a.skip_opl or a.quick else None
                         if not team:
                             # täglicher OPL-Lauf: Kader + Riot-IDs komplett neu
                             try:
-                                team = core.opl_team(t["id"], refresh=True, refresh_ids=not a.skip_opl)
+                                team = core.opl_team(t["id"], refresh=True, refresh_ids=not (a.skip_opl or a.quick))
                             except Exception as e:
                                 log(f"  Kader {t['name']} fehlgeschlagen: {e}")
                                 team = core.cache.peek(f"team:{t['id']}")
@@ -1641,7 +1644,7 @@ def main():
                     except Exception as e:
                         log(f"Rundendaten fehlgeschlagen: {e}")
                     core.cache.save()
-                if has_key:
+                if has_key and not a.quick:
                     refresh_players(riot_ids, region, deadline, max_age=a.stats_max_age * 60)
     finally:
         core.cache.save()

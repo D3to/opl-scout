@@ -9,9 +9,9 @@ on:
   workflow_dispatch:               # manuell (Webseite/Actions-Tab) oder per externem Cron-Dienst (mode=hourly/daily)
     inputs:
       mode:
-        description: "manual = Liga/Team wie angegeben, hourly = nur Ranked-Stats, daily = OPL komplett"
+        description: "quick = nur Tabelle, Matches + Rundendaten (wenige Minuten), manual = Liga/Team wie angegeben, hourly = nur Ranked-Stats, daily = OPL komplett"
         type: choice
-        options: [manual, hourly, daily]
+        options: [manual, quick, hourly, daily]
         default: manual
       league:
         description: "Liga: 'all', Event-ID oder Standing-URL"
@@ -75,6 +75,8 @@ jobs:
           ARGS=(--state state --out _site)
           if [ "$EVENT" = "push" ]; then
             ARGS+=(--matches-only)                        # Code-Änderung: OPL-Matches nachladen + neu bauen (keine API)
+          elif [ "$IN_MODE" = "quick" ]; then
+            ARGS+=(--quick --league "${IN_LEAGUE:-all}" --round-requests 40)   # schnell: Tabelle, Matches, Rundendaten – keine Kader/Ränge
           elif [ "$IN_MODE" = "daily" ] || { [ "$EVENT" = "schedule" ] && [ "$CRON" = "0 22 * * *" ]; }; then
             ARGS+=(--budget-minutes 30 --round-requests 40)   # täglicher OPL-Crawl: Standings, Kader, Riot-IDs, Matches + Rundendaten
           elif [ "$IN_MODE" = "hourly" ] || [ "$EVENT" = "schedule" ]; then
