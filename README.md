@@ -67,6 +67,8 @@ steht „verlegt“ an der Match-Übersicht). Gespeichert wird eine verdichtete 
 | Haupt-Planter | meiste Plants im Team (mind. 25 % der Plants) |
 | Entry-Fragger | meiste Erst-Duelle pro Runde (Stammspieler, mind. 3) |
 | Operator-Spieler | meiste Runden mit Operator (mind. 3 und 8 % seiner Runden) |
+| Odin-Spieler | meiste Runden mit Odin (mind. 3 und 8 % seiner Runden) |
+| Meiste Tode/Map | Stammspieler mit den meisten Toden pro Map (Liga-Stats) |
 | Ungewöhnliche Waffen | Kill-Anteil des Teams mind. doppelt so hoch wie im Liga-Ø (mind. 3 % und 5 Kills) |
 
 Werte mit wenig Daten (unter 5 Runden bzw. 3 Plants) erscheinen ohne Grün/Rot.

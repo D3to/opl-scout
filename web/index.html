@@ -476,6 +476,9 @@
   .mcomps{display:flex;flex-direction:column;gap:3px}
   .mcomps .comp{display:flex;align-items:center;gap:2px}
   .lbwrap{overflow-x:auto;background:var(--panel);border-radius:10px}
+  /* Bestenliste: eigener Scrollbereich, damit die Kopfzeile beim Scrollen oben bleibt (overflow-x allein bricht sticky) */
+  .lbwrap.lbsticky{max-height:75vh;overflow:auto}
+  .lbwrap.lbsticky thead th{position:sticky;top:0;z-index:2;background:var(--panel);box-shadow:0 1px 0 var(--line)}
   .lbtable{width:100%;border-collapse:collapse}
   .lbtable td{border-top:1px solid var(--line);white-space:nowrap}
   .lbtable th.num,.lbtable td.num{text-align:center}
@@ -608,6 +611,8 @@
   .ric-op{--c:var(--info);--m:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.4' stroke-linecap='round'%3E%3Ccircle cx='12' cy='12' r='8'/%3E%3Cpath d='M12 1v6M12 17v6M1 12h6M17 12h6'/%3E%3C/svg%3E")}
   .ric-plant{--c:var(--warn);--m:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='black' d='M12 2l5 9-5 11-5-11z'/%3E%3Cpath fill='white' d='M12 7l2 4-2 5-2-5z' opacity='.35'/%3E%3C/svg%3E")} .ric-entry{--c:var(--acc);--m:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='none' stroke='black' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round' d='M4 6l7 6-7 6M12 6l7 6-7 6'/%3E%3C/svg%3E")}
   .pbadge.cs{color:var(--np);background:var(--npbg);display:inline-flex;align-items:center;gap:2px} .pbadge.cs .rico{width:10px;height:10px}
+  .ric-odin{width:22px;--c:#c084fc;--m:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0.5 6 23.5 12.5'%3E%3Cg fill='black'%3E%3Cpath d='M1 9.5l3-1h2v5H4l-3-1z'/%3E%3Crect x='6' y='8' width='9' height='5' rx='1'/%3E%3Crect x='15' y='8.6' width='4' height='3.2' rx='.6'/%3E%3Crect x='19' y='9.6' width='4.5' height='1.4' rx='.5'/%3E%3Crect x='8.5' y='13' width='4.5' height='5' rx='.8'/%3E%3Cpath d='M6.2 13h2l-.6 4H5.8z'/%3E%3Crect x='9' y='6.6' width='4' height='1.4' rx='.5'/%3E%3C/g%3E%3C/svg%3E")}
+  .ric-deaths{--c:var(--mut);--m:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='black' fill-rule='evenodd' d='M12 2a8 8 0 0 0-8 8c0 2.8 1.3 4.6 3 5.6V19a1 1 0 0 0 1 1h1v-2h2v2h2v-2h2v2h1a1 1 0 0 0 1-1v-3.4c1.7-1 3-2.8 3-5.6a8 8 0 0 0-8-8zM9 9.5a1.8 1.8 0 1 0 0 3.6 1.8 1.8 0 0 0 0-3.6zm6 0a1.8 1.8 0 1 0 0 3.6 1.8 1.8 0 0 0 0-3.6z'/%3E%3C/svg%3E")}
   .rolecol .ric{margin:0 2px}
   .rolelegend{display:flex;flex-wrap:wrap;gap:6px 16px;align-items:center;font-size:12px;color:var(--mut);margin:6px 2px 0}
   .rolelegend span{display:inline-flex;align-items:center;gap:4px} .rolelegend .ric{margin:0}
@@ -1265,8 +1270,8 @@ function renderTeam(team, mt){
   const times = [team.updated];
   const elos = [], peaks = [];
   const hasHd = !!team.opl?.hd;
-  const roles = hasHd ? keyRoles(Object.values(team.opl.hd.players)) : null;
-  const showRoles = !!(roles && (roles.op || roles.entry || roles.planter));
+  const roles = hasHd ? keyRoles(Object.values(team.opl.hd.players), team.opl.players) : null;
+  const showRoles = !!(roles && (roles.op || roles.entry || roles.planter || roles.odin || roles.deaths));
   const items = members.map((m, idx) => {
     const head = `<td class="c6"><div><span class="pname plink" data-key="${esc(memberKey(team, m))}" title="Spielerprofil öffnen">${esc(m.opl_name)}</span>${banHtml(banOf(team, m))} ${m.position && m.position !== "Player" ? `<span class="pos ${esc(m.position)} ${act(m)?"":"np"}">${esc(m.position)}</span>` : ""}${roleChip(oplPlayer(team, m))}</div>
       <div class="sub psub">${m.riot_id ? esc(m.riot_id) : "keine Riot-ID hinterlegt"}${statSrc === "opl" && hasHd ? (h => h ? badgeCompact(h.cl, h.mk, h.cs) : "")(hdPlayer(team, oplPlayer(team, m)?.name)) : ""}</div></td>`;
@@ -1359,8 +1364,8 @@ function renderTeam(team, mt){
         ? `${pth("maps","Maps","num")}${pth("acs","ACS","num")}${pth("kd","K/D","num")}${pth("econ","Econ","num","Econ-Rating")}${pth("fb","FB","num","First Bloods")}${pth("wr","WR","num","Anteil gewonnener Maps")}${hasHd ? `${pth("adr","ADR","num","Schaden pro Runde (Rundendaten)")}${pth("kast","KAST","num","Runden mit Kill, Assist, überlebt oder getradet (Rundendaten)")}` : ""}<th>Agents ${tip("Prozent: Anteil der Maps, auf denen der Spieler den Agent gespielt hat")}</th>`
         : `${pth("kd","K/D","num")}${pth("hs","HS%","num")}${pth("adr","ADR","num")}${pth("acs","ACS","num")}${pth("wr","Winrate","num")}<th>Agents</th>`}<th class="resetsort">${playerSort.k ? `<button class="ghost tiny" id="sortreset" title="Zurück zur Standard-Sortierung nach Rollen-Tag">↺ Tag</button>` : ""}</th>
     </tr></thead><tbody>${rows}</tbody></table></div>
-    ${showRoles ? `<div class="rolelegend"><span><i class="ric ric-op"></i>Operator-Spieler</span><span><i class="ric ric-entry"></i>Entry-Fragger</span><span><i class="ric ric-plant"></i>Haupt-Planter</span>
-</div>` : ""}
+    ${showRoles ? `<div class="rolelegend">${[["op", "Operator-Spieler"], ["odin", "Odin-Spieler"], ["entry", "Entry-Fragger"], ["plant", "Haupt-Planter", "planter"], ["deaths", "Meiste Tode/Map"]]
+      .filter(([k, , rk]) => roles[rk || k]).map(([k, l]) => `<span><i class="ric ric-${k}"></i>${l}</span>`).join("")}</div>` : ""}
     ${mapPoolHtml(team.opl)}
     ${playstyleHtml(team.opl)}
     ${teamAgentsHtml(team.opl)}
@@ -1820,7 +1825,7 @@ function renderPlayer(team, mt, key){
       ${kpi(`${hp.fk}/${hp.fd}`, "FK/FD", null, "First Kills / First Deaths")}${kpi(hp.cl.reduce((a, b) => a + b, 0), "Clutches", lr("cl"), hp.cl.map((v, j) => `1v${j + 1}: ${v}`).join(" · ") + ((hp.cs || []).some(Boolean) ? `\nDazu ${hp.cs.reduce((a, b) => a + b, 0)}× Spike-Clutch (gestorben, Spike explodiert)` : ""), [hp.cl.reduce((a, b) => a + b, 0) / hp.n, "clpm"])}
       ${kpi(hp.mk.slice(1).reduce((a, b) => a + b, 0), "3K+", null, `3K: ${hp.mk[1]} · 4K: ${hp.mk[2]} · ACE: ${hp.mk[3]}`)}</div>
     ${hp.wk && Object.keys(hp.wk).length ? `<div class="wcols"><div><h4>Kills je Waffe</h4>${weaponBars(hp.wk)}</div><div><h4>Gekauft <span class="sub">(Runden)</span></h4>${weaponBars(hp.wb, 5, "Runden")}</div></div>` : ""}
-    ${badgeHtml(hp.cl, hp.mk, hp.cs) ? `<div class="pbadgerow">${badgeHtml(hp.cl, hp.mk, hp.cs)}${(r => roleIcons(hp.name, r) ? `<span class="rolechips">${roleIcons(hp.name, r)}${r.planter === hp.name.toLowerCase() ? " Haupt-Planter" : ""}${r.entry === hp.name.toLowerCase() ? `${r.planter === hp.name.toLowerCase() ? " ·" : ""} Entry` : ""}</span>` : "")(keyRoles(Object.values(team.opl.hd.players)))}</div>` : ""}` : "";
+    ${badgeHtml(hp.cl, hp.mk, hp.cs) ? `<div class="pbadgerow">${badgeHtml(hp.cl, hp.mk, hp.cs)}${(r => roleIcons(hp.name, r) ? `<span class="rolechips">${roleIcons(hp.name, r)}${r.planter === hp.name.toLowerCase() ? " Haupt-Planter" : ""}${r.entry === hp.name.toLowerCase() ? `${r.planter === hp.name.toLowerCase() ? " ·" : ""} Entry` : ""}</span>` : "")(keyRoles(Object.values(team.opl.hd.players), team.opl.players))}</div>` : ""}` : "";
 
   // Form: Diagramm wird nach dem Rendern gezeichnet (braucht die Breite)
   formHist = hist;
@@ -2478,7 +2483,7 @@ function renderMeta(){
     <div class="sechead"><h3>Bestenliste ${tip(`OPL-Statistiken dieser Saison. Mit „min. Maps“ blendest du Spieler mit wenigen Einsätzen aus.`)}</h3>
       <div class="lbtools"><label>min. Maps <select id="lbmin">${minOpts.map(x => `<option${x === lbMin ? " selected" : ""}>${x}</option>`).join("")}</select></label>
       <span class="sub">${pls.length} Spieler</span></div></div>
-    <div class="lbwrap"><table class="lbtable"><thead><tr><th>#</th>${lt("name","Spieler","")}${lt("team","Team","opt")}${lt("maps","Maps")}${lt("acs","ACS")}${lt("kd","K/D")}
+    <div class="lbwrap lbsticky"><table class="lbtable"><thead><tr><th>#</th>${lt("name","Spieler","")}${lt("team","Team","opt")}${lt("maps","Maps")}${lt("acs","ACS")}${lt("kd","K/D")}
       <th class="num opt">K/D/A</th>${lt("fbpm","FB/Map","num","First Bloods pro Map")}${hdPl ? `${lt("adr","ADR","num","Schaden pro Runde (Rundendaten)")}${lt("kast","KAST","num","Runden mit Kill, Assist, überlebt oder getradet (Rundendaten)")}${lt("hs","HS%","num opt","Anteil Kopftreffer (Rundendaten)")}${lt("esr","ESR","num opt","Entry Success Rate: gewonnene Erst-Duelle (Rundendaten)")}${lt("cl","Clutches","num opt","Gewonnene 1vX-Clutches (Rundendaten)")}` : ""}${lt("econ","Econ","num opt")}${lt("winrate","Map-WR","num opt")}<th class="opt">Agents</th></tr></thead>
       <tbody>${lbRows || `<tr><td colspan="${hdPl ? 16 : 11}" class="sub">Keine Spieler mit so vielen Maps.</td></tr>`}</tbody></table></div>
     ${pls.length > 25 ? `<p><button class="ghost" id="lball">${lbAll ? "Nur Top 25" : `Alle ${pls.length} anzeigen`}</button></p>` : ""}
@@ -2775,7 +2780,7 @@ function renderPrep(A, mtA, B, mtB, entry){
   const maxAcsB = Math.max(0, ...plB.map(p => p.acs)), maxFbB = Math.max(0, ...plB.map(p => p.fb));
   const plList = (pl, mark) => pl.length ? pl.map(p => `<div class="pp plink" data-team="${esc(mark ? B.id : A.id)}" data-key="${esc(p.name.toLowerCase())}" title="Spielerprofil öffnen">
       ${p.rank?.tier > 2 ? `<img class="ri" src="${RANK_ICON(p.rank.tier)}" alt="" title="${esc(p.rank.name || "")}">` : '<span class="ri"></span>'}
-      <span class="pn">${esc(p.member?.opl_name || p.name)}${banHtml(p.ban)}${roleChip(p, true)}${(T => T.opl?.hd ? roleIcons(p.name, keyRoles(Object.values(T.opl.hd.players))) : "")(mark ? B : A)}${(h => h ? badgeHtml(h.cl, h.mk, h.cs) : "")(hdPlayer(mark ? B : A, p.name))}${mark && p.acs === maxAcsB ? ' <span class="star" title="Höchster ACS">★ ACS</span>' : ""}${mark && p.fb === maxFbB && p.fb ? ' <span class="star" title="Meiste First Bloods">★ FB</span>' : ""}</span>
+      <span class="pn">${esc(p.member?.opl_name || p.name)}${banHtml(p.ban)}${roleChip(p, true)}${(T => T.opl?.hd ? roleIcons(p.name, keyRoles(Object.values(T.opl.hd.players), T.opl.players)) : "")(mark ? B : A)}${(h => h ? badgeHtml(h.cl, h.mk, h.cs) : "")(hdPlayer(mark ? B : A, p.name))}${mark && p.acs === maxAcsB ? ' <span class="star" title="Höchster ACS">★ ACS</span>' : ""}${mark && p.fb === maxFbB && p.fb ? ' <span class="star" title="Meiste First Bloods">★ FB</span>' : ""}</span>
       <span class="pv">${p.acs}<small>ACS</small></span><span class="pv">${p.kd}<small>K/D</small></span>
       <span class="pv">${p.fb}<small>FB</small></span>${(h => h ? `<span class="pv">${h.adr}<small>ADR</small></span><span class="pv">${h.kast}%<small>KAST</small></span>` : "")(hdPlayer(mark ? B : A, p.name))}${agentIcons(p.agents, false, 2)}</div>`).join("") : '<p class="sub">Keine Ligaspiele.</p>';
 
@@ -3026,7 +3031,8 @@ function playstyleHtml(o){
 }
 // Haupt-Planter (meiste Plants) und Entry (meiste Erst-Duelle pro Runde: First Kills + First Deaths) eines Teams
 // players: [{name, pl, fk, fd, r}] – nur eindeutig: mind. 25 % der Plants bzw. 3 Erst-Duelle
-function keyRoles(players){
+// opl = Liga-Stats der Spieler ({name, d, maps}) für „Meiste Tode pro Map“ (optional)
+function keyRoles(players, opl = null){
   const all = players.filter(p => p && p.r), maxR = Math.max(0, ...all.map(p => p.r));
   const ps = all.filter(p => p.r >= 0.5 * maxR);   // nur Stammspieler (sonst gewinnt z. B. ein Ersatz mit 2 Maps die Quote)
   const plSum = all.reduce((a, p) => a + (p.pl || 0), 0);
@@ -3034,11 +3040,21 @@ function keyRoles(players){
   const en = [...ps].sort((a, b) => (b.fk + b.fd) / b.r - (a.fk + a.fd) / a.r)[0];
   const opR = p => Object.entries(p.wb || {}).reduce((a, [w, c]) => a + (wName(w) === "Operator" ? c : 0), 0);
   const op = [...ps].sort((a, b) => opR(b) - opR(a))[0], opN = op ? opR(op) : 0;
+  const odR = p => Object.entries(p.wb || {}).reduce((a, [w, c]) => a + (wName(w) === "Odin" ? c : 0), 0);
+  const od = [...ps].sort((a, b) => odR(b) - odR(a))[0], odN = od ? odR(od) : 0;
+  // Meiste Tode pro Map: nur Stammspieler (mind. halb so viele Maps wie der Spieler mit den meisten, mind. 2)
+  const ol = (opl ? Object.values(opl) : []).filter(p => p && p.maps), maxM = Math.max(0, ...ol.map(p => p.maps));
+  const dpm = p => p.d / p.maps;
+  const dd = ol.filter(p => p.maps >= Math.max(2, 0.5 * maxM)).sort((a, b) => dpm(b) - dpm(a))[0];
   return {
     op: op && opN >= 3 && opN >= 0.08 * op.r ? op.name.toLowerCase() : null,
+    odin: od && odN >= 3 && odN >= 0.08 * od.r ? od.name.toLowerCase() : null,
+    deaths: dd ? dd.name.toLowerCase() : null,
     planter: pl && pl.pl && pl.pl >= 0.25 * plSum ? pl.name.toLowerCase() : null,
     entry: en && en.fk + en.fd >= 3 ? en.name.toLowerCase() : null,
-    tip: {op: op ? `Operator-Spieler: in ${opN} von ${op.r} Runden mit Operator (${Math.round(100 * opN / op.r)} %)` : "", planter: pl ? `Haupt-Planter: ${pl.pl} von ${plSum} Plants des Teams` : "", entry: en ? `Entry-Fragger: an ${Math.round(100 * (en.fk + en.fd) / en.r)} % der Runden im ersten Duell (${en.fk} First Kills, ${en.fd} First Deaths)` : ""},
+    tip: {op: op ? `Operator-Spieler: in ${opN} von ${op.r} Runden mit Operator (${Math.round(100 * opN / op.r)} %)` : "",
+      odin: od ? `Odin-Spieler: in ${odN} von ${od.r} Runden mit Odin (${Math.round(100 * odN / od.r)} %)` : "",
+      deaths: dd ? `Meiste Tode pro Map im Team: ${(dpm(dd)).toFixed(1).replace(".", ",")} (${dd.d} Tode in ${dd.maps} ${dd.maps === 1 ? "Map" : "Maps"})` : "", planter: pl ? `Haupt-Planter: ${pl.pl} von ${plSum} Plants des Teams` : "", entry: en ? `Entry-Fragger: an ${Math.round(100 * (en.fk + en.fd) / en.r)} % der Runden im ersten Duell (${en.fk} First Kills, ${en.fd} First Deaths)` : ""},
   };
 }
 function roleIcons(name, roles){
@@ -3046,7 +3062,9 @@ function roleIcons(name, roles){
   const k = String(name).toLowerCase();
   return (roles.planter === k ? `<i class="ric ric-plant" title="${esc(roles.tip.planter)}"></i>` : "")
     + (roles.entry === k ? `<i class="ric ric-entry" title="${esc(roles.tip.entry)}"></i>` : "")
-    + (roles.op === k ? `<i class="ric ric-op" title="${esc(roles.tip.op)}"></i>` : "");
+    + (roles.op === k ? `<i class="ric ric-op" title="${esc(roles.tip.op)}"></i>` : "")
+    + (roles.odin === k ? `<i class="ric ric-odin" title="${esc(roles.tip.odin)}"></i>` : "")
+    + (roles.deaths === k ? `<i class="ric ric-deaths" title="${esc(roles.tip.deaths)}"></i>` : "");
 }
 // kompakte Badges je Kategorie (Teamseite): 1vX, 1vX mit Spike, 3K+ (3K und 4K), ACE – Details im Tooltip
 function badgeCompact(cl = [], mk = [], cs = []){
@@ -3138,7 +3156,7 @@ function renderMatch(A, mtA, B, m, H = null){
   const badges = r => r.nr ? badgeHtml(r.cl, r.mk, r.cs) : "";
   const board = (rows, name, logo, won, mvp) => {
     const hd = rows.length && rows.every(r => r.nr);
-    const roles = hd ? keyRoles(rows.map(r => ({name: r.name, pl: r.pl, fk: r.fk, fd: r.fd, r: r.nr, wb: r.wb}))) : null;
+    const roles = hd ? keyRoles(rows.map(r => ({name: r.name, pl: r.pl, fk: r.fk, fd: r.fd, r: r.nr, wb: r.wb})), rows.map(r => ({name: r.name, d: r.d, maps: r.n}))) : null;
     const head = hd
       ? `<th class="num">ACS</th><th class="num">K</th><th class="num">D</th><th class="num">A</th><th class="num">+/-</th><th class="num" title="Schaden pro Runde">ADR</th><th class="num opt" title="Anteil Kopftreffer">HS%</th><th class="num opt" title="Runden mit Kill, Assist, überlebt oder getradet">KAST</th><th class="num opt" title="First Kills / First Deaths">FK/FD</th>`
       : `<th class="num">ACS</th><th class="num">K</th><th class="num">D</th><th class="num">A</th><th class="num">+/-</th><th class="num opt">K/D</th><th class="num opt">FB</th><th class="num opt">Econ</th><th class="num opt" title="Plants/Defuses">P/D</th>`;
