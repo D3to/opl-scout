@@ -364,12 +364,22 @@
   .demotag{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--warn);border:1px dashed var(--warn);border-radius:4px;padding:2px 5px}
   .zsym{margin-left:auto;font-size:12px;font-weight:700;color:var(--zc,var(--mut));padding-left:6px}
   .ptable td,.stable td{vertical-align:middle}
+  .ptable tr.team td{padding-top:4px;padding-bottom:4px} .ptable .tn img{width:20px;height:20px} .ptable .pst{margin-top:0;line-height:1.35;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .ptable{table-layout:fixed} .ptable .tn{min-width:0} .ptable .tn{overflow:hidden;text-overflow:ellipsis}
   .pst{font-size:12px;color:var(--mut);margin:2px 0 0 32px;white-space:normal}
   .pst b{color:var(--txt);font-weight:600}
   tr.psec td{background:var(--panel2);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--mut);padding:6px 10px}
+  tr.psec.safe td{color:var(--info)} tr.psec.gone td{color:var(--mut)}
   tr.psec.live td{color:var(--warn)} tr.psec.done td{color:var(--good)} tr.psec.out td{color:var(--bad)}
   tr.team.pnone{opacity:.5} tr.team.pnone:hover{opacity:.85}
   tr.team.plive td:first-child{box-shadow:inset 3px 0 0 var(--warn)}
+  /* Playoff-Ansicht: Abstieg rot, Klassenerhalt blau schraffiert (Hintergrund an der Zeile, damit die Streifen durchlaufen) */
+  tr.team.pdown,tr.team.psafe,tr.team.pgone{--pc:var(--bad);background:repeating-linear-gradient(135deg,color-mix(in srgb, var(--pc) 8%, transparent) 0 7px,transparent 7px 14px)}
+  tr.team.psafe{--pc:var(--info)} tr.team.pgone{--pc:var(--mut)}
+  tr.team.pdown td,tr.team.psafe td,tr.team.pgone td{background:transparent}
+  tr.team.pdown td:first-child,tr.team.psafe td:first-child,tr.team.pgone td:first-child{box-shadow:inset 2px 0 0 color-mix(in srgb, var(--pc) 55%, transparent)}
+  tr.team.pnone.pdown,tr.team.pnone.psafe{opacity:1}
+  .pos-safe{color:var(--info)} .pos-gone{color:var(--mut)} .pdet{font-size:11px;color:var(--mut)}
   .evtag{font-size:10px;padding:0 5px;border-radius:3px;background:var(--panel2);color:var(--mut);margin-right:6px}
   .sres{font-size:12px;font-weight:600;white-space:normal;line-height:1.25;display:inline-block}
   .stable td,.stable th{padding-left:5px;padding-right:5px}
@@ -1010,6 +1020,7 @@ async function openLeague(id, keepTeam=false){
   try{
     league = await getJSON(`data/league-${lg.id}.json?t=${meta.generated}`);
   }catch(e){ $("#teamlist").innerHTML = `<div class="empty err">${esc(e.message)}</div>`; return; }
+  if(DEMO) demoBrackets();
   $("#title").textContent = league.title;
   $("#sort").innerHTML = [["rank","Platz"],["avg", METRICS[metric].label],["name","Teamname"],...dispCols().map(c=>[c, LONG[c]||c])]
     .map(([k,l]) => `<option value="${esc(k)}">${esc(l)}</option>`).join("");
@@ -1074,7 +1085,7 @@ function demoPaths(){
   const n = leagueNo(), out = {};
   const poLabel = n === 1 ? "Playoffs 1. Liga" : n === 2 ? "Playoffs 1./2. Liga" : "Playoffs 2./3. Liga";
   const relLabel = n === 1 ? "Playoffs 1./2. Liga" : "Playoffs 2./3. Liga";
-  const P = (t, label, state, round, opp, d, rec) => (out[t.id] = [{label, event: "demo-" + label, state, round, opp: opp?.name, opp_id: opp?.id, start: d ? day(d) : null, demo: rec}]);
+  const P = (t, label, state, round, opp, d, rec, lost) => (out[t.id] = [{label, event: "demo-" + label, state, round, opp: opp?.name, opp_id: opp?.id, start: d ? day(d) : null, demo: rec, lost}]);
   const po = byZone("po"), rel = byZone("rel");
   po.forEach((t, i) => {
     if(end) P(t, poLabel, i === 0 ? "champion" : i === 1 ? "out" : "out", i === 0 ? "UB Grand Final" : i === 1 ? "UB Grand Final" : i < 4 ? "LB Final K.O." : i < 6 ? "LB Semifinal Drop" : "LB Quarterfinal K.O.", po[i ^ 1], 0,
@@ -1085,15 +1096,98 @@ function demoPaths(){
   });
   const half = Math.ceil(rel.length / 2);
   rel.forEach((t, i) => {
-    if(i < half) P(t, relLabel, "qualified", "UB Semifinal", rel[rel.length - 1 - i], 0, [2, 0]);
+    if(i < half) P(t, relLabel, "qualified", i % 2 ? "LB Final" : "UB Semifinal", rel[rel.length - 1 - i], 0, i % 2 ? [2, 1] : [2, 0], i % 2 && rel[half] ? [rel[half].name] : []);
     else if(i === half && !end) P(t, relLabel, "next", "LB Final K.O.", rel[i + 1] || rel[0], 4, [1, 1]);
     else P(t, relLabel, "out", "LB Semifinal K.O.", rel[i - 1], 0, [i === half ? 1 : 0, 2]);
   });
   return out;
 }
+// Demo: Vorschau-Brackets mit erfundenen Ergebnissen füllen (deterministisch, gleiche Ergebnisse in allen Ligen).
+// ?demo=playoffs: bis 3 Runden vor Schluss gespielt, ?demo=ende: alles gespielt.
+function demoBrackets(){
+  const hash = str => { let h = 2166136261; for(const c of String(str)) h = Math.imul(h ^ c.charCodeAt(0), 16777619); return (h >>> 0) % 1000; };
+  const day = d => Math.floor(Date.now() / 1000 / 86400 + d) * 86400 + 17 * 3600;
+  league.brackets = (league.brackets || []).map(b => {
+    if(!b.template) return b;
+    const ms = b.rounds.flatMap(r => r.matches.map(x => ({...x, key: r.key})));
+    const byId = Object.fromEntries(ms.map(x => [x.id, x]));
+    const maxKey = Math.max(...ms.map(x => x.key));
+    const multi = (b.digits || []).length > 1, top = String((b.digits || ["1"])[0]);
+    // Plätze für die höhere Liga = Startplätze der höheren Liga im Bracket
+    const spots = multi ? ms.flatMap(x => x.slots).filter(sl => sl.seed && String(sl.seed.n) === top).length : 1;
+    const sim = cut => {
+    const slots = {}, str = {};   // Match-ID → Teilnehmer; Team-ID → Stärke (kleiner = stärker)
+    for(const x of ms) slots[x.id] = x.slots.map(sl => {
+      if(sl.bye) return {id: "-1", name: "Freilos", bye: true};
+      if(sl.seed && sl.team){ str[sl.team.id] = +sl.seed.n * 5 + sl.seed.rank; return {...sl.team}; }
+      return null;
+    });
+    const put = (mid, t) => { const sl = slots[mid]; if(!sl) return; const i = sl.indexOf(null); if(i >= 0) sl[i] = t; };
+    const res = {}, elimKey = {};
+    for(const x of [...ms].sort((a, c) => a.key - c.key || a.pos - c.pos)){
+      const [t1, t2] = slots[x.id];
+      if(!t1 || !t2) continue;
+      const bye = t1.bye || t2.bye;
+      if(!bye && x.key > cut) continue;
+      const sc = t => t.bye ? 999 : (str[t.id] ?? 50) + hash(x.id + t.id) % 9;
+      const [w, l] = sc(t1) <= sc(t2) ? [t1, t2] : [t2, t1];
+      res[x.id] = {w, l, ls: bye ? null : hash(x.id) % 2};
+      if(x.winner?.[0]) put(x.winner[0], w);
+      if(x.loser?.[0]) put(x.loser[0], l); else if(!l.bye) elimKey[l.id] = x.key;
+    }
+    return {slots, res, elimKey};
+    };
+    const real = new Set(ms.flatMap(x => x.slots).filter(sl => sl.seed && sl.team).map(sl => sl.team.id));
+    const aliveAfter = (ek, k) => [...real].filter(id => !(id in ek) || ek[id] > k).length;
+    // laufende Demo: letzte Runde, nach der noch nicht alle Plätze vergeben sind (eine Liga: drei Runden vor Schluss)
+    let cut = maxKey;
+    if(DEMO !== "ende"){
+      const full = sim(maxKey).elimKey;
+      cut = multi ? Math.max(0, ...[...Array(maxKey + 1).keys()].filter(k => aliveAfter(full, k) > spots)) : maxKey - 3;
+    }
+    const {slots, res, elimKey} = sim(cut);
+    // Platzierung: wer später ausscheidet, steht weiter oben → qualifiziert, wenn der schlechteste mögliche Platz ≤ spots
+    const qual = new Set();
+    if(multi){
+      for(let k = 0; k <= maxKey; k++){
+        const alive = [...real].filter(id => !(id in elimKey) || elimKey[id] > k);
+        const out = [...real].filter(id => elimKey[id] === k);
+        if(alive.length + out.length <= spots) out.forEach(id => qual.add(id));
+        if(k === Math.min(cut, maxKey) && alive.length <= spots) alive.forEach(id => qual.add(id));
+      }
+    }
+    const rounds = b.rounds.map(r => ({...r, matches: r.matches.map(x => {
+      const rr = res[x.id], tt = slots[x.id];
+      const team = t => !t ? {id: "0", name: "TBD", cls: "", score: ""}
+        : {id: t.id, name: t.name, logo: t.logo, cls: rr ? (rr.w === t ? "winner" : "loser") : "", score: rr ? (rr.ls == null ? (rr.w === t ? "W" : "-") : rr.w === t ? 2 : rr.ls) : ""};
+      return {id: x.id, pos: x.pos, title: x.title, winner: x.winner, loser: x.loser, teams: tt.map(team), maps: [], format: "BO3",
+        state: rr ? "closed" : "open", start: day((r.key - cut) * 2 + (rr ? 0 : 1))};
+    })}));
+    return {...b, template: false, demo: true, rounds, _qual: [...qual], _multi: multi};
+  });
+  league._demoBr = league.brackets.some(b => b.demo);
+}
+// Demo: Stand je Team aus den erfundenen Brackets (wie bracket_paths in build.py, vereinfacht)
+function demoBracketPaths(){
+  const out = {}, ids = new Set(league.teams.map(t => t.id));
+  for(const b of league.brackets) if(b.demo){
+    const ms = b.rounds.flatMap(r => r.matches.map(x => ({...x, key: r.key}))).sort((a, c) => a.key - c.key);
+    for(const tid of ids){
+      const mine = ms.filter(x => x.teams.some(t => t.id === tid)); if(!mine.length) continue;
+      const x = mine[mine.length - 1], me = x.teams.find(t => t.id === tid), opp = x.teams.find(t => t.id !== tid);
+      const o = opp && opp.id !== "0" && Number(opp.id) >= 0 ? opp : null;
+      const p = {label: b.label, event: b.event, round: x.title, match: x.id, opp: o?.name, opp_id: o?.id};
+      if(b._qual.includes(tid)) p.state = "qualified";
+      else if(x.state !== "closed"){ p.state = "next"; p.start = x.start; }
+      else p.state = me.cls === "winner" ? (b._multi ? "qualified" : "champion") : "out";
+      (out[tid] ||= []).push(p);
+    }
+  }
+  return out;
+}
 // K.-o.-Stand je Team (ohne Wildcardturnier)
 function koPaths(){
-  if(DEMO) return demoPaths();
+  if(DEMO) return league._demoBr ? demoBracketPaths() : demoPaths();
   const out = {};
   for(const [id, ps] of Object.entries(league.paths || {})){ const k = ps.filter(p => !p.wildcard); if(k.length) out[id] = k; }
   return out;
@@ -1122,7 +1216,7 @@ function seasonResult(t, ps){
 }
 // Bilanz der K.-o.-Matches aus den Brackets dieser Liga (Demo: erfunden)
 function koRecord(tid, ps){
-  if(DEMO) return (ps || []).reduce((a, p) => [a[0] + (p.demo?.[0] || 0), a[1] + (p.demo?.[1] || 0)], [0, 0]);
+  if(DEMO && !league._demoBr) return (ps || []).reduce((a, p) => [a[0] + (p.demo?.[0] || 0), a[1] + (p.demo?.[1] || 0)], [0, 0]);
   let w = 0, l = 0;
   for(const b of league.brackets || []) if(!b.template && !/Wildcard/i.test(b.label)) for(const r of b.rounds || []) for(const x of r.matches){
     const me = x.teams?.find(t => t.id === tid); if(!me || x.state !== "closed") continue;
@@ -1130,15 +1224,24 @@ function koRecord(tid, ps){
   }
   return [w, l];
 }
+// Gegner, gegen die das Team in den K.-o.-Runden verloren hat (Demo: erfunden)
+function koLosses(tid, ps){
+  if(DEMO && !league._demoBr) return (ps || []).flatMap(p => p.lost || []);
+  const out = [];
+  for(const b of league.brackets || []) if(!b.template && !/Wildcard/i.test(b.label)) for(const r of b.rounds || []) for(const x of r.matches){
+    const me = x.teams?.find(t => t.id === tid); if(!me || x.state !== "closed" || !me.cls?.includes("loser")) continue;
+    const o = x.teams.find(t => t.id !== tid); if(o?.name) out.push(o.name);
+  }
+  return out;
+}
 const fmtDay = t => new Date(t * 1000).toLocaleString("de-DE", {weekday: "short", day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit"});
 function teamRow(t, inner, cls = ""){
   return `<tr class="team ${cls}${t.id === curTeam ? " sel" : ""}" data-id="${esc(t.id)}"><td class="c">${avgIcon(league.summaries[t.id])}</td>
     <td><div class="tn"><img src="${esc(t.logo)}" alt="">${esc(t.name)}</div>${inner}</td></tr>`;
 }
+class TRow { constructor(t, html){ this.t = t; this.html = html; } toString(){ return this.html; } }
 function renderPlayoffList(P){
-  const multi = new Set(Object.values(P).flat().map(p => p.label)).size > 1;
-  // Etikett aus Sicht des Teams: Tabellenzone Playoffs → „Playoffs“, Relegationszone → „Relegation“
-  const evShort = (p, t) => multi ? `<span class="evtag" title="${esc(p.label)}">${zoneOf(t)?.key === "rel" ? "Relegation" : "Playoffs"}</span>` : "";
+  // Event aus Sicht des Teams: Tabellenzone Playoffs → „Playoffs“, Relegationszone → „Relegation“
   const groups = {live: [], done: [], out: [], none: []};
   for(const t of league.teams){
     const ps = P[t.id];
@@ -1148,11 +1251,34 @@ function renderPlayoffList(P){
   }
   groups.live.sort((a, b) => (a[1].start || 9e9) - (b[1].start || 9e9));
   const sec = (title, cls, rows) => rows.length ? `<tr class="psec ${cls}"><td colspan="2">${title} <span class="sub">${rows.length}</span></td></tr>${rows.join("")}` : "";
-  const live = groups.live.map(([t, p]) => teamRow(t, `<div class="pst">${evShort(p, t)}<b>${esc(roundName(p.state === "waiting" ? (p.win || p.lose)?.round || p.round : p.round))}</b>${p.opp && p.state === "next" ? ` vs ${esc(p.opp)}` : ""}${p.start ? ` · ${esc(fmtDay(p.start))}` : ""}</div>`, "plive"));
-  const done = groups.done.map(([t, p]) => teamRow(t, `<div class="pst">${evShort(p, t)}<span class="pos-up">${p.state === "champion" ? (leagueNo() === 1 ? "🏆 Meister" : "🏆 Turniersieg") : zoneOf(t)?.key === "rel" ? "✓ Klassenerhalt" : leagueNo() > 1 ? "⬆ Aufstieg" : "✓ Qualifiziert"}</span></div>`, "pdone"));
-  const out = groups.out.map(([t, p]) => teamRow(t, `<div class="pst">${evShort(p, t)}<span class="pos-dn">✗ raus</span> im ${esc(roundName(p.round))}${p.opp ? ` gegen ${esc(p.opp)}` : ""}</div>`, "pout"));
-  const none = groups.none.sort((a, b) => num(a.rank) - num(b.rank)).map(t => teamRow(t, `<div class="pst">${esc(zoneOf(t)?.label || "ohne K.-o.-Runde")}</div>`, "pnone"));
-  return `<table class="ptable"><tbody>${sec("▶ Im Rennen", "live", live)}${sec("✓ Qualifiziert / aufgestiegen", "done", done)}${sec("✗ Ausgeschieden", "out", out)}${sec("Ohne K.-o.-Runde", "none", none)}</tbody></table>`;
+  const isRel = t => zoneOf(t)?.key === "rel";
+  // einheitlich: Status in Farbe, darunter eine graue Zeile „Event · Detail“
+  const row = (t, cls, stCls, st, ...det) => new TRow(t, teamRow(t, `<div class="pst" title="${esc([st, ...det].filter(Boolean).join(" · ").replace(/<[^>]+>/g, ""))}"><span class="${stCls}">${st}</span>${det.filter(Boolean).length ? `<span class="pdet"> · ${det.filter(Boolean).join(" · ")}</span>` : ""}</div>`, cls));
+  const lost = t => { const L = koLosses(t.id, P[t.id]), c = {}; L.forEach(n => c[n] = (c[n] || 0) + 1);
+    return L.length ? `${L.length > 1 ? "Niederlagen" : "Niederlage"} gegen ${Object.entries(c).map(([n, k]) => esc(n) + (k > 1 ? ` (${k}×)` : "")).join(", ")}` : ""; };
+  const where = p => `${esc(roundName(p.round))}${p.opp ? ` gegen ${esc(p.opp)}` : ""}`;
+  const live = groups.live.map(([t, p]) => row(t, "plive", "", `<b>${esc(roundName(p.state === "waiting" ? (p.win || p.lose)?.round || p.round : p.round))}</b>${p.opp && p.state === "next" ? ` vs ${esc(p.opp)}` : ""}`, p.start ? esc(fmtDay(p.start)) : ""));
+  const done = groups.done.map(([t, p]) => isRel(t) && p.state !== "champion"
+    ? row(t, "pdone psafe", "pos-safe", "✓ Klassenerhalt", lost(t))
+    : row(t, "pdone", "pos-up", p.state === "champion" ? (leagueNo() === 1 ? "🏆 Meister" : "🏆 Turniersieg") : leagueNo() > 1 ? "⬆ Aufstieg" : "✓ Qualifiziert", lost(t)));
+  const out = groups.out.map(([t, p]) => isRel(t)
+    ? row(t, "pout pdown", "pos-dn", "↓ Abstieg", where(p))
+    : row(t, "pout pgone", "pos-gone", "✗ Ausgeschieden", where(p)));
+  const none = groups.none.sort((a, b) => num(a.rank) - num(b.rank)).map(t => { const z = zoneOf(t)?.key, pl = t.rank ? `Platz ${esc(t.rank)}${t.group ? " Gruppe " + esc(t.group) : ""}` : "";
+    return z === "down" ? row(t, "pnone pdown", "pos-dn", "↓ Abstieg", "Direktabstieg", pl)
+      : z === "safe" ? row(t, "pnone psafe", "pos-safe", "✓ Klassenerhalt", "Tabelle", pl)
+      : row(t, "pnone", "", esc(zoneOf(t)?.label || "ohne K.-o.-Runde"), pl); });
+  // zwei Tabellen wie bei den Gruppen: Playoffs und Relegation (Zone nach Tabellenplatz), danach Teams ohne K.-o.-Runde
+  const pick = (arr, rel) => arr.filter(r => isRel(r.t) === rel).map(r => r.html);
+  const head = (txt, n, evs = []) => `<tr class="grphead"><td colspan="2">${txt} <span class="sub">${n}${evs.length ? " · " + evs.map(esc).join(", ") : ""}</span></td></tr>`;
+  const block = (rel, title, secs) => { const parts = secs.map(([ttl, cls, arr]) => sec(ttl, cls, pick(arr, rel))).join("");
+    const n = [live, done, out].reduce((a, arr) => a + pick(arr, rel).length, 0);
+    const evs = [...new Set(Object.entries(P).filter(([id]) => { const t = league.teams.find(x => x.id === id); return t && isRel(t) === rel; }).map(([, ps]) => ps[ps.length - 1].label))];
+    return n ? head(title, n, evs) + parts : ""; };
+  return `<table class="ptable"><colgroup><col style="width:40px"><col></colgroup><tbody>
+    ${block(false, "Playoffs", [["▶ Im Rennen", "live", live], [leagueNo() > 1 ? "⬆ Aufgestiegen" : "✓ Qualifiziert", "done", done], ["✗ Ausgeschieden", "gone", out]])}
+    ${block(true, "Relegation", [["▶ Im Rennen", "live", live], ["✓ Klassenerhalt", "safe", done], ["↓ Abstieg", "out", out]])}
+    ${none.length ? head("Ohne K.-o.-Runde", none.length) + none.join("") : ""}</tbody></table>`;
 }
 let sumSort = {k: "res", dir: 1};
 function renderSeasonSummary(P){
@@ -2247,11 +2373,12 @@ function renderBracket(b){
   // gleich viele Spalten in beiden Brackets, damit gemeinsames Scrollen bis zum Ende passt
   const total = Math.max(ub.length, shift + lb.length);
   const tail = n => '<div class="bcol bfill" aria-hidden="true"></div>'.repeat(Math.max(0, n));
-  const tabs = (league.brackets || []).length > 1 ? `<div class="btabs">${league.brackets.map(x => `<button class="ghost tiny${x.event === b.event ? " on" : ""}${x.empty ? " off" : ""}" data-br="${esc(x.event)}">${esc(x.label)}${x.template ? " · Vorschau" : x.empty ? " · fand nicht statt" : ""}</button>`).join("")}</div>` : "";
+  const tabs = (league.brackets || []).length > 1 ? `<div class="btabs">${league.brackets.map(x => `<button class="ghost tiny${x.event === b.event ? " on" : ""}${x.empty ? " off" : ""}" data-br="${esc(x.event)}">${esc(x.label)}${x.template ? " · Vorschau" : x.demo ? " · Demo" : x.empty ? " · fand nicht statt" : ""}</button>`).join("")}</div>` : "";
   $("#detail").innerHTML = `
     ${crumbs([{label: "K.-o.-Runden"}])}
     ${tabs}
-    <h2 class="ptitle">${esc(b.label)}${b.template ? ' <span class="tplbadge">Vorschau</span>' : ""}<a class="olink" href="${esc(b.url)}" target="_blank" rel="noopener" title="${b.template ? "Vorlage aus der Vorsaison auf OPL" : "Auf OPL ansehen"}">OPL ↗</a></h2>
+    <h2 class="ptitle">${esc(b.label)}${b.template ? ' <span class="tplbadge">Vorschau</span>' : b.demo ? ' <span class="tplbadge">Demo</span>' : ""}<a class="olink" href="${esc(b.url)}" target="_blank" rel="noopener" title="${b.template ? "Vorlage aus der Vorsaison auf OPL" : "Auf OPL ansehen"}">OPL ↗</a></h2>
+    ${b.demo ? `<p class="tplnote">Erfundene Belegung und Ergebnisse (Demo-Modus): Startplätze nach aktueller Tabelle, Aufbau wie in der ${esc(b.source)}.</p>` : ""}
     ${b.template ? `<p class="tplnote">Prognose nach aktueller Tabelle, Aufbau wie in der ${esc(b.source)}. Wird ersetzt, sobald OPL das Event anlegt.</p>` : ""}
     ${b.empty ? `<div class="bempty"><div class="bei">🚫</div><div><b>${esc(b.note || "Noch nicht ausgelost.")}</b>
       <div class="sub">Auf OPL angelegt, aber ohne Auslosung und Matches.</div></div></div>` : ""}
