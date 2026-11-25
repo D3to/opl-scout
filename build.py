@@ -991,6 +991,8 @@ def mirror_images(state, out):
         for m in LOGO_RE.finditer(f.read_text()):
             logos.setdefault(m.group(1), m.group(2) or "")
     ok = set()
+    for f in files:   # schon umgeschriebene Links (erneuter Export derselben Dateien)
+        ok.update(t for t in re.findall(r"img/t/(\d+)\.webp", f.read_text()) if (img / "t" / f"{t}.webp").exists())
     for tid, ver in logos.items():
         base = f"https://www.opleague.pro/styles/media/team/{tid}/"
         q = f"?{ver}" if ver else ""
