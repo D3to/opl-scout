@@ -30,6 +30,8 @@
   .spacer{flex:1}
   #title{color:var(--mut);padding:0 20px 8px;font-size:13px}
   #datastate{color:var(--mut);font-size:12px;text-align:right}
+  .dstate{display:inline-flex;align-items:center;gap:6px;cursor:default;white-space:nowrap} .dstate b{color:var(--txt);font-weight:600}
+  .dstate i{width:8px;height:8px;border-radius:50%;background:var(--good)} .dstate i.y{background:var(--warn)} .dstate i.r{background:var(--bad)}
   #warn{background:var(--warnbg);color:var(--warn);padding:8px 20px;display:none}
   #notice{background:var(--infobg);color:var(--info);padding:8px 20px;display:none}
   main{display:grid;grid-template-columns:var(--side-w,420px) 6px 1fr;height:calc(100vh - 92px)}
@@ -825,6 +827,36 @@
   .agents{display:flex;gap:3px;align-items:center}
   .agents img{width:26px;height:26px;border-radius:50%;background:var(--panel2)}
   .grp{display:inline-block;min-width:16px;font-size:10px;color:var(--np);font-weight:600}
+  #loginbtn{display:none} #loginbtn.in{display:inline-block}
+  #mebox{display:flex;gap:6px;align-items:center}
+  #meteam,#meplayer{display:inline-flex;align-items:center;gap:6px;max-width:200px;white-space:nowrap}
+  #meteam:empty,#meplayer:empty{display:none}
+  #meteam img{width:18px;height:18px;border-radius:3px} #mebox .mn{overflow:hidden;text-overflow:ellipsis}
+  #meedit{padding-left:10px;padding-right:10px} .meic{width:15px;height:15px;flex:0 0 auto;color:var(--mut)} #meedit.solo::after{content:" Mein Team / Spieler"}
+  #medlg h4{margin:14px 0 0;font-size:13px}
+  /* Mein Profil (eigener Spieler) */
+  .myprof{border:1px solid color-mix(in srgb, var(--warn) 40%, var(--line));border-radius:12px;padding:10px 14px 14px;margin:10px 0 6px;background:color-mix(in srgb, var(--warn) 4%, var(--panel))}
+  .myprof > .sechead h3::before{content:"★ ";color:var(--warn)}
+  .mpgrid{display:grid;grid-template-columns:minmax(260px,320px) 1fr;gap:16px;align-items:start}
+  @media (max-width:800px){ .mpgrid{grid-template-columns:1fr} }
+  .radar{width:100%;max-width:320px;display:block;margin:0 auto}
+  .radar .ring{fill:none;stroke:var(--line)} .radar .ring.mid{stroke:var(--mut);stroke-dasharray:3 3} .radar .ax{stroke:var(--line)}
+  .radar .area{fill:color-mix(in srgb, var(--warn) 25%, transparent);stroke:var(--warn);stroke-width:2} .radar .pt{fill:var(--warn)}
+  .radar text{fill:var(--mut);font-size:10.5px} .radar text b,.radar .lv{fill:var(--txt);font-weight:600}
+  .mpchips{display:flex;flex-wrap:wrap;gap:6px;margin:4px 0 10px} .mpchip{font-size:12px;padding:3px 9px;border-radius:999px;background:var(--panel2)}
+  .mpchip.g{color:var(--good)} .mpchip.r{color:var(--bad)}
+  .mpbars{display:flex;flex-direction:column;gap:4px} .mpbar{display:grid;grid-template-columns:120px 1fr 52px;gap:8px;align-items:center;font-size:12px}
+  .mpbar .n{overflow:hidden;text-overflow:ellipsis;white-space:nowrap} .mpbar .b{height:10px;border-radius:5px;background:var(--panel2);overflow:hidden}
+  .mpbar .b i{display:block;height:100%;background:var(--link);border-radius:5px} .mpbar.me .n{color:var(--warn);font-weight:600} .mpbar.me .b i{background:var(--warn)}
+  .mpbar .v{text-align:right;font-variant-numeric:tabular-nums}
+  .mpdiv{display:grid;grid-template-columns:120px 1fr 92px;gap:8px;align-items:center;font-size:12px}
+  .mpdiv .b{position:relative;height:10px;background:var(--panel2);border-radius:5px} .mpdiv .b::after{content:"";position:absolute;left:50%;top:-3px;bottom:-3px;width:1px;background:var(--mut)}
+  .mpdiv .b i{position:absolute;top:0;bottom:0;border-radius:5px} .mpdiv .b i.up{left:50%;background:var(--good)} .mpdiv .b i.dn{right:50%;background:var(--bad)}
+  .mpdiv .mapname{display:flex;align-items:center;gap:6px} .mpdiv .mapname img{width:34px;height:18px;object-fit:cover;border-radius:3px}
+  .mpseg{display:flex;gap:4px;margin:0 0 6px;flex-wrap:wrap}
+  .myprof h4{margin:12px 0 6px;font-size:13px}
+  #medlg label{display:block;font-size:12px;color:var(--mut);margin:10px 0 4px} #medlg select{width:100%}
+  #medlg .adm{font-size:12px;margin-top:12px}
   #loginbtn.in{background:var(--panel2);border:1px solid var(--good);color:var(--good)}
   dialog{background:var(--panel);color:var(--txt);border:1px solid var(--line);border-radius:12px;padding:0;width:min(520px,92vw)}
   dialog::backdrop{background:rgba(0,0,0,.6)}
@@ -855,6 +887,7 @@
     <div class="urlrow"><input id="url" placeholder="OPLeague Standing-URL"><button id="open" class="ghost">Öffnen</button></div>
     <div class="spacer"></div>
     <div id="datastate"></div>
+    <div id="mebox"><button id="meteam" class="ghost"></button><button id="meplayer" class="ghost"></button><button id="meedit" class="ghost" title="Mein Team / Mein Spieler festlegen">☆</button></div>
     <button id="loginbtn" class="ghost">Login</button>
   </div>
 </header>
@@ -883,6 +916,20 @@
   <div id="detail"><div class="empty">← Team anklicken, um Spieler und Stats zu sehen</div></div>
 </main>
 
+<style id="mestyle"></style>
+<dialog id="medlg">
+  <div class="dlg">
+    <h3>Mein Team &amp; Mein Spieler</h3>
+    <p class="sub">Wird nur in diesem Browser gespeichert.</p>
+    <h4>Mein Team</h4>
+    <label for="melg">Liga</label><select id="melg"></select>
+    <label for="metm">Team</label><select id="metm"></select>
+    <h4>Mein Spieler</h4>
+    <label for="mepl">Spieler aus dem Team</label><select id="mepl"></select>
+    <div class="adm sub">Manuelle Updates: <a href="#" id="meadmin">Login für Admins / eigenen API-Key</a></div>
+    <div class="row"><button class="ghost" id="meclose">Abbrechen</button><button id="mesave">Speichern</button></div>
+  </div>
+</dialog>
 <dialog id="login">
   <div class="dlg">
     <h3>Login für manuelle Updates</h3>
@@ -919,8 +966,8 @@ const tip = t => `<span class="ii" tabindex="0" role="note" aria-label="${esc(t)
     box.style.left = x + "px"; box.style.top = y + "px";
   };
   const hide = () => { box.style.display = "none"; };
-  document.addEventListener("mouseover", e => { const el = e.target.closest?.(".ii"); if(el) show(el); else if(!document.activeElement?.classList?.contains("ii")) hide(); });
-  document.addEventListener("focusin", e => { const el = e.target.closest?.(".ii"); if(el) show(el); });
+  document.addEventListener("mouseover", e => { const el = e.target.closest?.(".ii, .tipel"); if(el) show(el); else if(!document.activeElement?.classList?.contains("ii")) hide(); });
+  document.addEventListener("focusin", e => { const el = e.target.closest?.(".ii, .tipel"); if(el) show(el); });
   document.addEventListener("focusout", hide);
   document.addEventListener("scroll", hide, true);
 })();
@@ -994,10 +1041,15 @@ async function loadMeta(){
   const [oh, om] = String(meta.opl_daily || "23:00").split(":").map(Number);
   const nextOpl = new Date(); nextOpl.setHours(oh, om || 0, 0, 0);
   if(nextOpl <= new Date()) nextOpl.setDate(nextOpl.getDate() + 1);
-  const stand = (t, tip = "") => t ? ` · Stand <b title="${esc(tip)}">${when(t)}</b>` : "";
-  $("#datastate").innerHTML =
-    `Ränge: stündlich · nächstes ~${clock(next)}${stand(meta.ranks_updated, meta.ranks_oldest ? `Neuestes Spieler-Update ${fmtTime(meta.ranks_updated)} · ältestes ${fmtTime(meta.ranks_oldest)} (jeder Lauf erneuert die ältesten zuerst)` : "")}`
-    + `<br>OPL (Tabelle, Kader, Matches): täglich · nächstes ${nextOpl.toDateString() === new Date().toDateString() ? "" : "morgen "}${clock(nextOpl)}${stand(meta.opl_updated, meta.opl_updated ? fmtTime(meta.opl_updated) : "")}`;
+  // kompakt: Punkt (Aktualität der Ränge) + „Stand HH:MM“, Details im Tooltip
+  const age = (Date.now() / 1000 - (meta.ranks_updated || 0)) / 3600;
+  const lvl = age < 2 ? "" : age < 8 ? "y" : "r";
+  const lastT = Math.max(meta.ranks_updated || 0, meta.opl_updated || 0);
+  const today = t => new Date(t * 1000).toDateString() === new Date().toDateString();
+  const short = t => today(t) ? clock(new Date(t * 1000)) : when(t);
+  const details = `Ränge: stündlich, nächstes ~${clock(next)}${meta.ranks_updated ? ` · Stand ${short(meta.ranks_updated)}` : ""}`
+    + `\nOPL: täglich, nächstes ${nextOpl.toDateString() === new Date().toDateString() ? "" : "morgen "}${clock(nextOpl)}${meta.opl_updated ? ` · Stand ${short(meta.opl_updated)}` : ""}`;
+  $("#datastate").innerHTML = lastT ? `<span class="dstate tipel" tabindex="0" data-tip="${esc(details)}"><i class="${lvl}"></i>Stand <b>${esc(short(lastT))}</b></span>` : "";
   $("#leagues").innerHTML = meta.leagues.map(l => `<button data-id="${esc(l.id)}" title="${esc(l.title)}">${esc(l.name)}</button>`).join("");
   document.querySelectorAll("#leagues button").forEach(b => b.onclick = () => openLeague(b.dataset.id));
 }
@@ -1494,7 +1546,7 @@ function renderTeam(team, mt){
       </select></label></div></div>
     <div id="players"><table><thead><tr>
       ${pth("name","Spieler")}${showRoles ? '<th class="c" title="Aus den Rundendaten errechnete Rollen – Legende unter der Tabelle">Rolle</th>' : ""}${pth("rank","Aktueller Rang")}${pth("peak","Peak")}${statSrc === "opl"
-        ? `${pth("maps","Maps","num")}${pth("acs","ACS","num")}${pth("kd","K/D","num")}${pth("econ","Econ","num","Econ-Rating")}${pth("fb","FB","num","First Bloods")}${pth("wr","WR","num","Anteil gewonnener Maps")}${hasHd ? `${pth("adr","ADR","num","Schaden pro Runde (Rundendaten)")}${pth("kast","KAST","num","Runden mit Kill, Assist, überlebt oder getradet (Rundendaten)")}` : ""}<th>Agents ${tip("Prozent: Anteil der Maps, auf denen der Spieler den Agent gespielt hat")}</th>`
+        ? `${pth("maps","Maps","num")}${pth("acs","ACS","num")}${pth("kd","K/D","num")}${pth("econ","Econ","num","Econ-Rating")}${pth("fb","FB","num","First Bloods")}${pth("wr","WR","num","Anteil gewonnener Maps")}${hasHd ? `${pth("adr","ADR","num","Schaden pro Runde (Rundendaten)")}${pth("kast","KAST","num","Runden mit Kill, Assist, überlebt oder getradet (Rundendaten)")}` : ""}<th>Agents ${tip("% = Anteil seiner Maps")}</th>`
         : `${pth("kd","K/D","num")}${pth("hs","HS%","num")}${pth("adr","ADR","num")}${pth("acs","ACS","num")}${pth("wr","Winrate","num")}<th>Agents</th>`}<th class="resetsort">${playerSort.k ? `<button class="ghost tiny" id="sortreset" title="Zurück zur Standard-Sortierung nach Rollen-Tag">↺ Tag</button>` : ""}</th>
     </tr></thead><tbody>${rows}</tbody></table></div>
     ${showRoles ? `<div class="rolelegend">${[["op", "Operator-Spieler"], ["odin", "Odin-Spieler"], ["entry", "Entry-Fragger"], ["plant", "Haupt-Planter", "planter"], ["deaths", "Meiste Tode/Map"]]
@@ -1614,7 +1666,7 @@ function mapPoolHtml(o){
   const sortOpts = [["", "Standard"], ["played", "Gespielt"], ["wl", "Winrate"], ["rounds", "Rundendifferenz"], ["pick", "Eigene Picks"],
     ["ban", "Eigene Bans"], ["opp_pick", "Gegner-Picks"], ["opp_ban", "Gegner-Bans"], ...(dec ? [["decider", "Decider"]] : []),
     ...(o?.hd ? [["hatk", "Angriff"], ["hdef", "Verteidigung"]] : []), ["map", "Map A–Z"]];
-  return `<div class="sechead"><h3>Map-Pool ${tip(`Picks, Bans und Ergebnisse aus allen Ligaspielen dieser Saison (BO${bo}). Die Comp ist eine Prognose aus den letzten Matches.`)}</h3>
+  return `<div class="sechead"><h3>Map-Pool ${tip(`Comp = Prognose aus den letzten Matches.`)}</h3>
     <label class="mobile-sort">Sortieren <select id="mapsortsel">${sortOpts.map(([k, l]) =>
       `<option value="${k}"${(mapSort.k || "") === k ? " selected" : ""}>${l}</option>`).join("")}</select></label></div>
   <div class="scrollx"><table class="maptable"><thead><tr>
@@ -1665,7 +1717,7 @@ function topMapsHtml(o){
 function teamAgentsHtml(o){
   const ag = o?.agents || [];
   if(!ag.length) return "";
-  return `<div class="sechead"><h3>Agents ${tip(`Anteil der ${o.maps_played} gespielten Ligamaps, auf denen das Team den Agent gespielt hat.`)}</h3></div>
+  return `<div class="sechead"><h3>Agents ${tip(`% der ${o.maps_played} Ligamaps mit diesem Agent.`)}</h3></div>
   <div class="teamagents">${ag.map(([a, c, p]) => {
     const ic = AGENT_ICONS[a.toLowerCase()];
     return `<span class="ag" title="${esc(a)}: ${c} von ${o.maps_played} Maps">${ic ? `<img src="${esc(ic)}" alt="${esc(a)}">` : `<span class="sub">${esc(a)}</span>`}<span class="bar"><i style="width:${p}%"></i></span><small>${p}%</small></span>`;
@@ -1691,7 +1743,7 @@ function matchesHtml(o){
   const now = Date.now()/1000;
   const r = o.record || {};
   const rec = (r.W || r.L || r.D) ? `<span class="record"><span class="pos-up">${r.W||0}S</span>${r.D ? ` / ${r.D}U` : ""} / <span class="pos-dn">${r.L||0}N</span>${r.ff ? ` <span class="sub">(${r.ff} ohne Spiel)</span>` : ""}</span>` : "";
-  return `<div class="sechead"><h3>Matches ${tip(`Alle Ligaspiele dieser Saison mit Veto. Rot umrandet = Wahl dieses Teams, ✕ durchgestrichen = Ban, ✓ = Pick, gestrichelt = Decider.`)}</h3>${rec}
+  return `<div class="sechead"><h3>Matches ${tip(`Rot umrandet = Wahl dieses Teams · ✕ Ban · ✓ Pick · gestrichelt = Decider`)}</h3>${rec}
     <label>Vergleich mit <select id="prepany"><option value="">Gegner wählen…</option>${(league?.teams || []).filter(t => t.id !== curTeam).map(t => `<option value="${esc(t.id)}">${esc(t.name)}</option>`).join("")}</select></label></div>
   <div class="matches">${ms.map(m => {
     const played = m.maps.length > 0;
@@ -1757,7 +1809,7 @@ function rolesHtml(T){
   if(!T.opl?.maps_played || !Object.keys(AGENT_ROLE).length) return "";
   const rs = teamRoles(T);
   const flex = Object.values(T.opl.players).filter(p => playerRoles(p).filter(x => x[2] >= 30).length > 1 && p.maps >= 2);
-  return `<div class="sechead"><h3>Rollen ${tip(`aus ${T.opl.maps_played} Ligamaps · ab ${ROLE_MIN}% der eigenen Maps zählt ein Spieler zur Rolle`)}</h3></div>
+  return `<div class="sechead"><h3>Rollen ${tip(`Rolle ab ${ROLE_MIN}% der eigenen Maps`)}</h3></div>
   <div class="roles">${rs.map(r => { const st = roleStatus(r);
     return `<div class="role"><div class="rhd">${roleImg(r.ro, "big")}<div><b>${esc(r.de)}</b><div class="sub">Ø ${r.avg.toFixed(1).replace(".", ",")} pro Map</div></div></div>
       <div><span class="rstat ${st.cls}" title="${esc(st.tip)}">${esc(st.txt)}</span></div>
@@ -1912,6 +1964,66 @@ function groupHist(hist, key){
   }
   return Object.entries(g).sort((a, b) => b[1].n - a[1].n);
 }
+// ------------------------------------------------------------------ Mein Profil (nur beim eigenen Spieler)
+let myTeamMetric = store.get("myTeamMetric") || "acs";
+const MY_TEAM_METRICS = {
+  acs: {l: "ACS", v: (p, h) => p.acs, f: v => Math.round(v)},
+  kd: {l: "K/D", v: (p, h) => Number(p.kd), f: v => v.toFixed(2)},
+  fbpm: {l: "FB/Map", v: (p, h) => p.maps ? p.fb / p.maps : null, f: v => v.toFixed(2)},
+  adr: {l: "ADR", v: (p, h) => h?.adr ?? null, f: v => Math.round(v)},
+  kast: {l: "KAST", v: (p, h) => h?.kast ?? null, f: v => Math.round(v) + "%"},
+};
+function myTeamBars(team, agg){
+  const M = MY_TEAM_METRICS[myTeamMetric] || MY_TEAM_METRICS.acs;
+  const rows = Object.values(team.opl?.players || {}).filter(p => p.maps).map(p => ({p, v: M.v(p, hdPlayer(team, p.name))})).filter(r => r.v != null).sort((a, b) => b.v - a.v);
+  const mx = Math.max(...rows.map(r => r.v), 0) || 1;
+  return rows.map(({p, v}) => `<div class="mpbar${p.name === agg.name ? " me" : ""}" title="${esc(p.name)}: ${M.f(v)} · ${p.maps} Maps"><span class="n">${esc(p.name)}</span><span class="b"><i style="width:${Math.max(2, 100 * v / mx)}%"></i></span><span class="v">${M.f(v)}</span></div>`).join("") || '<p class="sub">Keine Daten.</p>';
+}
+function myProfileHtml(team, agg, hp, hist, lr){
+  if(!agg) return "";
+  const n = agg.maps || 0;
+  // Radar: Perzentil in der Liga je Kennzahl (100 % = Bester, 50 % = Mitte)
+  const ax = [["acs", "ACS", agg.acs], ["kd", "K/D", Number(agg.kd).toFixed(2)], ["fbpm", "FB/Map", (agg.fb / (n || 1)).toFixed(2)], ["econ", "Econ", agg.econ],
+    ["adr", "ADR", hp?.adr], ["kast", "KAST", hp ? hp.kast + "%" : null], ["hs", "HS%", hp ? hp.hs + "%" : null],
+    ["esr", "ESR", hp && hp.fk + hp.fd ? Math.round(100 * hp.fk / (hp.fk + hp.fd)) + "%" : null], ["cl", "Clutches", hp ? hp.cl.reduce((a, b) => a + b, 0) : null]]
+    .map(([k, l, v]) => { const r = v == null ? null : lr(k); return r && !r.short && r.of > 1 ? {k, l, v, pc: (r.of - r.rank) / (r.of - 1), r} : null; }).filter(Boolean);
+  let radar = "";
+  if(ax.length >= 3){
+    const W = 320, H = 290, cx = W / 2, cy = H / 2 + 4, R = 98, N = ax.length;
+    const pt = (i, f) => { const a = -Math.PI / 2 + 2 * Math.PI * i / N; return [cx + Math.cos(a) * R * f, cy + Math.sin(a) * R * f]; };
+    const poly = f => ax.map((_, i) => pt(i, f).map(v => v.toFixed(1)).join(",")).join(" ");
+    radar = `<svg class="radar" viewBox="0 0 ${W} ${H}" role="img" aria-label="Perzentile in der Liga">
+      ${[0.25, 0.5, 0.75, 1].map(f => `<polygon class="ring${f === 0.5 ? " mid" : ""}" points="${poly(f)}"/>`).join("")}
+      ${ax.map((_, i) => { const [x, y] = pt(i, 1); return `<line class="ax" x1="${cx}" y1="${cy}" x2="${x.toFixed(1)}" y2="${y.toFixed(1)}"/>`; }).join("")}
+      <polygon class="area" points="${ax.map((a, i) => pt(i, Math.max(0.04, a.pc)).map(v => v.toFixed(1)).join(",")).join(" ")}"/>
+      ${ax.map((a, i) => { const [x, y] = pt(i, Math.max(0.04, a.pc)); return `<circle class="pt" cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="3"><title>${esc(`${a.l}: ${a.v} · Platz ${a.r.rank} von ${a.r.of}`)}</title></circle>`; }).join("")}
+      ${ax.map((a, i) => { const [x, y] = pt(i, 1.2), anc = Math.abs(x - cx) < 8 ? "middle" : x > cx ? "start" : "end";
+        return `<text x="${x.toFixed(1)}" y="${y.toFixed(1)}" text-anchor="${anc}"><tspan>${esc(a.l)}</tspan><tspan x="${x.toFixed(1)}" dy="12" class="lv">${esc(String(a.v))}</tspan></text>`; }).join("")}
+    </svg><div class="sub" style="text-align:center">Außen = Bester der Liga, gestrichelt = Mitte</div>`;
+  }
+  const top = p => `Top ${Math.max(1, Math.round(100 * (1 - p)))} %`;
+  const srt = [...ax].sort((a, b) => b.pc - a.pc);
+  const chips = srt.length >= 4 ? `<div class="mpchips">${srt.slice(0, 3).map(a => `<span class="mpchip g" title="Platz ${a.r.rank} von ${a.r.of}">▲ ${esc(a.l)} · ${top(a.pc)}</span>`).join("")}
+    ${srt.slice(-2).reverse().map(a => `<span class="mpchip r" title="Platz ${a.r.rank} von ${a.r.of}">▼ ${esc(a.l)} · Platz ${a.r.rank}/${a.r.of}</span>`).join("")}</div>` : "";
+  // Anteil am Team
+  const T = Object.values(team.opl?.players || {}), sum = f => T.reduce((a, p) => a + (p[f] || 0), 0);
+  const share = (f, l) => { const t = sum(f); return t ? `<div class="kpi" title="${agg[f]} von ${t} im Team"><div class="v">${Math.round(100 * (agg[f] || 0) / t)}%</div><div class="l">${l}</div></div>` : ""; };
+  const shares = `<div class="kpis">${share("k", "der Team-Kills")}${share("fb", "der First Bloods")}${share("a", "der Assists")}${share("plants", "der Plants")}</div>`;
+  // Maps: ACS je Map gegenüber dem eigenen Saisonschnitt
+  const maps = groupHist(hist, "map").map(([mp, x]) => ({mp, n: x.n, won: x.won, acs: x.acs / x.n}));
+  const dmax = Math.max(1, ...maps.map(m => Math.abs(m.acs - agg.acs)));
+  const mapBars = maps.length ? maps.map(m => { const d = m.acs - agg.acs, w = 50 * Math.abs(d) / dmax;
+    return `<div class="mpdiv" title="${esc(cap(m.mp))}: Ø ACS ${Math.round(m.acs)} (Saison ${agg.acs}) · ${m.won}–${m.n - m.won}"><span class="mapname"><img src="${MAP_IMG(m.mp)}" alt="" onerror="this.remove()">${esc(cap(m.mp))}</span>
+      <span class="b"><i class="${d >= 0 ? "up" : "dn"}" style="width:${w.toFixed(1)}%"></i></span><span class="sub">${d >= 0 ? "+" : ""}${Math.round(d)} · ${m.won}–${m.n - m.won}</span></div>`; }).join("") : "";
+  return `<div class="myprof"><div class="sechead"><h3>Mein Profil ${tip("Radar: Platz in der Liga je Kennzahl, außen = Bester.")}</h3></div>
+    ${chips}
+    <div class="mpgrid"><div>${radar || '<p class="sub">Zu wenige Maps für den Liga-Vergleich.</p>'}</div>
+      <div><h4>Im Team</h4><div class="mpseg">${Object.entries(MY_TEAM_METRICS).map(([k, x]) => `<button class="ghost tiny${k === myTeamMetric ? " on" : ""}" data-mtm="${k}">${x.l}</button>`).join("")}</div>
+        <div class="mpbars" id="myteambars">${myTeamBars(team, agg)}</div>
+        <h4>Anteil am Team</h4>${shares}</div></div>
+    ${mapBars ? `<h4>ACS je Map gegenüber deinem Schnitt (${agg.acs})</h4><div class="mpbars">${mapBars}</div>` : ""}
+  </div>`;
+}
 function renderPlayer(team, mt, key){
   // Wildcard-Umschalter wie auf der Teamseite (gemeinsame Einstellung)
   const full = team._full || team;
@@ -1952,7 +2064,7 @@ function renderPlayer(team, mt, key){
     ${kpi(agg.econ, "Econ", lr("econ"), "", [agg.econ, "econ"])}${kpi(wr(agg.won, n).replace(/class="[^"]*"/, ""), "Map-Winrate", null, `${agg.won} von ${n} Maps gewonnen`, [n ? 100 * agg.won / n : null, "winrate"])}
     ${kpi(`${agg.plants}/${agg.defuses}`, "Plants/Defuses")}</div>` : '<p class="sub">Keine Ligaspiele in dieser Saison.</p>';
   // Runden-Stats aus den Riot-Matchdaten (nur Maps mit Rundendaten)
-  const hdKpis = hp ? `<div class="sechead"><h3>Runden-Stats ${tip(`Aus den Riot-Matchdaten (HenrikDev) von ${hp.n} ${hp.n === 1 ? "Map" : "Maps"}${n > hp.n ? ` (von ${n} gespielten)` : ""}. KAST = Runden mit Kill, Assist, überlebt oder getradet. Badges: gewonnene Clutches und Multikills ab 3 Kills in einer Runde.`)}</h3></div>
+  const hdKpis = hp ? `<div class="sechead"><h3>Runden-Stats ${tip(`${hp.n} ${hp.n === 1 ? "Map" : "Maps"} mit Rundendaten${n > hp.n ? ` (von ${n})` : ""}. KAST = Runden mit Kill, Assist, überlebt oder getradet.`)}</h3></div>
     <div class="kpis">${kpi(hp.adr, "ADR", lr("adr"), "Schaden pro Runde", [hp.adr, "adr"])}${kpi(hp.kast + "%", "KAST", lr("kast"), "", [hp.kast, "kast"])}${kpi(hp.hs + "%", "HS%", lr("hs"), "Anteil Kopftreffer", [hp.hs, "hs"])}
       ${(d => kpi(d ? Math.round(100 * hp.fk / d) + "%" : "–", "ESR", lr("esr"), `Entry Success Rate: gewonnene Erst-Duelle der Runde (${hp.fk} First Kills, ${hp.fd} First Deaths)`, d ? [100 * hp.fk / d, "esr"] : null))(hp.fk + hp.fd)}
       ${kpi(`${hp.fk}/${hp.fd}`, "FK/FD", null, "First Kills / First Deaths")}${kpi(hp.cl.reduce((a, b) => a + b, 0), "Clutches", lr("cl"), hp.cl.map((v, j) => `1v${j + 1}: ${v}`).join(" · ") + ((hp.cs || []).some(Boolean) ? `\nDazu ${hp.cs.reduce((a, b) => a + b, 0)}× Spike-Clutch (gestorben, Spike explodiert)` : ""), [hp.cl.reduce((a, b) => a + b, 0) / hp.n, "clpm"])}
@@ -1963,7 +2075,7 @@ function renderPlayer(team, mt, key){
   // Form: Diagramm wird nach dem Rendern gezeichnet (braucht die Breite)
   formHist = hist;
   const date = t => t ? new Date(t * 1000).toLocaleDateString("de-DE", {day: "2-digit", month: "2-digit"}) : "";
-  const form = hist.length ? `<div class="sechead"><h3>Form ${tip(`Ein Punkt pro gespielter Ligamap, älteste links. Grün = gewonnen, rot = verloren.`)}</h3>
+  const form = hist.length ? `<div class="sechead"><h3>Form ${tip(`Ein Punkt pro Map, älteste links.`)}</h3>
     <div class="fmetric">${Object.entries(FORM_METRICS).filter(([, x]) => !x.hd || hist.some(h => x.v(h) != null)).map(([k, x]) => `<button class="ghost tiny${k === formMetric ? " on" : ""}" data-fm="${k}">${x.l}</button>`).join("")}</div></div>
     <div class="formbox"><div id="formsum" class="formsum"></div><div id="formchart"></div>
     <div class="formleg"><span><i class="dot w"></i>gewonnen</span><span><i class="dot l"></i>verloren</span><span><i class="ln trend"></i>Trend (Ø 3 Maps)</span><span><i class="ln own"></i>Saison-Ø</span><span><i class="ln lg"></i>Liga-Ø</span></div></div>` : "";
@@ -1992,7 +2104,8 @@ function renderPlayer(team, mt, key){
       <div class="sub">${m?.position && m.position !== "Player" ? `<span class="pos ${esc(m.position)}">${esc(m.position)}</span> · ` : ""}<span class="tlink" data-team="${esc(team.id)}">${esc(teamName)}</span>${mt?.rank ? ` · Platz ${esc(mt.rank)}` : ""}
         ${m?.riot_id ? ` · ${esc(m.riot_id)} · <a href="https://tracker.gg/valorant/profile/riot/${encodeURIComponent(m.riot_id)}/overview" target="_blank" rel="noopener">tracker.gg ↗</a>` : ""}</div></div></div>
 
-    <div class="sechead"><h3>Ranked ${tip(`Aktueller Rang und Peak, dazu Werte aus den letzten ${rec?.matches || 20} Competitive-Matches${st?.updated ? `. Stand ${fmtTime(st.updated)}` : ""}.`)}</h3></div>
+    ${isMyPlayer(team.id, key) ? myProfileHtml(team, agg, hp, hist, lr) : ""}
+    <div class="sechead"><h3>Ranked ${tip(`Letzte ${rec?.matches || 20} Competitive-Matches${st?.updated ? ` · Stand ${fmtTime(st.updated)}` : ""}`)}</h3></div>
     ${st && (st.current || st.peak) ? `<div class="kpis">
       <div class="kpi wide"><div class="l">Aktuell</div>${rankCell(c, rr)}</div>
       <div class="kpi wide"><div class="l">Peak</div>${rankCell(st.peak, st.peak?.season ? ` <span class="sub">(${esc(st.peak.season)})</span>` : "")}</div>
@@ -2000,7 +2113,7 @@ function renderPlayer(team, mt, key){
     </div>`
       : `<p class="sub">${m?.riot_id ? "Rang noch nicht geladen." : "Keine Riot-ID hinterlegt."}</p>`}
 
-    <div class="sechead"><h3>Liga-Stats ${tip(`OPL-Statistiken aus allen Ligaspielen dieser Saison inkl. Playoffs und Relegation. „#5 von 107“ = Platz in der Bestenliste${wcMaps ? " (nur ohne Wildcard)" : ""}.`)}</h3>
+    <div class="sechead"><h3>Liga-Stats ${tip(`Inkl. Playoffs und Relegation. „#5 von 107“ = Platz in der Bestenliste${wcMaps ? " (ohne Wildcard)" : ""}.`)}</h3>
       ${wcMaps ? `<div class="shtools"><label class="kotoggle" title="${wcMaps} Maps aus dem Wildcardturnier (vor der Saison) in Stats, Form, Agents, Maps und Verlauf einrechnen. Gilt auch für die Teamseite.">
         <input type="checkbox" id="wcincl"${wcOn ? " checked" : ""}> inkl. Wildcard</label></div>` : ""}</div>
     ${oplKpis}
@@ -2008,7 +2121,7 @@ function renderPlayer(team, mt, key){
     ${form}
     ${hist.length ? `<div class="sechead"><h3>Agents</h3></div>${grpTable(agRows, "Agent", "")}
     <div class="sechead"><h3>Maps</h3></div>${grpTable(mapRows, "Map", "Agents")}
-    <div class="sechead"><h3>Verlauf ${tip(`Jede gespielte Ligamap, neueste oben.`)}</h3></div>
+    <div class="sechead"><h3>Verlauf</h3></div>
     <div class="lbwrap"><table class="lbtable hist"><thead><tr><th>Datum</th><th>Gegner</th><th>Map</th><th>Agent</th><th class="num">Score</th><th class="num">K/D/A</th><th class="num">ACS</th>${hp ? '<th class="num" title="Schaden pro Runde">ADR</th><th class="num opt">KAST</th>' : ""}<th class="num opt">FB</th><th class="num opt">Econ</th></tr></thead>
       <tbody>${histRows}</tbody></table></div>` : ""}`;
   $("#back").onclick = () => showDetail(false);
@@ -2019,6 +2132,8 @@ function renderPlayer(team, mt, key){
     drawForm();
   });
   requestAnimationFrame(drawForm);   // erst zeichnen, wenn die Ansicht sichtbar ist (Breite)
+  document.querySelectorAll("#detail [data-mtm]").forEach(b => b.onclick = () => { myTeamMetric = b.dataset.mtm; store.set("myTeamMetric", myTeamMetric);
+    document.querySelectorAll("#detail [data-mtm]").forEach(x => x.classList.toggle("on", x === b)); $("#myteambars").innerHTML = myTeamBars(team, agg); });
   document.querySelectorAll("#detail tr.hrow").forEach(tr => tr.onclick = e => { if(!e.target.closest(".tlink, a, img")) openMatchById(String(team.id), tr.dataset.mid); });
   document.querySelectorAll("#detail .tlink[data-team]").forEach(el => el.onclick = () => openTeamFromMeta(el.dataset.team));
 }
@@ -2160,7 +2275,7 @@ function mapRoundsHtml(h){
   const rt = h.res || {}, rn = Object.values(rt).reduce((a, b) => a + b, 0) || 1;
   const res = [["E", "Elimination"], ["D", "Spike gezündet"], ["F", "Entschärft"], ["T", "Zeit"]].filter(([k]) => rt[k])
     .map(([k, l]) => `<span class="mres" title="${l}: ${rt[k]} von ${rn} Runden"><i class="rico rico-${k}"></i>${l} <b>${Math.round(100 * rt[k] / rn)}%</b></span>`).join("");
-  return `<div class="sechead"><h3>Runden-Stats ${tip(`Aus den Riot-Matchdaten von ${h.n} ${h.n === 1 ? "Map" : "Maps"} (${h.rounds} Runden) dieser Liga. Post-Plant = Angreifer gewinnen nach dem Plant, Retake = Verteidiger gewinnen trotzdem.`)}</h3></div>
+  return `<div class="sechead"><h3>Runden-Stats ${tip(`${h.n} ${h.n === 1 ? "Map" : "Maps"} mit Rundendaten. Post-Plant = Angreifer gewinnen nach Plant, Retake = Verteidiger gewinnen trotzdem.`)}</h3></div>
     <div class="kpis">
       <div class="kpi wide" title="${h.atk} von ${h.rounds} Runden von den Angreifern gewonnen"><div class="v sidev">${sideSplit(q)}</div><div class="l">Angriff / Verteidigung</div><span class="balance wide"><i style="width:${q}%"></i></span></div>
       <div class="kpi" title="${h.pistol_conv[0]} von ${h.pistol_conv[1]}"><div class="v">${h.pistol_conv[1] ? Math.round(100 * h.pistol_conv[0] / h.pistol_conv[1]) + "%" : "–"}</div><div class="l">Pistol → R2</div></div>
@@ -2232,12 +2347,12 @@ function renderMap(mp){
       ${kpi(s.avg_rounds ?? "–", "Ø Runden")}${kpi(s.played ? Math.round(100 * s.close / s.played) + "%" : "–", "Knapp (≤ 3)", `${s.close} von ${s.played} Maps mit höchstens 3 Runden Differenz`)}
     </div>
     ${mapRoundsHtml(s.hd)}
-    ${s.agents.length ? `<div class="sechead"><h3>Agents ${tip(`Anteil der Team-Maps auf dieser Map, auf denen der Agent gespielt wurde, mit Winrate. Gruppiert nach Rolle.`)}</h3></div>${agents}
-    <div class="sechead"><h3>Meta-Diagramm ${tip(`Rechts = oft gespielt, oben = gewinnt oft. Blass = weniger als 3 Team-Maps, Winrate unsicher. Gestrichelt = Mirror: beide Teams spielen ihn oft gleichzeitig, deshalb liegt seine Winrate zwangsläufig nahe 50 %.`)}</h3></div>
+    ${s.agents.length ? `<div class="sechead"><h3>Agents ${tip(`% der Team-Maps mit diesem Agent, dazu Winrate.`)}</h3></div>${agents}
+    <div class="sechead"><h3>Meta-Diagramm ${tip(`Rechts = oft gespielt, oben = gewinnt oft. Blass = unter 3 Maps. Gestrichelt = Mirror (Winrate zwangsläufig nahe 50 %).`)}</h3></div>
     <div class="scatterbox"><div id="mscatter"></div><div class="formleg"><span>→ oft gespielt</span><span>↑ gewinnt oft</span><span><i class="lg-faint"></i>wenig Daten</span><span><i class="lg-dash"></i>Mirror</span></div>
     ${s.agents.some(x => mirrorInfo(x)) ? `<p class="sub mirrornote">⇄ <b>Mirror:</b> ${s.agents.filter(x => mirrorInfo(x)).map(x => esc(x[0])).join(", ")}. Beide Teams spielen ${s.agents.filter(x => mirrorInfo(x)).length === 1 ? "ihn" : "sie"} oft gleichzeitig, eine Winrate nahe 50 % ist hier normal.</p>` : ""}</div>` : ""}
     ${s.comps.length ? `<div class="sechead"><h3>Häufigste Comps</h3></div><div class="mcomps2">${comps}</div>` : ""}
-    <div class="sechead"><h3>Teams ${tip(`Bilanz jedes Teams auf dieser Map, dazu eigene Picks/Bans und die der Gegner.`)}</h3></div>
+    <div class="sechead"><h3>Teams ${tip(`Bilanz je Team, dazu eigene Picks/Bans und die der Gegner.`)}</h3></div>
     <div class="lbwrap"><table class="lbtable"><thead><tr>${tt("name","Team","")}${tt("played","Gespielt")}<th class="num opt">W–L</th>${tt("wr","Winrate")}${tt("rd","Runden","num opt","Rundendifferenz")}
       ${tt("pick","Pick")}${tt("ban","Ban")}${tt("opp_pick","Gegner-Pick","num opt")}<th class="num opt" title="Startseite Angriff/Verteidigung">Start A/V</th></tr></thead><tbody>${teamRows}</tbody></table></div>
     ${s.players.length ? `<div class="sechead"><h3>Spieler auf ${esc(cap(mp))}</h3><label>min. Maps <select id="mapplmin">${minOpts.map(x => `<option${x === mapPlMin ? " selected" : ""}>${x}</option>`).join("")}</select></label></div>
@@ -2382,7 +2497,7 @@ function renderBracket(b){
     ${b.template ? `<p class="tplnote">Prognose nach aktueller Tabelle, Aufbau wie in der ${esc(b.source)}. Wird ersetzt, sobald OPL das Event anlegt.</p>` : ""}
     ${b.empty ? `<div class="bempty"><div class="bei">🚫</div><div><b>${esc(b.note || "Noch nicht ausgelost.")}</b>
       <div class="sub">Auf OPL angelegt, aber ohne Auslosung und Matches.</div></div></div>` : ""}
-    ${ub.length ? `<div class="sechead"><h3>Upper Bracket ${tip("Fahre über ein Team, um seinen Weg durchs Bracket zu sehen. Ein Klick öffnet die Teamseite, auch bei Teams anderer Ligen.")}</h3></div><div class="bracket">${ub.map(col).join("")}${lb.length ? tail(total - ub.length) : ""}</div>` : ""}
+    ${ub.length ? `<div class="sechead"><h3>Upper Bracket ${tip("Hover zeigt den Weg eines Teams, Klick öffnet die Teamseite.")}</h3></div><div class="bracket">${ub.map(col).join("")}${lb.length ? tail(total - ub.length) : ""}</div>` : ""}
     ${lb.length ? `<div class="sechead"><h3>Lower Bracket</h3></div><div class="bracket">${spacer}${lb.map(col).join("")}${tail(total - shift - lb.length)}</div>` : ""}`;
   // beide Brackets gemeinsam seitlich scrollen, damit die Runden übereinander bleiben
   const scs = [...document.querySelectorAll("#detail .bracket")];
@@ -2529,7 +2644,7 @@ function teamMapHtml(){
     return `<g class="mdot ml${mapAll ? best : 1}" data-city="${esc(c)}"><circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${r.toFixed(1)}"></circle>${ts.length > 1 ? `<text x="${x.toFixed(1)}" y="${(y + 3).toFixed(1)}">${ts.length}</text>` : ""}<title>${esc(c)}: ${ts.map(t => esc(t.name)).join(", ")}</title></g>`;
   }).join("");
   const chip = t => `<a class="mteam ${mapAll ? lcls(t.l) : ""}" href="${hashOf({l: t.l, t: t.id})}" data-l="${esc(t.l)}" data-t="${esc(t.id)}">${esc(t.name)}${mapAll ? ` <small>${esc(lname(t.l))}</small>` : ""}</a>`;
-  return `<div class="sechead"><h3>Standorte ${tip("Stadt der Hochschule bzw. des Vereins je Team (von Hand recherchiert, siehe cities.json). Punktgröße = Anzahl Teams.")}</h3>
+  return `<div class="sechead"><h3>Standorte ${tip("Stadt der Hochschule bzw. des Vereins. Punktgröße = Anzahl Teams.")}</h3>
       <label class="kotoggle"><input type="checkbox" id="mapall"${mapAll ? " checked" : ""}> alle Ligen</label></div>
     <div class="tmap"><svg viewBox="0 0 ${GEO.w} ${GEO.h}" role="img" aria-label="Deutschlandkarte mit Team-Standorten"><path class="mde" d="${GEO.de}"></path><path class="mbl" d="${GEO.bl}"></path>${dots}</svg>
       <div class="mlist">${mapAll ? `<div class="mleg">${meta.leagues.map((l, i) => `<span class="ml${i + 1}"><i></i>${esc(l.name)}</span>`).join("")}</div>` : ""}
@@ -2596,7 +2711,7 @@ function renderMeta(){
     ${crumbs([{label: "Liga-Meta"}])}
     <h2 class="ptitle">Liga-Meta</h2>
     <p class="summary">${ov.matches} gespielte Matches · ${ov.maps_played} Maps · BO${ov.bo} · nur diese Saison</p>
-    <div class="sechead"><h3>Maps ${tip(`Pick- und Ban-Raten beziehen sich auf ${n} Matches mit Veto. Zahl in Klammern = Anzahl Maps.`)}</h3>
+    <div class="sechead"><h3>Maps ${tip(`Basis: ${n} Matches mit Veto. Klammer = Anzahl Maps.`)}</h3>
       <label class="mobile-sort">Sortieren <select id="metasortsel">${mapOpts.map(([k, l]) => `<option value="${k}"${(metaSort.k || "") === k ? " selected" : ""}>${l}</option>`).join("")}</select></label></div>
     <div class="scrollx"><table class="maptable metatable"><thead><tr>
       ${sth(metaSort,"data-mm","map","Map")}${sth(metaSort,"data-mm","played","Gespielt","num")}
@@ -2609,12 +2724,12 @@ function renderMeta(){
       ${sth(metaSort,"data-mm","avg_rounds","Ø Runden","num","Ø gespielte Runden pro Map")}
       <th title="Anteil der Teams, die den Agent auf dieser Map gespielt haben">Top-Agents</th><th>Häufigste Comps</th>
     </tr></thead><tbody>${mapRows}</tbody></table></div>
-    <div class="sechead"><h3>Agents ${tip(`Anteil aller ${2 * ov.maps_played} Team-Maps (jede Map zählt für beide Teams).`)}</h3></div>
+    <div class="sechead"><h3>Agents ${tip(`% von ${2 * ov.maps_played} Team-Maps.`)}</h3></div>
     <div class="teamagents">${ov.agents.map(([a, c, p]) => { const ic = AGENT_ICONS[a.toLowerCase()];
       return `<span class="ag" title="${esc(a)}: ${c} von ${2 * ov.maps_played} Team-Maps">${ic ? `<img src="${esc(ic)}" alt="${esc(a)}">` : `<span class="sub">${esc(a)}</span>`}<span class="bar"><i style="width:${p}%"></i></span><small>${p}%</small></span>`; }).join("")}</div>
-    ${(w => Object.keys(w).length ? `<div class="sechead"><h3>Waffen ${tip("Anteil aller Kills je Waffe in dieser Liga (Rundendaten). Operator = Anteil der Team-Runden mit mindestens einem Operator.")}</h3></div>
+    ${(w => Object.keys(w).length ? `<div class="sechead"><h3>Waffen ${tip("Kill-Anteil je Waffe. Operator = Team-Runden mit mind. einem Operator.")}</h3></div>
       <div class="wcols"><div><h4>Kills je Waffe</h4>${weaponBars(w, 8)}</div><div><h4>Operator je Map</h4>${opByMap(ov.maps)}</div></div>` : "")(Object.values(ov.maps).reduce((a, v) => { for(const [k, c] of Object.entries(v.hd?.wk || {})) a[k] = (a[k] || 0) + c; return a; }, {}))}
-    <div class="sechead"><h3>Bestenliste ${tip(`OPL-Statistiken dieser Saison. Mit „min. Maps“ blendest du Spieler mit wenigen Einsätzen aus.`)}</h3>
+    <div class="sechead"><h3>Bestenliste ${tip(`„min. Maps“ blendet Spieler mit wenigen Einsätzen aus.`)}</h3>
       <div class="lbtools"><label>min. Maps <select id="lbmin">${minOpts.map(x => `<option${x === lbMin ? " selected" : ""}>${x}</option>`).join("")}</select></label>
       <span class="sub">${pls.length} Spieler</span></div></div>
     <div class="lbwrap lbsticky"><table class="lbtable"><thead><tr><th>#</th>${lt("name","Spieler","")}${lt("team","Team","opt")}${lt("maps","Maps")}${lt("acs","ACS")}${lt("kd","K/D")}
@@ -2818,7 +2933,7 @@ function topPlayers(T){
 function vodSection(T, name){
   const ms = (T.opl?.matches || []).filter(m => m.vods?.length).sort((a, b) => (b.start || 0) - (a.start || 0));
   const date = t => t ? new Date(t * 1000).toLocaleDateString("de-DE", {day: "2-digit", month: "2-digit"}) : "";
-  return `<div class="sechead"><h3>VODs von ${esc(name)} ${tip(`Aus den Feeds bekannter YouTube-Kanäle, nur diese Saison.`)}</h3></div>
+  return `<div class="sechead"><h3>VODs von ${esc(name)} ${tip(`Aus bekannten YouTube-Kanälen.`)}</h3></div>
     ${ms.length ? `<div class="matches">${ms.map(m => `<div class="match"><div class="mhead"><span class="sub">${date(m.start)}</span>
       <span class="res ${({W: "w", L: "l", D: "d"})[m.outcome] || "d"}">${m.score ? m.score.join(":") : m.outcome || "–"}</span>
       <span class="opp">vs ${teamLink(m.opp.id, m.opp.name)}</span>${vodLinks(m)}</div>
@@ -2851,7 +2966,7 @@ function tendHtml(T, name, expected, pool){
     return `<div class="tcard"><div class="sbmap" style="--bg:url('${MAP_IMG(mp)}')"><b>${esc(cap(mp))}</b><span class="sub" style="color:#ddd">${x.n} ${x.n === 1 ? "Map" : "Maps"} · ${x.rounds} Runden</span></div>${items.join("")}</div>`;
   };
   const oddHtml = oddWeaponsHtml(T);
-  return `<div class="sechead"><h3>Tendenzen von ${esc(name)} ${tip("Aus den Riot-Matchdaten dieser Saison. Erwartete Maps zuerst. Ohne Farbe = zu wenig Daten. Ungewöhnliche Waffen: Kill-Anteil mindestens doppelt so hoch wie im Liga-Ø.")}</h3></div>${oddHtml}<div class="tcards">${maps.map(card).join("")}</div>`;
+  return `<div class="sechead"><h3>Tendenzen von ${esc(name)} ${tip("Erwartete Maps zuerst, ohne Farbe = zu wenig Daten. Ungewöhnliche Waffen: Kill-Anteil mind. doppelt so hoch wie im Liga-Ø.")}</h3></div>${oddHtml}<div class="tcards">${maps.map(card).join("")}</div>`;
 }
 // ungewöhnliche Waffen eines Teams: Kill-Anteil ≥ 2× Liga-Ø (mind. 3 % und 5 Kills) – Vorbereitung + Spielweise
 function oddWeaponsHtml(T){
@@ -2927,19 +3042,19 @@ function renderPrep(A, mtA, B, mtB, entry){
     <h2 class="ptitle">Match-Vorbereitung</h2>
     <div class="pvs">${tcell(mtA, sumA, nameA)}<div class="vs">vs<div class="sub">${esc(date)}</div><div class="sub">BO${bo}${bo === 2 ? " · Unentschieden möglich" : ""}</div></div>${tcell(mtB, sumB, nameB)}</div>
 
-    <div class="sechead"><h3>Empfehlung für ${esc(nameA)} ${tip(`Grundlage: alle Ligaspiele dieser Saison (${pA.n} bzw. ${pB.n} Matches mit Veto). Ohne Spiele auf einer Map gilt eine Bilanz von 50 %.`)}</h3></div>
+    <div class="sechead"><h3>Empfehlung für ${esc(nameA)} ${tip(`Ohne Spiele auf einer Map gilt 50 %.`)}</h3></div>
     <div class="recs">
       <div class="rec"><div class="rh ban">Bannen</div>${rec.bans.map(r => `<div class="ri2"><img src="${MAP_IMG(r.mp)}" alt="" onerror="this.remove()"><div><b>${esc(cap(r.mp))}</b><div class="wbs">${wbs(r.why)}</div></div></div>`).join("")}</div>
       <div class="rec"><div class="rh pick">Picken ${tip("1 Pick pro Team. Die zweite Map ist die Ausweichmap, falls der Gegner die erste bannt.")}</div>${rec.picks.map((r, i) => `<div class="ri2${i ? " alt" : ""}"><img src="${MAP_IMG(r.mp)}" alt="" onerror="this.remove()"><div><b>${esc(cap(r.mp))}</b>${i ? ' <span class="sub">Ausweichmap</span>' : ""}<div class="wbs">${wbs(r.why)}</div></div></div>`).join("")}</div>
     </div>
 
-    <div class="sechead"><h3>Wahrscheinliches Veto ${tip(`BO${bo}, Reihenfolge ${seq.map(a => a[0].toUpperCase()).join("")} (B = Ban, P = Pick). Simuliert aus dem bisherigen Pick- und Ban-Verhalten beider Teams.`)}</h3>
+    <div class="sechead"><h3>Wahrscheinliches Veto ${tip(`BO${bo}, Reihenfolge ${seq.map(a => a[0].toUpperCase()).join("")}. Aus dem bisherigen Pick-/Ban-Verhalten beider Teams.`)}</h3>
       <label>Beginnt <select id="prepfirst"><option value="A"${firstIsA ? " selected" : ""}>${esc(nameA)}</option><option value="B"${!firstIsA ? " selected" : ""}>${esc(nameB)}</option></select></label></div>
     ${opl1st != null ? `<p class="sub">Laut OPL bannt <b>${esc(opl1st ? nameA : nameB)}</b> zuerst${prepFirst && (prepFirst === "A") !== opl1st ? " – oben manuell umgestellt" : ""}.</p>`
       : fixed ? "" : `<p class="sub">In dieser Liga beginnt mal das Heim-, mal das Auswärtsteam – Startrecht ggf. umstellen.</p>`}
     ${stepHtml ? `<div class="vlegend"><span><i class="A"></i>${esc(nameA)}</span><span><i class="B"></i>${esc(nameB)}</span><span><i class="dec"></i>Decider</span></div>` : ""}
     <div class="vsteps">${stepHtml || '<span class="sub">Zu wenig Daten.</span>'}</div>
-    <div class="sechead"><h3>Veto-Simulator ${tip(`Spiele das Veto selbst durch: Klicke für jeden Schritt eine Map – für ${nameA} und ${nameB}. Grün = Empfehlung für ${nameA}, gestrichelt = erwartete Wahl von ${nameB} (aus deren Pick-/Ban-Verhalten). Prozent = geschätzte Siegchance von ${nameA} auf der Map (aus beiden Map-Bilanzen), dahinter W–L beider Teams.`)}</h3></div>
+    <div class="sechead"><h3>Veto-Simulator ${tip(`Klicke je Schritt eine Map. Grün = Empfehlung für ${nameA}, gestrichelt = erwartete Wahl von ${nameB}. % = Siegchance ${nameA}, dahinter W–L beider Teams.\n\nMap-Stärke s = (Siege + 1) / (Spiele + 2)\nSiegchance = sA·(1 − sB) / (sA·(1 − sB) + sB·(1 − sA))\nAmpel: grün ab 58 %, rot bis 42 %`)}</h3></div>
     <div id="vsim"></div>
     ${compRows ? `<div class="sechead"><h3>Comps auf den erwarteten Maps</h3></div><div class="pcomps">${compRows}</div>` : ""}
     ${tendHtml(B, nameB, played.map(s => s.map), pool)}
@@ -2948,10 +3063,10 @@ function renderPrep(A, mtA, B, mtB, entry){
     <div class="scrollx"><table class="maptable prept"><thead><tr><th>Map</th><th class="num">${esc(nameA)} W–L</th>${hdAny ? '<th class="num" title="Gewonnene Runden auf Angriff / Verteidigung (Rundendaten)">Angr./Vert.</th>' : ""}<th class="num" title="eigene Picks / eigene Bans">Pick/Ban</th>
       <th class="c">Vorteil</th><th class="num">${esc(nameB)} W–L</th>${hdAny ? '<th class="num" title="Gewonnene Runden auf Angriff / Verteidigung (Rundendaten)">Angr./Vert.</th>' : ""}<th class="num" title="Picks / Bans des Gegners">Pick/Ban</th></tr></thead><tbody>${mapRows}</tbody></table></div>
 
-    <div class="sechead"><h3>Spieler-Duell ${tip(`Je die 5 Spieler mit den meisten Ligamaps. ★ = bester Wert beim Gegner.`)}</h3></div>
+    <div class="sechead"><h3>Spieler-Duell ${tip(`Je 5 Spieler mit den meisten Maps. ★ = bester Wert beim Gegner.`)}</h3></div>
     <div class="duel"><div><h4>${esc(nameA)}</h4>${plList(plA, false)}${bannedNote(A)}</div><div><h4>${esc(nameB)}</h4>${plList(plB, true)}${bannedNote(B)}</div></div>
 
-    ${A.opl?.maps_played || B.opl?.maps_played ? `<div class="sechead"><h3>Rollen ${tip(`Aus den Ligamaps: wer welche Rolle spielt und wo ein Team wenig Tiefe hat.`)}</h3></div>
+    ${A.opl?.maps_played || B.opl?.maps_played ? `<div class="sechead"><h3>Rollen ${tip(`Wer welche Rolle spielt und wo wenig Tiefe ist.`)}</h3></div>
     <div class="duel"><div><h4>${esc(nameA)}</h4>${rolesCompact(A)}</div><div><h4>${esc(nameB)}</h4>${rolesCompact(B)}</div></div>` : ""}
 
     ${h2h.length ? `<div class="sechead"><h3>Bisherige Duelle diese Saison</h3></div>
@@ -3152,7 +3267,7 @@ function playstyleHtml(o){
   if(!H) return "";
   const rows = Object.entries(H.maps).sort((a, b) => b[1].n - a[1].n);
   const buys = ["Eco", "Semi-Eco", "Semi-Buy", "Full Buy"];
-  return `<div class="sechead"><h3>Spielweise ${tip(`Aus den Riot-Matchdaten von ${H.n} ${H.n === 1 ? "Map" : "Maps"}${o.maps_played > H.n ? ` (von ${o.maps_played} gespielten)` : ""}. Plants: Runden nach eigenem Plant gewonnen / Plants. Retakes: Runden nach gegnerischem Plant noch gewonnen. Kaufarten: Siegquote nach eigenem Loadout. Ohne Farbe = zu wenig Daten (unter 5 Runden bzw. 3 Plants).`)}</h3></div>
+  return `<div class="sechead"><h3>Spielweise ${tip(`${H.n} ${H.n === 1 ? "Map" : "Maps"} mit Rundendaten. Plants = nach eigenem Plant gewonnen, Retakes = nach gegnerischem Plant gewonnen. Ohne Farbe = zu wenig Daten.`)}</h3></div>
   ${oddWeaponsHtml({opl: o})}
   <div class="scrollx"><table class="maptable pstyle"><thead><tr><th>Map</th><th class="num">Runden</th><th class="num">Pistol</th><th class="num" title="Anteil der Runden mit dem ersten Kill">First Kills</th>
     <th class="num" title="Runden mit mind. 12.500 weniger Loadout als der Gegner: davon gewonnen">Thrifty</th>
@@ -3567,13 +3682,13 @@ function renderAgent(a){
       ${kpi(c, "Team-Maps", `In ${c} von ${teamMaps} Team-Maps gespielt`)}${kpi((pctC(c, teamMaps) ?? 0) + "%", "Pick-Rate", "Anteil aller Team-Maps (jede Map zählt für beide Teams)")}
       ${kpi(wrc2(w, c), "Winrate", `${w}–${c - w}`)}${kpi((pctC(2 * mir, c) ?? 0) + "%", "Mirror", `${mir} Maps, in denen beide Teams ${name} spielten`)}
       ${kpi(pls.length, "Spieler")}${kpi(teamList.length, "Teams")}</div>` : `<p class="sub">${esc(name)} wurde in dieser Saison noch nicht gespielt.</p>`}
-    ${c ? `<div class="sechead"><h3>Maps ${tip("Pick-Rate = Anteil der Team-Maps auf dieser Map mit " + name + ". Klick öffnet die Map.")}</h3></div>
+    ${c ? `<div class="sechead"><h3>Maps ${tip("Pick-Rate = Anteil der Team-Maps mit " + name + ".")}</h3></div>
     <div class="lbwrap"><table class="lbtable"><thead><tr><th>Map</th><th class="num">Team-Maps</th><th class="num">Pick-Rate</th><th class="num">Winrate</th><th class="num opt">Mirror</th></tr></thead><tbody>${
       perMap.map(x => `<tr class="${x.c ? "" : "never"}"><td><span class="tlink maplink" data-map="${esc(x.mp)}"><div class="mapname"><img src="${MAP_IMG(x.mp)}" alt="" loading="lazy" onerror="this.remove()"><span>${esc(cap(x.mp))}</span></div></span></td>
         <td class="num">${x.c} <span class="sub">/ ${2 * x.s.played}</span></td><td class="num"><span class="bar" style="--w:${x.pct}%"></span>${x.pct}%</td>
         <td class="num">${x.c ? wrc2(x.w, x.c) : '<span class="sub">–</span>'}${x.row && mirrorInfo(x.row) ? ' <span class="sub" title="' + esc(mirrorInfo(x.row).tip) + '">⇄</span>' : ""}</td>
         <td class="num opt">${x.mir || '<span class="sub">0</span>'}</td></tr>`).join("")}</tbody></table></div>
-    <div class="sechead"><h3>Spieler ${tip(`Alle Spieler, die ${name} diese Saison gespielt haben.${agHd ? ` ADR und KAST gelten nur für ${name} (Rundendaten), ACS und K/D für alle Agents des Spielers.` : " ACS und K/D gelten für alle Agents des Spielers."}`)}</h3></div>
+    <div class="sechead"><h3>Spieler ${tip(`${agHd ? `ADR/KAST nur mit ${name}, ACS und K/D über alle Agents.` : "ACS und K/D über alle Agents."}`)}</h3></div>
     <div class="lbwrap"><table class="lbtable"><thead><tr><th>Spieler</th><th class="opt">Team</th><th class="num">Maps</th><th class="num">Anteil</th>${agHd ? `<th class="num" title="Schaden pro Runde auf ${esc(name)}">ADR</th><th class="num" title="KAST auf ${esc(name)}">KAST</th>` : ""}<th class="num">ACS</th><th class="num opt">K/D</th></tr></thead><tbody>${
       pls.map(p => { const a = Object.entries(p.ags || {}).find(([x]) => x.toLowerCase() === key)?.[1];
         return `<tr><td><span class="pname plink" data-team="${esc(p.team)}" data-key="${esc(p.name.toLowerCase())}">${esc(p.name)}</span></td><td class="opt">${teamLink(p.team, p.team_name)}</td>
@@ -3646,6 +3761,58 @@ function agentIcons(list, pct=false, max=4){
   }).join("")}${list.length > max ? `<span class="sub" title="${esc(list.slice(max).map(x => Array.isArray(x) ? `${x[0]} ${x[2]}%` : x).join(", "))}">+${list.length - max}</span>` : ""}</div>`;
 }
 
+// ------------------------------------------------------------------ Mein Team (nur im Browser gespeichert)
+const meLeagues = {};   // Liga-ID → Liga-JSON (für die Auswahl)
+// alte Speicherung (Team + Spieler in einem) übernehmen
+(() => { const old = store.get("me"); if(!old) return;
+  store.set("meTeam", {lid: old.lid, tid: old.tid, tname: old.tname, logo: old.logo});
+  if(old.pkey) store.set("mePlayer", {lid: old.lid, tid: old.tid, tname: old.tname, pkey: old.pkey, pname: old.pname});
+  store.set("me", null); })();
+(() => { const T = store.get("meTeam"), P = store.get("mePlayer"); if(P && (!T || P.tid !== T.tid)) store.set("mePlayer", null); })();
+const isMyPlayer = (tid, key) => { const p = store.get("mePlayer"); return !!p && p.tid === String(tid) && p.pkey === key; };
+function drawMe(){
+  const T = store.get("meTeam"), P = store.get("mePlayer");
+  $("#meteam").innerHTML = T ? `${T.logo ? `<img src="${esc(T.logo)}" alt="" onerror="this.remove()">` : "★"}<span class="mn">${esc(T.tname)}</span>` : "";
+  $("#meteam").title = T ? `Mein Team: ${T.tname}` : "";
+  $("#meplayer").innerHTML = P ? `<svg class="meic" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="5" r="3" fill="currentColor"/><path d="M2.5 14.5c0-3 2.5-5 5.5-5s5.5 2 5.5 5" fill="currentColor"/></svg><span class="mn">${esc(P.pname)}</span>` : "";
+  $("#meplayer").title = P ? `Mein Spieler: ${P.pname} (${P.tname})` : "";
+  $("#meedit").classList.toggle("solo", !T && !P);
+  $("#meedit").textContent = T || P ? "✎" : "☆";
+  $("#mestyle").textContent = (T ? `tr.team[data-id="${CSS.escape(T.tid)}"] .tn::after{content:"★";color:var(--warn);margin-left:2px;font-size:12px}` : "")
+    + (P ? `.pname.plink[data-key="${CSS.escape(P.pkey)}"]::after{content:" ★";color:var(--warn);font-size:11px}` : "");
+}
+async function meLeague(lid){
+  return meLeagues[lid] ||= lid === league?.id ? league : await getJSON(`data/league-${lid}.json?t=${meta.generated}`).catch(() => null);
+}
+async function openMe(){
+  const d = $("#medlg"), T = store.get("meTeam"), P = store.get("mePlayer");
+  const lgOpts = '<option value="">– keins –</option>' + meta.leagues.map(l => `<option value="${esc(l.id)}">${esc(l.name)}</option>`).join("");
+  const teamOpts = async lid => { const L = lid ? await meLeague(lid) : null;
+    return '<option value="">– keins –</option>' + [...(L?.teams || [])].sort((a, b) => a.name.localeCompare(b.name, "de")).map(t => `<option value="${esc(t.id)}">${esc(t.name)}</option>`).join(""); };
+  // Team, darunter der Spieler aus diesem Team
+  const lg = $("#melg"), tm = $("#metm"), pl = $("#mepl");
+  lg.innerHTML = lgOpts; lg.value = T?.lid || "";
+  const fillPl = async () => {
+    pl.innerHTML = '<option value="">– keiner –</option>'; const tid = tm.value; pl.disabled = !tid; if(!tid) return;
+    const team = await getJSON(`data/team-${tid}.json?t=${meta.generated}`).catch(() => null);
+    if(tm.value !== tid || !team) return;
+    pl.innerHTML += (team.members || []).map(m => `<option value="${esc(memberKey(team, m))}">${esc(m.opl_name)}${m.riot_id ? ` (${esc(m.riot_id)})` : ""}</option>`).join("");
+    if(P && P.tid === tid) pl.value = P.pkey;
+  };
+  const fillTeam = async () => { tm.innerHTML = await teamOpts(lg.value); if(T && T.lid === lg.value) tm.value = T.tid; await fillPl(); };
+  lg.onchange = fillTeam; tm.onchange = fillPl;
+  $("#mesave").onclick = async () => {
+    const t = (await meLeague(lg.value))?.teams.find(x => x.id === tm.value);
+    store.set("meTeam", t ? {lid: lg.value, tid: t.id, tname: t.name, logo: t.logo} : null);
+    store.set("mePlayer", t && pl.value ? {lid: lg.value, tid: t.id, tname: t.name, pkey: pl.value, pname: pl.selectedOptions[0].textContent.replace(/ \(.*\)$/, "")} : null);
+    d.close(); drawMe();
+    applyRoute(parseRoute());   // offene Ansicht neu zeichnen (Mein-Profil-Abschnitt)
+  };
+  $("#meclose").onclick = () => d.close();
+  $("#meadmin").onclick = e => { e.preventDefault(); d.close(); openLogin(); };
+  d.showModal();
+  await fillTeam();
+}
 // ------------------------------------------------------------------ Login
 function openLogin(){
   const d = $("#login");
@@ -3874,6 +4041,10 @@ async function openUrl(){
   setTools(!!store.get("sidetools"));
   $("#toolsbtn").onclick = () => setTools(!document.body.classList.contains("tools-open"));
   $("#loginbtn").onclick = () => { setMenu(false); openLogin(); };
+  $("#meteam").onclick = () => { setMenu(false); const T = store.get("meTeam"); if(T) location.hash = hashOf({l: T.lid, t: T.tid}); };
+  $("#meplayer").onclick = () => { setMenu(false); const P = store.get("mePlayer"); if(P) location.hash = hashOf({l: P.lid, t: P.tid, p: P.pkey}); };
+  $("#meedit").onclick = () => { setMenu(false); openMe(); };
+  drawMe();
   const themeIcon = () => {
     const light = document.documentElement.dataset.theme === "light";
     $("#themebtn").textContent = light ? "🌙" : "☀️";
