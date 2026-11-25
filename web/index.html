@@ -640,7 +640,8 @@
   .rolecol .ric{margin:0 2px}
   .rolelegend{display:flex;flex-wrap:wrap;gap:6px 16px;align-items:center;font-size:12px;color:var(--mut);margin:6px 2px 0}
   .rolelegend span{display:inline-flex;align-items:center;gap:4px} .rolelegend .ric{margin:0}
-  .rolechips{display:inline-flex;align-items:center;font-size:12px;color:var(--mut);margin-left:8px}
+  .rolechips{display:inline-flex;align-items:center;flex-wrap:wrap;gap:4px 12px;font-size:12px;color:var(--mut);margin-left:10px}
+  .rchip{display:inline-flex;align-items:center;gap:5px;cursor:help} .rchip .ric{margin:0}
   .pbadgerow{margin-top:8px;display:flex;align-items:center;flex-wrap:wrap} .pbadgerow .pbadges{flex-wrap:wrap} .pbadgerow .pbadge{font-size:12px;line-height:20px;padding:0 8px}
   tr.hrow{cursor:pointer} tr.hrow:hover td{background:var(--panel2)}
   .pbadge{font-size:10px;font-weight:700;padding:0 5px;border-radius:3px;line-height:15px;white-space:nowrap}
@@ -2099,7 +2100,7 @@ function renderPlayer(team, mt, key){
       ${kpi(`${hp.fk}/${hp.fd}`, "FK/FD", null, "First Kills / First Deaths")}${kpi(hp.cl.reduce((a, b) => a + b, 0), "Clutches", lr("cl"), hp.cl.map((v, j) => `1v${j + 1}: ${v}`).join(" · ") + ((hp.cs || []).some(Boolean) ? `\nDazu ${hp.cs.reduce((a, b) => a + b, 0)}× Spike-Clutch (gestorben, Spike explodiert)` : ""), [hp.cl.reduce((a, b) => a + b, 0) / hp.n, "clpm"])}
       ${kpi(hp.mk.slice(1).reduce((a, b) => a + b, 0), "3K+", null, `3K: ${hp.mk[1]} · 4K: ${hp.mk[2]} · ACE: ${hp.mk[3]}`)}</div>
     ${hp.wk && Object.keys(hp.wk).length ? `<div class="wcols"><div><h4>Kills je Waffe</h4>${weaponBars(hp.wk)}</div><div><h4>Gekauft <span class="sub">(Runden)</span></h4>${weaponBars(hp.wb, 5, "Runden")}</div></div>` : ""}
-    ${badgeHtml(hp.cl, hp.mk, hp.cs) ? `<div class="pbadgerow">${badgeHtml(hp.cl, hp.mk, hp.cs)}${(r => roleIcons(hp.name, r) ? `<span class="rolechips">${roleIcons(hp.name, r)}${r.planter === hp.name.toLowerCase() ? " Haupt-Planter" : ""}${r.entry === hp.name.toLowerCase() ? `${r.planter === hp.name.toLowerCase() ? " ·" : ""} Entry` : ""}</span>` : "")(keyRoles(Object.values(team.opl.hd.players), team.opl.players))}</div>` : ""}` : "";
+    ${badgeHtml(hp.cl, hp.mk, hp.cs) ? `<div class="pbadgerow">${badgeHtml(hp.cl, hp.mk, hp.cs)}${roleChips(hp.name, keyRoles(Object.values(team.opl.hd.players), team.opl.players))}</div>` : ""}` : "";
 
   // Form: Diagramm wird nach dem Rendern gezeichnet (braucht die Breite)
   formHist = hist;
@@ -3334,6 +3335,15 @@ function keyRoles(players, opl = null){
       odin: od ? `Odin-Spieler: in ${odN} von ${od.r} Runden mit Odin (${Math.round(100 * odN / od.r)} %)` : "",
       deaths: dd ? `Meiste Tode pro Map im Team: ${(dpm(dd)).toFixed(1).replace(".", ",")} (${dd.d} Tode in ${dd.maps} ${dd.maps === 1 ? "Map" : "Maps"})` : "", planter: pl ? `Haupt-Planter: ${pl.pl} von ${plSum} Plants des Teams` : "", entry: en ? `Entry-Fragger: an ${Math.round(100 * (en.fk + en.fd) / en.r)} % der Runden im ersten Duell (${en.fk} First Kills, ${en.fd} First Deaths)` : ""},
   };
+}
+// Rollen eines Spielers als Icon + Beschriftung (Spielerprofil)
+const ROLE_LBL = {planter: ["plant", "Haupt-Planter"], entry: ["entry", "Entry"], op: ["op", "Operator"], odin: ["odin", "Odin"], deaths: ["deaths", "Meiste Tode"]};
+function roleChips(name, roles){
+  if(!roles || !name) return "";
+  const k = String(name).toLowerCase();
+  const xs = Object.entries(ROLE_LBL).filter(([r]) => roles[r] === k)
+    .map(([r, [ic, l]]) => `<span class="rchip" title="${esc(roles.tip[r])}"><i class="ric ric-${ic}"></i>${l}</span>`);
+  return xs.length ? `<span class="rolechips">${xs.join("")}</span>` : "";
 }
 function roleIcons(name, roles){
   if(!roles || !name) return "";
