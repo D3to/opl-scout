@@ -506,6 +506,12 @@
   .matches{display:flex;flex-direction:column;gap:8px}
   .match{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:9px 12px}
   /* Verlauf */
+  .hchips{display:flex;flex-direction:column;gap:6px;margin:0 0 12px}
+  .hcrow{display:flex;flex-wrap:wrap;gap:6px}
+  .hchip{font-size:12px;padding:4px 10px;border-radius:999px;border:1px solid var(--line);background:var(--panel);color:var(--mut);cursor:pointer}
+  .hchip[style]{background:linear-gradient(rgba(10,12,16,.62),rgba(10,12,16,.62)),var(--bg) center/cover;color:#e6e9ef;border-color:transparent}
+  .hchip:hover{border-color:var(--mut)} .hchip.on{border-color:var(--acc);color:var(--txt);box-shadow:inset 0 0 0 1px var(--acc)}
+  .hchip.on[style]{color:#fff}
   .hsearch{display:flex;align-items:center;gap:10px;margin:6px 0 10px}
   .hgear{margin-left:auto} .hgear.on{color:var(--acc);border-color:var(--acc)}
   .hopts[hidden]{display:none}
@@ -3332,12 +3338,15 @@ function drawHistory(){
   const hay = e => [e.t1?.name, e.t2?.name, e.stage, e.bracket, ...e.maps.map(x => x.map), ...(e.players || [])].filter(Boolean).join(" ").toLowerCase();
   const rounds = e => e.maps.reduce((a, x) => a + x.s1 + x.s2, 0), diff = e => e.maps.reduce((a, x) => a + Math.abs(x.s1 - x.s2), 0) / (e.maps.length || 1);
   let list = (toks.length ? H.filter(e => { const h = hay(e); return toks.every(t => h.includes(t)); }) : H)
-    .filter(e => !histOpt.hideFF || e.maps.length);   // kampflos/Freilos = ohne gespielte Map
+    .filter(e => !histOpt.hideFF || e.maps.length)   // kampflos/Freilos = ohne gespielte Map
+    .filter(e => (!histF.map || e.maps.some(x => x.map === histF.map)) && (!histF.grp || histGroup(e) === histF.grp)
+      && (!histF.ph || (histF.ph === "ko") === !!e.stage));
+  const filtered = toks.length || histF.map || histF.grp || histF.ph;
   const by = {new: (a, b) => (b.start || 0) - (a.start || 0), old: (a, b) => (a.start || 0) - (b.start || 0),
     close: (a, b) => (a.maps.length ? diff(a) : 99) - (b.maps.length ? diff(b) : 99), rounds: (a, b) => rounds(b) - rounds(a)}[histOpt.sort] || ((a, b) => 0);
   list = [...list].sort(by);
   const byDay = histOpt.sort === "new" || histOpt.sort === "old";   // Tagesüberschriften nur bei Zeit-Sortierung
-  $("#histn").textContent = `${list.length} ${list.length === 1 ? "Match" : "Matches"}${toks.length ? ` von ${H.length}` : ""}`;
+  $("#histn").textContent = `${list.length} ${list.length === 1 ? "Match" : "Matches"}${filtered ? ` von ${H.length}` : ""}`;
   if(!H.length){ $("#histlist").innerHTML = '<p class="sub">Noch keine gespielten Matches.</p>'; return; }
   if(!list.length){ $("#histlist").innerHTML = '<p class="sub">Keine Treffer.</p>'; return; }
   const day = t => t ? new Date(t * 1000).toLocaleDateString("de-DE", {weekday: "long", day: "2-digit", month: "2-digit", year: "numeric"}) : "ohne Datum";
@@ -3359,6 +3368,7 @@ function drawHistory(){
       <span class="hmaps">${e.maps.length ? "" : '<span class="ffkind">kampflos / Freilos</span>'}${e.maps.map(x => `<span class="hmap" style="--bg:url('${MAP_IMG(x.map)}')">${esc(cap(x.map))} <b>${x.s1}:${x.s2}</b></span>`).join("")}
         ${e.stage ? `<span class="stage" title="${esc(e.bracket || "")}">${esc(roundName(e.stage))}</span>` : ""}
         ${pls.length ? `<span class="sub">Spieler: ${pls.map(esc).join(", ")}</span>` : ""}</span>
+    <div class="hchips" id="histchips"></div>
     </div>`;
   }
   $("#histlist").innerHTML = out + (list.length > 300 ? `<p class="sub">… ${list.length - 300} weitere – Suche verfeinern.</p>` : "");
@@ -3370,8 +3380,21 @@ function drawHistory(){
 }
 
 // ================================================================== Agent-Seite (Klick auf ein Agent-Symbol)
+// Schnellfilter im Verlauf (je Kategorie eine Auswahl, erneuter Klick hebt sie auf)
+let histF = {map: null, grp: null, ph: null};
+const histGroup = e => { const g1 = league.teams.find(t => t.id === e.t1?.id)?.group, g2 = league.teams.find(t => t.id === e.t2?.id)?.group; return g1 && g1 === g2 ? g1 : null; };
+function drawHistChips(H){
+  const maps = [...new Set(H.flatMap(e => e.maps.map(x => x.map)))].sort();
+  const grps = [...new Set(H.map(histGroup).filter(Boolean))].sort();
+  const hasKo = H.some(e => e.stage);
+  const chip = (k, v, label, img) => `<button class="hchip${histF[k] === v ? " on" : ""}" data-k="${k}" data-v="${esc(v)}"${img ? ` style="--bg:url('${img}')"` : ""}>${esc(label)}</button>`;
+  $("#histchips").innerHTML = `<div class="hcrow">${maps.map(m => chip("map", m, cap(m), MAP_IMG(m))).join("")}</div>
+    ${grps.length > 1 || hasKo ? `<div class="hcrow">${grps.length > 1 ? grps.map(g => chip("grp", g, "Gruppe " + g)).join("") : ""}${hasKo ? chip("ph", "gs", "Gruppenphase") + chip("ph", "ko", "K.-o.") : ""}</div>` : ""}`;
+  document.querySelectorAll("#histchips .hchip").forEach(b => b.onclick = () => { const k = b.dataset.k; histF[k] = histF[k] === b.dataset.v ? null : b.dataset.v; drawHistory(); });
+}
 let agShown = null;
 function showAgent(a, push = true){
+  drawHistChips(H);
   if(!league) return;
   ++current; curTeam = null; metaShown = false; mapShown = null; brShown = null; agShown = a; histShown = false;
   document.querySelectorAll("tr.team.sel").forEach(x => x.classList.remove("sel"));
