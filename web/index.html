@@ -3479,6 +3479,9 @@ const agentsReady = fetch("https://valorant-api.com/v1/agents?isPlayableCharacte
     AGENT_ICONS[a.displayName.toLowerCase()] = a.displayIcon; AGENT_BY_ICON[a.displayIcon] = a.displayName;
     AGENT_ART[a.displayName.toLowerCase()] = a.fullPortraitV2 || a.fullPortrait || a.bustPortrait;
     if(a.role){ AGENT_ROLE[a.displayName.toLowerCase()] = a.role.displayName; ROLE_ICON[a.role.displayName] = a.role.displayIcon; }
+    // Agenten-Waffen (Headhunter, Tour de Force, Overdrive) fehlen bei /weapons → Icon der Fähigkeit nehmen
+    for(const ab of a.abilities || []){ const n = Object.values(AGENT_GUNS).find(g => g.toLowerCase() === (ab.displayName || "").toLowerCase());
+      if(n && ab.displayIcon && !WEAPON[n.toLowerCase()]) WEAPON[n.toLowerCase()] = {name: n, icon: ab.displayIcon, ability: true}; }
   } })
   .catch(() => {});
 // list: ["Jett", …] oder [["Jett", Maps, Prozent], …]
