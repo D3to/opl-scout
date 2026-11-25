@@ -3057,7 +3057,7 @@ function renderPrep(A, mtA, B, mtB, entry){
   const plA = topPlayers(A), plB = topPlayers(B);
   const maxAcsB = Math.max(0, ...plB.map(p => p.acs)), maxFbB = Math.max(0, ...plB.map(p => p.fb));
   const plList = (pl, mark) => pl.length ? pl.map(p => `<div class="pp plink" data-team="${esc(mark ? B.id : A.id)}" data-key="${esc(p.name.toLowerCase())}" title="Spielerprofil öffnen">
-      ${p.rank?.tier > 2 ? `<img class="ri" src="${RANK_ICON(p.rank.tier)}" alt="" title="${esc(p.rank.name || "")}">` : '<span class="ri"></span>'}
+      ${p.rank?.tier > 2 || p.rank?.tier === 0 ? `<img class="ri" src="${RANK_ICON(p.rank.tier)}" alt="" title="${esc(p.rank.name || "")}">` : '<span class="ri"></span>'}
       <span class="pn">${esc(p.member?.opl_name || p.name)}${banHtml(p.ban)}${roleChip(p, true)}${(T => T.opl?.hd ? roleIcons(p.name, keyRoles(Object.values(T.opl.hd.players), T.opl.players)) : "")(mark ? B : A)}${(h => h ? badgeHtml(h.cl, h.mk, h.cs) : "")(hdPlayer(mark ? B : A, p.name))}${mark && p.acs === maxAcsB ? ' <span class="star" title="Höchster ACS">★ ACS</span>' : ""}${mark && p.fb === maxFbB && p.fb ? ' <span class="star" title="Meiste First Bloods">★ FB</span>' : ""}</span>
       <span class="pv">${p.acs}<small>ACS</small></span><span class="pv">${p.kd}<small>K/D</small></span>
       <span class="pv">${p.fb}<small>FB</small></span>${(h => h ? `<span class="pv">${h.adr}<small>ADR</small></span><span class="pv">${h.kast}%<small>KAST</small></span>` : "")(hdPlayer(mark ? B : A, p.name))}${agentIcons(p.agents, false, 2)}</div>`).join("") : '<p class="sub">Keine Ligaspiele.</p>';
@@ -3143,7 +3143,7 @@ function refreshButton(stand = ""){
 }
 function rankCell(r, extra=""){
   if(!r || r.tier == null || !r.name) return '<span class="sub">–</span>';
-  const img = r.tier > 2 ? `<img src="${RANK_ICON(r.tier)}" alt="" onerror="this.remove()">` : "";
+  const img = r.tier > 2 || r.tier === 0 ? `<img src="${RANK_ICON(r.tier)}" alt="" onerror="this.remove()">` : "";   // 0 = Unrated
   return `<div class="rank">${img}<div>${esc(r.name)}${extra}</div></div>`;
 }
 // Kennzahlen-Chips unter dem Teamnamen: Platz (+ Bewegung), Zone, Bilanz, Rundendifferenz
