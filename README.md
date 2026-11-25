@@ -137,6 +137,15 @@ Sperren stehen in [`web/bans.json`](web/bans.json) (Riot-ID, `type` = `season` o
 Spieler sind auf Teamseite, Profil und in der Vorbereitung markiert. Eine Saisonsperre zählt nicht mehr zum Ø-Rang
 des Teams und fällt aus dem Spieler-Duell. Eine Match-Sperre gilt für die nächsten `matches` Matches ab `since` (Standard 1) und läuft danach ab.
 
+## Bilder und Datenschutz
+
+Teamlogos und Map-Bilder (opleague.pro) sowie Agent-, Waffen- und Rang-Bilder (valorant-api.com) lädt `build.py`
+beim Export herunter, verkleinert sie mit Pillow (falls installiert) und legt sie unter `_site/img/` ab; die Agent-/Waffenliste
+steht in `data/va.json`. Die Seite stellt beim Aufruf also keine Anfragen an Dritte. Cache: `state/img/` (im Branch `data`,
+nur neue oder geänderte Bilder werden geladen, die valorant-api-Liste wöchentlich). Logos gibt es klein (`img/t/<id>.webp`, Listen)
+und groß (`img/t/<id>-l.webp`, Kopfbereiche). Datenschutzhinweise stehen im Dialog unten in der Seitenleiste
+(`#privdlg` in `web/index.html`).
+
 ## Grenzen
 
 - Der kostenlose HenrikDev-Key erlaubt 30 Anfragen/min (2 pro Spieler). Alle ~500 Spieler der

@@ -929,6 +929,148 @@ def bracket_paths(tid, brackets):
     return out
 
 
+# --------------------------------------------------------------------------- Bilder selbst hosten
+# Teamlogos/Map-Bilder (opleague.pro) und Agent-/Waffen-/Rang-Bilder (valorant-api.com) werden beim Build
+# heruntergeladen, verkleinert (mit Pillow, falls vorhanden) und unter _site/img/ ausgeliefert. Beim Aufruf
+# der Seite gehen so keine Anfragen an Dritte. Cache: state/img/ (liegt mit im Branch `data`).
+LOGO_RE = re.compile(r"https://www\.opleague\.pro/styles/media/team/(\d+)/Logo(?:_\d+)?\.webp(?:\?(\d+))?")
+DEFAULT_LOGO_RE = re.compile(r"https://www\.opleague\.pro/styles/media/game/Val/icon_on_white(?:_\d+)?\.webp(?:\?\d+)?")
+TIERS_UUID = "03621f52-342b-cf4e-4f86-9350a49c6d04"
+GUN_ABILITIES = {"headhunter": "Headhunter", "tour de force": "Tour de Force", "overdrive": "Overdrive"}
+
+try:
+    from PIL import Image
+    import io as _io
+except Exception:
+    Image = None
+
+
+def _http_bytes(url):
+    req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0 (OPL Scout)"})
+    with urllib.request.urlopen(req, timeout=20) as r:
+        return r.read()
+
+
+def mirror_images(state, out):
+    img = state / "img"
+    img.mkdir(parents=True, exist_ok=True)
+    idx_file = img / "index.json"
+    idx = json.loads(idx_file.read_text()) if idx_file.exists() else {}
+    stats = {"neu": 0, "fehler": 0}
+
+    def get(url, rel, box):
+        """Bild nach img/<rel> holen (nur wenn neu oder Quelle geändert), auf box=(w,h) verkleinern."""
+        f = img / rel
+        if idx.get(rel) == url and f.exists():
+            return True
+        try:
+            raw = _http_bytes(url)
+        except Exception:
+            stats["fehler"] += 1
+            return f.exists()
+        f.parent.mkdir(parents=True, exist_ok=True)
+        if Image is not None:
+            try:
+                im = Image.open(_io.BytesIO(raw))
+                im = im.convert("RGBA") if im.mode not in ("RGBA", "RGB") else im
+                im.thumbnail(box, Image.LANCZOS)
+                buf = _io.BytesIO()
+                im.save(buf, "WEBP", quality=86, method=6)
+                raw = buf.getvalue()
+            except Exception:
+                pass
+        f.write_bytes(raw)
+        idx[rel] = url
+        stats["neu"] += 1
+        return True
+
+    # 1) Teamlogos: klein (Listen) und groß (Teamseite, Vorbereitung, Match); Links in den JSON-Dateien umschreiben
+    files = sorted((out / "data").glob("*.json"))
+    logos = {}
+    for f in files:
+        for m in LOGO_RE.finditer(f.read_text()):
+            logos.setdefault(m.group(1), m.group(2) or "")
+    ok = set()
+    for tid, ver in logos.items():
+        base = f"https://www.opleague.pro/styles/media/team/{tid}/"
+        q = f"?{ver}" if ver else ""
+        if get(base + "Logo_100.webp" + q, f"t/{tid}.webp", (64, 64)):
+            get(base + "Logo.webp" + q, f"t/{tid}-l.webp", (256, 256))
+            ok.add(tid)
+    has_default = get("https://www.opleague.pro/styles/media/game/Val/icon_on_white_100.webp", "t/default.webp", (64, 64))
+    if has_default:
+        get("https://www.opleague.pro/styles/media/game/Val/icon_on_white.webp", "t/default-l.webp", (256, 256))
+    # 2) Map-Bilder (Namen aus den Daten)
+    maps = set()
+    for f in files:
+        maps.update(m.lower() for m in re.findall(r'"map":\s*"([A-Za-z ]{3,20})"', f.read_text()))
+        try:
+            maps.update(k.lower() for k in (json.loads(f.read_text()).get("overview") or {}).get("maps", {}) or {})
+        except Exception:
+            pass
+    for mp in sorted(maps):
+        get(f"https://www.opleague.pro/styles/media/game/Val/map/{urllib.parse.quote(mp)}_720.webp", f"map/{mp}.webp", (480, 270))
+    # 3) valorant-api: Agents, Rollen, Waffen, Ränge → data/va.json mit lokalen Pfaden (Liste wöchentlich neu)
+    va_file = img / "va.json"
+    va = json.loads(va_file.read_text()) if va_file.exists() else {}
+    if time.time() - va.get("t", 0) > 7 * 24 * 3600 or not va.get("agents"):
+        try:
+            ag = json.loads(_http("https://valorant-api.com/v1/agents?isPlayableCharacter=true"))["data"]
+            wp = json.loads(_http("https://valorant-api.com/v1/weapons"))["data"]
+            va = {"t": time.time(), "agents": [], "weapons": [], "guns": []}
+            for a in ag:
+                va["agents"].append({"n": a["displayName"], "icon": a.get("displayIcon"), "art": a.get("fullPortraitV2") or a.get("fullPortrait") or a.get("bustPortrait"),
+                                     "role": (a.get("role") or {}).get("displayName"), "roleIcon": (a.get("role") or {}).get("displayIcon")})
+                for ab in a.get("abilities") or []:
+                    g = GUN_ABILITIES.get((ab.get("displayName") or "").lower())
+                    if g and ab.get("displayIcon"):
+                        va["guns"].append({"n": g, "icon": ab["displayIcon"]})
+            for w in wp:
+                va["weapons"].append({"n": w["displayName"], "uuid": w["uuid"], "icon": w.get("killStreamIcon") or w.get("displayIcon")})
+            va_file.write_text(json.dumps(va, ensure_ascii=False))
+        except Exception as e:
+            log(f"  valorant-api: {e}")
+    slug = lambda n: re.sub(r"[^a-z0-9]+", "-", n.lower()).strip("-")
+    pub = {"agents": [], "weapons": [], "guns": [], "roles": {}}
+    for a in va.get("agents", []):
+        s_ = slug(a["n"])
+        x = {"n": a["n"], "role": a.get("role")}
+        if a.get("icon") and get(a["icon"], f"va/a/{s_}.webp", (128, 128)):
+            x["icon"] = f"img/va/a/{s_}.webp"
+        if a.get("art") and get(a["art"], f"va/art/{s_}.webp", (512, 512)):
+            x["art"] = f"img/va/art/{s_}.webp"
+        if a.get("role") and a.get("roleIcon") and a["role"] not in pub["roles"] and get(a["roleIcon"], f"va/role/{slug(a['role'])}.webp", (64, 64)):
+            pub["roles"][a["role"]] = f"img/va/role/{slug(a['role'])}.webp"
+        pub["agents"].append(x)
+    for w in va.get("weapons", []):
+        x = {"n": w["n"], "uuid": w["uuid"]}
+        if w.get("icon") and get(w["icon"], f"va/w/{slug(w['n'])}.webp", (240, 90)):
+            x["icon"] = f"img/va/w/{slug(w['n'])}.webp"
+        pub["weapons"].append(x)
+    for g in va.get("guns", []):
+        if get(g["icon"], f"va/w/{slug(g['n'])}.webp", (90, 90)):
+            pub["guns"].append({"n": g["n"], "icon": f"img/va/w/{slug(g['n'])}.webp"})
+    for t in range(0, 28):
+        rel = f"va/r/{t}.webp"
+        if idx.get(rel) == "-":   # Stufe gibt es nicht (z. B. 1, 2)
+            continue
+        if not get(f"https://media.valorant-api.com/competitivetiers/{TIERS_UUID}/{t}/smallicon.png", rel, (64, 64)) and not (img / rel).exists():
+            idx[rel] = "-"
+    (out / "data" / "va.json").write_text(json.dumps(pub, ensure_ascii=False, separators=(",", ":")))
+    idx_file.write_text(json.dumps(idx, indent=0))
+    # Logo-Links in den Daten auf die lokalen Dateien umschreiben (nur wenn das Bild da ist)
+    for f in files:
+        txt = f.read_text()
+        new = LOGO_RE.sub(lambda m: f"img/t/{m.group(1)}.webp" if m.group(1) in ok else m.group(0), txt)
+        if has_default:
+            new = DEFAULT_LOGO_RE.sub("img/t/default.webp", new)
+        if new != txt:
+            f.write_text(new)
+    shutil.copytree(img, out / "img", dirs_exist_ok=True, ignore=shutil.ignore_patterns("*.json"))
+    log(f"  Bilder: {len(ok)} Logos, {len(maps)} Maps, {len(pub['agents'])} Agents · {stats['neu']} neu geladen, {stats['fehler']} Fehler"
+        + ("" if Image else " (ohne Pillow: nicht verkleinert)"))
+
+
 # --------------------------------------------------------------------------- Rundendaten (HenrikDev, Custom-Games)
 # OPL-Matches werden als Custom-Games gespielt und stehen in der Riot-Historie der Spieler. Zuordnung über
 # Map + Endstand + Spielernamen (nicht über die Uhrzeit: Matches werden oft verschoben, OPL-Zeit stimmt dann nicht).
@@ -1338,7 +1480,7 @@ def hd_team_agg(tid, match_ids):
     return {"n": n_games, "maps": maps, "players": out_players} if n_games else None
 
 
-def export(out, leagues, region, repo, ref, base_cfg):
+def export(out, leagues, region, repo, ref, base_cfg, state=None):
     data = out / "data"
     data.mkdir(parents=True, exist_ok=True)
     meta_leagues = []
@@ -1559,6 +1701,11 @@ def export(out, leagues, region, repo, ref, base_cfg):
         "team_league": team_league,
     }, ensure_ascii=False, indent=1))
 
+    if state is not None:
+        try:
+            mirror_images(Path(state), out)
+        except Exception as e:   # Bilder sind Beiwerk – der Export soll daran nicht scheitern
+            log(f"  Bilder: {e}")
     for f in (HERE / "web").iterdir():
         if f.is_file():
             shutil.copy(f, out / f.name)
@@ -1667,7 +1814,7 @@ def main():
 
     repo = os.environ.get("GITHUB_REPOSITORY", "")
     ref = os.environ.get("GITHUB_REF_NAME", "main")
-    export(out, leagues, region, repo, ref, base_cfg)
+    export(out, leagues, region, repo, ref, base_cfg, state)
     core.cache.save()   # Tabellen-Historie (für die Pfeile) sichern
 
 

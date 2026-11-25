@@ -42,6 +42,9 @@
   #teams,#detail{min-width:0}
   #teams{display:flex;flex-direction:column;overflow:hidden}
   #teamlist{flex:1;overflow:auto}
+  #sidefoot{padding:6px 10px;border-top:1px solid var(--line);font-size:11px;text-align:center} #sidefoot a{color:var(--mut)} #sidefoot a:hover{color:var(--txt)}
+  #privdlg .dlg{max-height:80vh;overflow:auto} #privdlg h4{margin:14px 0 4px;font-size:13px} #privdlg p,#privdlg li{font-size:13px;line-height:1.5} #privdlg ul{margin:4px 0;padding-left:18px}
+  #privdlg .todo{color:var(--warn)}
   .sidetools{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:10px 8px;border-bottom:1px solid var(--line);background:var(--panel)}
   #admininfo{flex-basis:100%;font-size:12px;color:var(--mut)} #admininfo:empty{display:none}
   button{background:var(--acc);color:#fff;border:0;border-radius:6px;padding:6px 12px;cursor:pointer;font:inherit}
@@ -101,8 +104,8 @@
   .sharebtn.ok .ic-link{--m:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12l5 5L20 7'/%3E%3C/svg%3E")}
   .sharebtn{padding:5px 8px;line-height:1} .sharebtn.ok{color:var(--good);border-color:var(--good)}
   /* einheitliche Seitentitel */
-  img[src*="/displayicon"][src*="valorant-api.com/agents/"],image[href*="/displayicon"][href*="valorant-api.com/agents/"]{cursor:pointer}
-  img[src*="/displayicon"][src*="valorant-api.com/agents/"]:hover{filter:brightness(1.2);outline:1px solid var(--mut);outline-offset:1px;border-radius:50%}
+  img[src*="img/va/a/"],image[href*="img/va/a/"]{cursor:pointer}
+  img[src*="img/va/a/"]:hover{filter:brightness(1.2);outline:1px solid var(--mut);outline-offset:1px;border-radius:50%}
   .aghead{position:relative;display:flex;align-items:flex-end;min-height:150px;border-radius:12px;overflow:hidden;margin-bottom:12px;
     background:linear-gradient(120deg, color-mix(in srgb, var(--acc) 18%, var(--panel)), var(--panel))}
   .aghead .agart{position:absolute;right:10px;top:-30px;height:240px;opacity:.9;pointer-events:none}
@@ -911,12 +914,33 @@
     </div>
     <div id="phasebar"></div>
     <div id="teamlist"><div class="empty"><span class="spin"></span> Lade Daten…</div></div>
+    <div id="sidefoot"><a href="#" id="privlink">Datenschutz</a></div>
   </div>
   <div id="splitter" title="Ziehen, um die Breite zu ändern (Doppelklick = Standard)"></div>
   <div id="detail"><div class="empty">← Team anklicken, um Spieler und Stats zu sehen</div></div>
 </main>
 
 <style id="mestyle"></style>
+<dialog id="privdlg">
+  <div class="dlg">
+    <h3>Datenschutz</h3>
+    <h4>Kurz gesagt</h4>
+    <p>Keine Cookies, kein Tracking, keine Werbung. Alle Bilder und Daten kommen von dieser Seite selbst.</p>
+    <h4>Hosting</h4>
+    <p>Die Seite liegt bei GitHub Pages (GitHub Inc., USA). GitHub verarbeitet beim Aufruf technisch nötige Daten wie die IP-Adresse,
+      siehe <a href="https://docs.github.com/de/site-policy/privacy-policies/github-general-privacy-statement" target="_blank" rel="noopener">Datenschutzerklärung von GitHub</a>.</p>
+    <h4>Gespeichert in deinem Browser</h4>
+    <p>Nur Einstellungen, die du selbst wählst, im lokalen Speicher (localStorage), nie an uns gesendet:</p>
+    <ul><li>Design, gewählte Liga, Breite der Seitenleiste, Filter und Ansichten</li><li>Mein Team / Mein Spieler</li><li>falls du dich für manuelle Updates anmeldest: GitHub-Token bzw. HenrikDev-Key</li></ul>
+    <h4>Daten an Dritte</h4>
+    <p>Nur wenn du es auslöst: Ein eigener HenrikDev-Key wird an api.henrikdev.xyz gesendet, ein Admin-Token an api.github.com.
+      Links zu OPL, tracker.gg und YouTube öffnen erst beim Klick die jeweilige Seite.</p>
+    <h4>Quellen</h4>
+    <p>Liga-Daten von opleague.pro, Spieldaten über die HenrikDev-API, Bilder von opleague.pro und valorant-api.com (beim Erstellen der Seite übernommen).
+      Inoffizielles Fan-Projekt, nicht verbunden mit Riot Games oder OPL.</p>
+    <div class="row"><button class="ghost" id="privclear" title="Löscht alle Einstellungen dieser Seite in diesem Browser">Lokale Daten löschen</button><button id="privclose">Schließen</button></div>
+  </div>
+</dialog>
 <dialog id="medlg">
   <div class="dlg">
     <h3>Mein Team &amp; Mein Spieler</h3>
@@ -971,7 +995,10 @@ const tip = t => `<span class="ii" tabindex="0" role="note" aria-label="${esc(t)
   document.addEventListener("focusout", hide);
   document.addEventListener("scroll", hide, true);
 })();
-const RANK_ICON = t => `https://media.valorant-api.com/competitivetiers/03621f52-342b-cf4e-4f86-9350a49c6d04/${t}/smallicon.png`;
+const RANK_ICON = t => `img/va/r/${t}.webp`;   // Bilder liegen lokal (build.py lädt sie herunter)
+// Teamlogos: klein für Listen, groß (…-l.webp) für Kopfbereiche; alte externe OPL-Links auf die lokale Datei umbiegen
+const LOGO = u => { const m = /opleague\.pro\/styles\/media\/team\/(\d+)\//.exec(u || ""); return m ? `img/t/${m[1]}.webp` : (u || ""); };
+const BIGLOGO = u => LOGO(u).replace(/^(img\/t\/[\w-]+?)(-l)?\.webp$/, "$1-l.webp");
 const TIERS = ["Unrated","","","Iron 1","Iron 2","Iron 3","Bronze 1","Bronze 2","Bronze 3","Silver 1","Silver 2","Silver 3","Gold 1","Gold 2","Gold 3","Platinum 1","Platinum 2","Platinum 3","Diamond 1","Diamond 2","Diamond 3","Ascendant 1","Ascendant 2","Ascendant 3","Immortal 1","Immortal 2","Immortal 3","Radiant"];
 const tierFromElo = e => Math.max(3, Math.min(27, Math.floor(e/100)+3));
 const fmtTime = t => new Date(t*1000).toLocaleString("de-DE",{day:"2-digit",month:"2-digit",year:"numeric",hour:"2-digit",minute:"2-digit"}) + " Uhr";
@@ -1528,7 +1555,7 @@ function renderTeam(team, mt){
   const oldest = Math.min(...times.filter(Boolean)), newest = Math.max(...times.filter(Boolean));
   $("#detail").innerHTML = `
     ${crumbs([{label: team.name || mt?.name}], `${refreshButton(`Ranked-Stand: ${fmtTime(oldest)}${newest - oldest > 300 ? `, teils neuer (bis ${fmtTime(newest)})` : ""}`)}<span id="teamstatus" class="sub"></span>`)}
-    <div class="th"><img src="${esc(mt?.logo||"")}" alt=""><div><h2>${esc(team.name||mt?.name)}</h2>
+    <div class="th"><img src="${esc(BIGLOGO(mt?.logo))}" alt=""><div><h2>${esc(team.name||mt?.name)}</h2>
       <a href="${esc(mt?.url||"")}" target="_blank" rel="noopener">OPL ↗</a>${cityHtml(mt?.id || team.id)}</div>
       <div class="avgs${avgPeak ? " peak" : ""}" id="avgs" title="Klicken: zwischen aktuellem Rang und Peak umschalten">
       ${(() => { const L = avgPeak ? peaks : elos;
@@ -1623,7 +1650,7 @@ function oplPlayer(team, m){
   const P = team.opl?.players || {};
   return P[(m.riot_id || "").split("#")[0].toLowerCase()] || P[(m.opl_name || "").toLowerCase()] || null;
 }
-const MAP_IMG = mp => `https://www.opleague.pro/styles/media/game/Val/map/${encodeURIComponent(mp)}_720.webp`;
+const MAP_IMG = mp => `img/map/${encodeURIComponent(String(mp).toLowerCase())}.webp`;
 const cap = x => x ? x[0].toUpperCase() + x.slice(1) : x;
 // Best-of aus dem OPL-Format der Matches ("round robin, BO2" / "swiss, BO3"); Standard 3
 function bestOf(o){
@@ -2099,7 +2126,7 @@ function renderPlayer(team, mt, key){
   const teamName = team.name || mt?.name || "";
   $("#detail").innerHTML = `
     ${crumbs([{label: teamName, href: hashOf({l: league.id, t: String(team.id)})}, {label: name}])}
-    <div class="phead"><img class="tlogo" src="${esc(mt?.logo || "")}" alt="" onerror="this.remove()"><div>
+    <div class="phead"><img class="tlogo" src="${esc(BIGLOGO(mt?.logo))}" alt="" onerror="this.remove()"><div>
       <h2>${esc(name)}${roleChip(agg)}${banHtml(banOf(team, m))}</h2>
       <div class="sub">${m?.position && m.position !== "Player" ? `<span class="pos ${esc(m.position)}">${esc(m.position)}</span> · ` : ""}<span class="tlink" data-team="${esc(team.id)}">${esc(teamName)}</span>${mt?.rank ? ` · Platz ${esc(mt.rank)}` : ""}
         ${m?.riot_id ? ` · ${esc(m.riot_id)} · <a href="https://tracker.gg/valorant/profile/riot/${encodeURIComponent(m.riot_id)}/overview" target="_blank" rel="noopener">tracker.gg ↗</a>` : ""}</div></div></div>
@@ -2995,7 +3022,7 @@ function renderPrep(A, mtA, B, mtB, entry){
   const nameA = A.name || mtA?.name, nameB = B.name || mtB?.name;
   const date = entry?.start ? new Date(entry.start * 1000).toLocaleString("de-DE", {weekday: "short", day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit"}) + " Uhr" : "";
   const sumA = league.summaries[mtA?.id]?.top5, sumB = league.summaries[mtB?.id]?.top5;
-  const tcell = (mt, sm, name) => `<div class="pteam"><img src="${esc(mt?.logo || "")}" alt=""><div><b>${esc(name)}</b>
+  const tcell = (mt, sm, name) => `<div class="pteam"><img src="${esc(BIGLOGO(mt?.logo))}" alt=""><div><b>${esc(name)}</b>
     <div class="sub">${mt?.group ? `Gr. ${esc(mt.group)} · ` : ""}Platz ${esc(mt?.rank ?? "–")}${cityOf(mt?.id) ? ` · ${esc(cityOf(mt?.id))}` : ""}</div>
     ${sm ? `<div class="rank"><img src="${RANK_ICON(sm.tier)}" alt=""><span class="sub">Top 5: ${esc(TIERS[sm.tier])} · ${sm.elo}</span></div>` : ""}</div></div>`;
 
@@ -3236,7 +3263,7 @@ async function openMatch(A, mtA, mid, my = ++current){
 }
 function teamLogo(id){
   const t = league.teams.find(x => x.id === String(id));
-  return t?.logo || "";
+  return t?.logo ? LOGO(t.logo) : "";
 }
 // Badges wie bei tracker.gg: gewonnene Clutches (1vX) und Multikills ab 3K (cl = [1v1..1v5], mk = [2K,3K,4K,5K])
 function badgeHtml(cl = [], mk = [], cs = []){
@@ -3506,12 +3533,12 @@ function renderMatch(A, mtA, B, m, H = null){
   $("#detail").innerHTML = `
     ${crumbs([{label: nameA, href: hashOf({l: league.id, t: String(A.id)})}, {label: `vs ${nameB}`}])}
     <div class="mhero">
-      <div class="mht">${teamLogo(A.id) ? `<img src="${esc(teamLogo(A.id))}" alt="">` : ""}<b>${esc(nameA)}</b></div>
+      <div class="mht">${teamLogo(A.id) ? `<img src="${esc(BIGLOGO(teamLogo(A.id)))}" alt="">` : ""}<b>${esc(nameA)}</b></div>
       <div class="mhs"><div class="mscore ${cls}">${res[0]} : ${res[1]}</div>
         <div class="sub">${moved ? `gespielt ${esc(played.toLocaleString("de-DE", {weekday: "short", day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit"}))} Uhr <span title="Laut OPL angesetzt: ${esc(date)}">(verlegt)</span>` : esc(date)}</div>
         <div class="sub">${esc((/BO\d/i.exec(m.format || "") || [""])[0])}${m.stage ? ` · ${esc(roundName(m.stage))}` : ""}${m.bracket ? ` · ${esc(m.bracket)}` : ""}</div>
         <div class="mhl">${vodLinks(m)}<a class="sub" href="https://www.opleague.pro/match/${esc(m.id)}" target="_blank" rel="noopener">OPL ↗</a></div></div>
-      <div class="mht r">${teamLogo(bId) ? `<img src="${esc(teamLogo(bId))}" alt="">` : ""}<b>${teamLink(bId, nameB)}</b></div>
+      <div class="mht r">${teamLogo(bId) ? `<img src="${esc(BIGLOGO(teamLogo(bId)))}" alt="">` : ""}<b>${teamLink(bId, nameB)}</b></div>
     </div>
     ${veto ? `<div class="sechead"><h3>Veto ${tip(`Rot = ${nameA}, blau = ${nameB}, gestrichelt = Decider.`)}</h3></div><div class="vsteps">${veto}</div>` : ""}
     ${panes.length ? `<div class="sechead"><h3>Scoreboard ${tip(games.length
@@ -3563,6 +3590,7 @@ function renderHistory(){
     <div class="hopts" id="histopts" hidden>
       <label>Sortierung <select id="histsort">${[["new", "Neueste zuerst"], ["old", "Älteste zuerst"], ["close", "Knappste zuerst"], ["rounds", "Meiste Runden zuerst"]].map(([k, l]) => `<option value="${k}"${histOpt.sort === k ? " selected" : ""}>${l}</option>`).join("")}</select></label>
       <label class="kotoggle"><input type="checkbox" id="histff"${histOpt.hideFF ? " checked" : ""}> Kampflose Siege und Freilose ausblenden</label></div>
+    <div class="hchips" id="histchips"></div>
     <div id="histlist"></div>`;
   $("#back").onclick = () => showDetail(false);
   const inp = $("#histq");
@@ -3576,6 +3604,7 @@ function renderHistory(){
 }
 function drawHistory(){
   const H = league.history || [];
+  drawHistChips(H);
   const toks = histQ.toLowerCase().split(/\s+/).filter(Boolean);
   const hay = e => [e.t1?.name, e.t2?.name, e.stage, e.bracket, ...e.maps.map(x => x.map), ...(e.players || [])].filter(Boolean).join(" ").toLowerCase();
   const rounds = e => e.maps.reduce((a, x) => a + x.s1 + x.s2, 0), diff = e => e.maps.reduce((a, x) => a + Math.abs(x.s1 - x.s2), 0) / (e.maps.length || 1);
@@ -3610,7 +3639,6 @@ function drawHistory(){
       <span class="hmaps">${e.maps.length ? "" : '<span class="ffkind">kampflos / Freilos</span>'}${e.maps.map(x => `<span class="hmap" style="--bg:url('${MAP_IMG(x.map)}')">${esc(cap(x.map))} <b>${x.s1}:${x.s2}</b></span>`).join("")}
         ${e.stage ? `<span class="stage" title="${esc(e.bracket || "")}">${esc(roundName(e.stage))}</span>` : ""}
         ${pls.length ? `<span class="sub">Spieler: ${pls.map(esc).join(", ")}</span>` : ""}</span>
-    <div class="hchips" id="histchips"></div>
     </div>`;
   }
   $("#histlist").innerHTML = out + (list.length > 300 ? `<p class="sub">… ${list.length - 300} weitere – Suche verfeinern.</p>` : "");
@@ -3636,7 +3664,6 @@ function drawHistChips(H){
 }
 let agShown = null;
 function showAgent(a, push = true){
-  drawHistChips(H);
   if(!league) return;
   ++current; curTeam = null; metaShown = false; mapShown = null; brShown = null; agShown = a; histShown = false;
   document.querySelectorAll("tr.team.sel").forEach(x => x.classList.remove("sel"));
@@ -3715,8 +3742,7 @@ document.addEventListener("click", e => {
 
 // ------------------------------------------------------------------ Waffen (Namen/Icons von valorant-api; Rundendaten speichern Namen oder IDs)
 const WEAPON = {};   // Name oder UUID → {name, icon}
-fetch("https://valorant-api.com/v1/weapons").then(r => r.json()).then(j => { for(const w of j.data || []){
-  const x = {name: w.displayName, icon: w.killStreamIcon || w.displayIcon}; WEAPON[w.displayName.toLowerCase()] = x; WEAPON[w.uuid] = x; } }).catch(() => {});
+// Agents, Waffen und Rollen-Icons kommen aus data/va.json (vom Build aus valorant-api.com erzeugt, Bilder lokal)
 const AGENT_GUNS = {"856d9a7e": "Headhunter", "39099fb5": "Tour de Force", "95336ae4": "Overdrive"};   // Chamber/Neon, fehlen bei valorant-api
 const wName = k => WEAPON[k]?.name || WEAPON[String(k).toLowerCase()]?.name || AGENT_GUNS[String(k).slice(0, 8)] || k;
 // Waffen zusammenführen (IDs → Namen) und als Balkenliste: Icon, Name, Balken, Anteil
@@ -3739,16 +3765,16 @@ function buyList(list){
 
 // ------------------------------------------------------------------ Agent-Bilder
 let AGENT_ICONS = {}, AGENT_ROLE = {}, ROLE_ICON = {}, AGENT_ART = {}, AGENT_BY_ICON = {};
-const agentsReady = fetch("https://valorant-api.com/v1/agents?isPlayableCharacter=true")
-  .then(r => r.json()).then(j => { for(const a of j.data || []){
-    AGENT_ICONS[a.displayName.toLowerCase()] = a.displayIcon; AGENT_BY_ICON[a.displayIcon] = a.displayName;
-    AGENT_ART[a.displayName.toLowerCase()] = a.fullPortraitV2 || a.fullPortrait || a.bustPortrait;
-    if(a.role){ AGENT_ROLE[a.displayName.toLowerCase()] = a.role.displayName; ROLE_ICON[a.role.displayName] = a.role.displayIcon; }
-    // Agenten-Waffen (Headhunter, Tour de Force, Overdrive) fehlen bei /weapons → Icon der Fähigkeit nehmen
-    for(const ab of a.abilities || []){ const n = Object.values(AGENT_GUNS).find(g => g.toLowerCase() === (ab.displayName || "").toLowerCase());
-      if(n && ab.displayIcon && !WEAPON[n.toLowerCase()]) WEAPON[n.toLowerCase()] = {name: n, icon: ab.displayIcon, ability: true}; }
-  } })
-  .catch(() => {});
+const agentsReady = fetch("data/va.json?t=" + Date.now()).then(r => r.json()).then(j => {
+    for(const a of j.agents || []){ const k = a.n.toLowerCase();
+      if(a.icon){ AGENT_ICONS[k] = a.icon; AGENT_BY_ICON[a.icon] = a.n; }
+      if(a.art) AGENT_ART[k] = a.art;
+      if(a.role) AGENT_ROLE[k] = a.role; }
+    Object.assign(ROLE_ICON, j.roles || {});
+    for(const w of j.weapons || []){ const x = {name: w.n, icon: w.icon}; WEAPON[w.n.toLowerCase()] = x; WEAPON[w.uuid] = x; }
+    // Agenten-Waffen (Headhunter, Tour de Force, Overdrive) fehlen bei /weapons → Icon der Fähigkeit
+    for(const g of j.guns || []) if(!WEAPON[g.n.toLowerCase()]) WEAPON[g.n.toLowerCase()] = {name: g.n, icon: g.icon, ability: true};
+  }).catch(() => {});
 // list: ["Jett", …] oder [["Jett", Maps, Prozent], …]
 function agentIcons(list, pct=false, max=4){
   if(!list || !list.length) return "";
@@ -3772,7 +3798,7 @@ const meLeagues = {};   // Liga-ID → Liga-JSON (für die Auswahl)
 const isMyPlayer = (tid, key) => { const p = store.get("mePlayer"); return !!p && p.tid === String(tid) && p.pkey === key; };
 function drawMe(){
   const T = store.get("meTeam"), P = store.get("mePlayer");
-  $("#meteam").innerHTML = T ? `${T.logo ? `<img src="${esc(T.logo)}" alt="" onerror="this.remove()">` : "★"}<span class="mn">${esc(T.tname)}</span>` : "";
+  $("#meteam").innerHTML = T ? `${T.logo ? `<img src="${esc(LOGO(T.logo))}" alt="" onerror="this.remove()">` : "★"}<span class="mn">${esc(T.tname)}</span>` : "";
   $("#meteam").title = T ? `Mein Team: ${T.tname}` : "";
   $("#meplayer").innerHTML = P ? `<svg class="meic" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="5" r="3" fill="currentColor"/><path d="M2.5 14.5c0-3 2.5-5 5.5-5s5.5 2 5.5 5" fill="currentColor"/></svg><span class="mn">${esc(P.pname)}</span>` : "";
   $("#meplayer").title = P ? `Mein Spieler: ${P.pname} (${P.tname})` : "";
@@ -4044,6 +4070,13 @@ async function openUrl(){
   $("#meteam").onclick = () => { setMenu(false); const T = store.get("meTeam"); if(T) location.hash = hashOf({l: T.lid, t: T.tid}); };
   $("#meplayer").onclick = () => { setMenu(false); const P = store.get("mePlayer"); if(P) location.hash = hashOf({l: P.lid, t: P.tid, p: P.pkey}); };
   $("#meedit").onclick = () => { setMenu(false); openMe(); };
+  $("#privlink").onclick = e => { e.preventDefault(); $("#privdlg").showModal(); };
+  $("#privclose").onclick = () => $("#privdlg").close();
+  $("#privclear").onclick = () => {
+    if(!confirm("Alle gespeicherten Einstellungen dieser Seite (inkl. Mein Team und Login) in diesem Browser löschen?")) return;
+    try{ Object.keys(localStorage).filter(k => k.startsWith("oplScout:")).forEach(k => localStorage.removeItem(k)); }catch(e){}
+    location.reload();
+  };
   drawMe();
   const themeIcon = () => {
     const light = document.documentElement.dataset.theme === "light";

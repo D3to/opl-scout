@@ -62,6 +62,9 @@ jobs:
         with:
           python-version: "3.12"
 
+      - name: Pillow (Bilder verkleinern)
+        run: pip install -q pillow || true
+
       - name: Daten aktualisieren
         env:
           HENRIKDEV_API_KEY: ${{ secrets.HENRIKDEV_API_KEY }}
